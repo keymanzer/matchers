@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Title</title>
+</head>
+
+<body>
+	<h3>MAIN INDEX</h3>
+	<h3></h3><a href="/">메인</a></h3>
+	<ul>
+		<!-- 비로그인시  인증되지 않은 사용자라면-->
+		<th:block sec:authorize="isAnonymous()">
+			<li>
+				<a href="/login">로그인</a>
+			</li>
+		</th:block>
+		<!-- 로그인시 -->
+		<th:block sec:authorize="isAuthenticated">
+			<li>
+				<!--<a href="/logout">로그아웃</a>-->
+				<form action="/logout" method="post">
+					<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+					<button type="submit">로그아웃</button>
+				</form>
+			</li>
+		</th:block>
+
+		<th:block sec:authorize="isAuthenticated()">
+			<li>
+				<h3>사용자 ID: <span sec:authentication="name"></span></h3>
+				<h3>사용자 닉네임: <span sec:authentication="principal.nickname"></span></h3>
+				<h3>권한:
+					<span th:each="auth : ${#authentication.authorities}" th:text="${auth.authority}"></span>
+				</h3>
+			</li>
+		</th:block>
+	</ul>
+</body>
+
+</html>

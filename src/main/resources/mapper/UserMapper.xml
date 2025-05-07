@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.kosa.mapper.UserMapper">
+
+	<resultMap type="kr.or.kosa.user.dto.Users" id="userMap">
+		<id property="userId" column="ID" />
+		<result property="email" column="EMAIL" />
+		<result property="password" column="PASSWORD" />
+		<result property="nickname" column="NICKNAME" />
+		<result property="profileImg" column="PROFILE_IMG" />
+		<result property="provider" column="PROVIDER" />
+		<result property="providerId" column="PROVIDER_ID" />
+		<result property="enabled" column="ENABLED" />
+		<result property="createdAt" column="CREATED_AT" />
+		<result property="updatedAt" column="UPDATED_AT" />
+		<result property="isDeleted" column="IS_DELETED" />
+
+		<collection property="authList" resultMap="authMap"></collection>
+	</resultMap>
+	
+	<resultMap type="kr.or.kosa.user.dto.UserAuth" id="authMap">
+		<result property="userId" column="USER_ID" />
+		<result property="authority" column="AUTHORITY" />
+	</resultMap>
+
+	<select id="login" resultMap="userMap">
+		SELECT U.ID, U.EMAIL, U.PASSWORD, U.NICKNAME, U.PROFILE_IMG, U.ENABLED,
+		U.CREATED_AT, A.AUTHORITY
+		FROM USERS U
+		LEFT JOIN USER_AUTH A
+		ON U.ID = A.USER_ID
+		WHERE U.EMAIL = #{email}
+	</select>
+
+</mapper>

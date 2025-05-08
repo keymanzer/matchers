@@ -22,7 +22,7 @@ public class CustomDetailService implements UserDetailsService {
 		Users user = userMapper.login(username);
 
 		if (user == null) {
-			throw new UsernameNotFoundException("요청하신 ID 가 없습니다 " + username);
+			throw new UsernameNotFoundException(username + "으로 가입된 정보가 없습니다 ");
 		}
 
 		CustomUser customerUser = new CustomUser(user);

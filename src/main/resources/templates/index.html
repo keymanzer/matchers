@@ -32,7 +32,7 @@
 				<h3>사용자 ID: <span sec:authentication="name"></span></h3>
 				<h3>사용자 닉네임: <span sec:authentication="principal.nickname"></span></h3>
 				<h3>권한:
-					<span th:each="auth : ${#authentication.authorities}" th:text="${auth.authority}"></span>
+					<p th:each="auth : ${#authentication.authorities}" th:text="${auth.authority}"></p>
 				</h3>
 			</li>
 		</th:block>

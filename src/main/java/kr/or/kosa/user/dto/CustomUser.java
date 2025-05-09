@@ -12,6 +12,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CustomUser implements UserDetails {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2189135186L;
 	private final Users user;
 
 	@Override

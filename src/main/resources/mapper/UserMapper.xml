@@ -3,7 +3,7 @@
 <mapper namespace="kr.or.kosa.mapper.UserMapper">
 
 	<resultMap type="kr.or.kosa.user.dto.Users" id="userMap">
-		<id property="userId" column="ID" />
+		<id property="userId" column="USER_ID" />
 		<result property="email" column="EMAIL" />
 		<result property="password" column="PASSWORD" />
 		<result property="nickname" column="NICKNAME" />
@@ -17,18 +17,19 @@
 
 		<collection property="authList" resultMap="authMap"></collection>
 	</resultMap>
-	
+
 	<resultMap type="kr.or.kosa.user.dto.UserAuth" id="authMap">
 		<result property="userId" column="USER_ID" />
 		<result property="authority" column="AUTHORITY" />
 	</resultMap>
 
 	<select id="login" resultMap="userMap">
-		SELECT U.ID, U.EMAIL, U.PASSWORD, U.NICKNAME, U.PROFILE_IMG, U.ENABLED,
-		U.CREATED_AT, A.USER_ID, A.AUTHORITY
+		SELECT U.USER_ID, U.EMAIL, U.PASSWORD, U.NICKNAME, U.ENABLED,
+		U.PROFILE_IMG, A.USER_ID,
+		A.AUTHORITY
 		FROM USERS U
 		LEFT JOIN USER_AUTH A
-		ON U.ID = A.USER_ID
+		ON U.USER_ID = A.USER_ID
 		WHERE U.EMAIL = #{email}
 	</select>
 

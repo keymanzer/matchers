@@ -33,4 +33,8 @@ public class CustomUser implements UserDetails {
 	public String getNickname() {
 		return user.getNickname();
 	}
+
+	public String getProfileImg() {
+		return user.getProfileImg();
+	}
 }

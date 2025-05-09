@@ -41,4 +41,8 @@ public class CustomUser implements UserDetails {
 	public String getProfileImg() {
 		return user.getProfileImg();
 	}
+
+	public Long getUserId() {
+		return user.getUserId();
+	}
 }

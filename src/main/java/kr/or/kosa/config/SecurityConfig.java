@@ -14,6 +14,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 
 import kr.or.kosa.security.CustomAccessDeniedHandler;
 import kr.or.kosa.security.CustomDetailService;
+import kr.or.kosa.security.CustomOAuth2UserService;
 import kr.or.kosa.security.LoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
 
@@ -24,10 +25,19 @@ public class SecurityConfig {
 
 	private final CustomDetailService customDetailService;
 
+	private final CustomOAuth2UserService customOAuth2UserService;
+
 	@Bean
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-		http.authorizeHttpRequests(auth -> auth.requestMatchers("/admin/**").hasRole("ADMIN")
-				.requestMatchers("/user/**").hasAnyRole("USER", "ADMIN").anyRequest().permitAll());
+		http.authorizeHttpRequests(auth -> auth
+				.requestMatchers("/", "/login", "/signup", "/check-email", "reset-password", "/loginPro", "/css/**",
+						"/js/**", "/images/**", "/oauth2/**")
+				.permitAll().requestMatchers("/admin/**").hasRole("ADMIN").requestMatchers("/user/**")
+				.hasAnyRole("USER", "ADMIN").anyRequest().authenticated());
+
+		http.oauth2Login(oauth2 -> oauth2.loginPage("/login")
+				.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+				.successHandler(authenticationSuccessHandler()));
 
 		http.logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/").deleteCookies("JSESSIONID")
 				.invalidateHttpSession(true));

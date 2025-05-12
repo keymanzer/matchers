@@ -22,17 +22,17 @@ public class UserController {
 
 	@GetMapping({ "", "/" })
 	public String home(Principal principal) {
-		return "/index";
+		return "index";
 	}
 
 	@GetMapping("/login")
 	public String login() {
-		return "/user/login";
+		return "user/login";
 	}
 
 	@GetMapping("/signup")
 	public String signUp() {
-		return "/user/signup";
+		return "user/signup";
 	}
 
 	@PostMapping("/signup")

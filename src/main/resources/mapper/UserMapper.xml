@@ -49,6 +49,13 @@
 		#{password}, #{nickname})
 	</insert>
 
+	<insert id="insertSocialUser" parameterType="kr.or.kosa.user.dto.Users">
+		INSERT INTO USERS (USER_ID, EMAIL, PASSWORD, NICKNAME, PROVIDER,
+		PROVIDER_ID)
+		VALUES (USER_SEQ.NEXTVAL, #{email},
+		#{password}, #{nickname}, #{provider}, #{providerId})
+	</insert>
+
 	<insert id="addAuth" parameterType="kr.or.kosa.user.dto.UserAuth">
 		INSERT INTO USER_AUTH (USER_ID, AUTHORITY)
 		VALUES (#{userId}, #{authority})

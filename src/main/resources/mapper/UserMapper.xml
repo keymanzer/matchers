@@ -23,6 +23,16 @@
 		<result property="authority" column="AUTHORITY" />
 	</resultMap>
 
+	<select id="getUserId">
+		SELECT USER_ID
+		FROM USERS
+		WHERE EMAIL = #{email}
+	</select>
+
+	<select id="emailExists">
+		SELECT COUNT(*) FROM USERS WHERE EMAIL = #{email}
+	</select>
+
 	<select id="login" resultMap="userMap">
 		SELECT U.USER_ID, U.EMAIL, U.PASSWORD, U.NICKNAME, U.ENABLED,
 		U.PROFILE_IMG, A.USER_ID,
@@ -32,5 +42,17 @@
 		ON U.USER_ID = A.USER_ID
 		WHERE U.EMAIL = #{email}
 	</select>
+
+	<insert id="signUp" parameterType="kr.or.kosa.user.dto.Users">
+		INSERT INTO USERS (USER_ID, EMAIL, PASSWORD, NICKNAME)
+		VALUES (USER_SEQ.NEXTVAL, #{email},
+		#{password}, #{nickname})
+	</insert>
+
+	<insert id="addAuth" parameterType="kr.or.kosa.user.dto.UserAuth">
+		INSERT INTO USER_AUTH (USER_ID, AUTHORITY)
+		VALUES (#{userId}, #{authority})
+	</insert>
+
 
 </mapper>

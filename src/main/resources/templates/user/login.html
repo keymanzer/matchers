@@ -75,9 +75,10 @@
 
 						<!-- 링크: 회원가입 | 비밀번호 재설정 -->
 						<div class="text-center my-3">
-							<a href="/signup" class="reset-link d-inline">이메일로 가입</a>
+							<a href="/signup" class="reset-link d-inline" onclick="event.stopPropagation()">이메일로 가입</a>
 							<span class="text-muted mx-2">|</span>
-							<a href="/reset-password" class="reset-link d-inline">비밀번호 재설정</a>
+							<a href="/reset-password" class="reset-link d-inline" onclick="event.stopPropagation()">비밀번호
+								재설정</a>
 						</div>
 
 						<!-- 카카오 로그인 -->

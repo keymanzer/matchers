@@ -1,23 +1,76 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org">
 
 <head>
 	<meta charset="UTF-8">
 	<title>로그인</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 	<style>
-		.kakao-btn {
-			background-color: #FEE500;
-			color: #000;
+		body {
+			background-color: #f8f9fa;
+			font-family: 'Noto Sans KR', sans-serif;
+		}
+
+		.login-card {
+			width: 100%;
+			max-width: 400px;
 			border: none;
+			border-radius: 16px;
+			box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+		}
+
+		.login-card .card-header {
+			background-color: white;
+			text-align: center;
+			border-bottom: none;
+			padding-top: 24px;
+		}
+
+		.login-card .card-header h4 {
+			font-weight: 700;
+			font-size: 1.5rem;
+		}
+
+		.login-card .card-body {
+			padding: 2rem;
+		}
+
+		.form-control {
+			border-radius: 12px;
+			font-size: 0.95rem;
+		}
+
+		.btn-primary {
+			background-color: #6b48ff;
+			border: none;
+			border-radius: 12px;
+			font-weight: 600;
+			font-size: 1rem;
+		}
+
+		.btn-primary:hover {
+			background-color: #5838dd;
+		}
+
+		.social-btn {
+			border-radius: 12px;
+			font-weight: 600;
+			font-size: 0.95rem;
+			margin-top: 0.75rem;
+		}
+
+		.kakao-btn {
+			background-color: #fee500;
+			color: #191600;
 		}
 
 		.kakao-btn:hover {
-			background-color: #ffe812;
+			background-color: #ffec3d;
 		}
 
 		.reset-link {
-			font-size: 0.9em;
+			font-size: 0.85rem;
 			color: #6c757d;
 			text-decoration: none;
 		}
@@ -31,63 +84,61 @@
 			color: red;
 			display: none;
 		}
+
+		.text-separator {
+			text-align: center;
+			margin: 1.5rem 0 1rem;
+			color: #adb5bd;
+			font-size: 0.85rem;
+		}
+
+		body.swal2-shown {
+			overflow: hidden !important;
+			padding-right: 0 !important;
+		}
 	</style>
 </head>
 
-<body class="bg-light">
+<body>
+	<div th:replace="~{header :: header}"></div>
 
-	<!-- 에러 메시지 -->
-	<div th:if="${param.error}" class="alert alert-danger mt-2 text-center">
-		이메일 또는 비밀번호가 잘못되었습니다.
-	</div>
+	<div class="page-wrapper d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+		<div class="card login-card">
+			<div class="card login-card">
+				<div class="card-header">
+					<h4>로그인</h4>
+				</div>
+				<div class="card-body">
+					<form action="/loginPro" method="post">
+						<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+						<div class="mb-3">
+							<input id="id" type="text" class="form-control" name="id" placeholder="이메일을 입력하세요">
+							<div class="error-message" id="emailError">이메일을 입력해주세요.</div>
+						</div>
+						<div class="mb-3">
+							<input id="pw" type="password" class="form-control" name="pw" placeholder="비밀번호를 입력하세요">
+							<div class="error-message" id="passwordError">비밀번호를 입력해주세요.</div>
+						</div>
+						<div class="d-grid mb-3">
+							<button id="loginBtn" type="submit" class="btn btn-primary">이메일 로그인</button>
+						</div>
+					</form>
 
-	<div class="container mt-5">
-		<div class="row justify-content-center">
-			<div class="col-md-5">
-				<div class="card shadow-lg">
-					<div class="card-header text-center bg-primary text-white">
-						<h4 class="mb-0">로그인</h4>
+					<div class="text-center">
+						<a href="/signup" class="reset-link" onclick="event.stopPropagation()">이메일로 가입</a>
+						<span class="mx-2 text-muted">|</span>
+						<a href="/reset-password" class="reset-link" onclick="event.stopPropagation()">비밀번호 찾기</a>
 					</div>
-					<div class="card-body">
-						<!-- 로그인 폼 -->
-						<form id="loginForm" action="/loginPro" method="post">
-							<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-							<!-- 이메일 -->
-							<div class="mb-3">
-								<label for="id" class="form-label">이메일</label>
-								<input type="text" class="form-control" id="id" name="id" placeholder="이메일을 입력하세요">
-								<div class="error-message" id="emailError">이메일을 입력해주세요.</div>
-							</div>
+					<div class="text-separator">또는</div>
 
-							<!-- 비밀번호 -->
-							<div class="mb-3">
-								<label for="pw" class="form-label">비밀번호</label>
-								<input type="password" class="form-control" id="pw" name="pw" placeholder="비밀번호를 입력하세요">
-								<div class="error-message" id="passwordError">비밀번호를 입력해주세요.</div>
-							</div>
-
-							<!-- 이메일 로그인 버튼 -->
-							<div class="d-grid mb-3">
-								<button type="submit" class="btn btn-primary" id="loginBtn">이메일 로그인</button>
-							</div>
-						</form>
-
-						<!-- 링크: 회원가입 | 비밀번호 재설정 -->
-						<div class="text-center my-3">
-							<a href="/signup" class="reset-link d-inline" onclick="event.stopPropagation()">이메일로 가입</a>
-							<span class="text-muted mx-2">|</span>
-							<a href="/reset-password" class="reset-link d-inline" onclick="event.stopPropagation()">비밀번호
-								재설정</a>
-						</div>
-
-						<!-- 카카오 로그인 -->
-						<div class="d-grid">
-							<a href="/oauth2/authorization/kakao" class="btn kakao-btn">
-								<img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_small.png"
-									alt="카카오" style="width: 20px; margin-right: 8px;">카카오로 시작하기
-							</a>
-						</div>
+					<div class="d-grid">
+						<a href="/oauth2/authorization/kakao"
+							class="btn w-100 d-flex align-items-center justify-content-center gap-2"
+							style="background-color: #FEE500; color: #191919; font-weight: 600; border: none; padding: 10px 0; border-radius: 8px;">
+							<img src="/images/kakao.jpg" alt="카카오 로그인" style="width: 26px; height: 26px;" />
+							<span>카카오로 시작하기</span>
+						</a>
 					</div>
 				</div>
 			</div>
@@ -96,6 +147,21 @@
 
 	<!-- 유효성 검사 스크립트 -->
 	<script>
+		// 로그인 실패 시 SweetAlert로 오류 표시
+		document.addEventListener('DOMContentLoaded', function () {
+			const urlParams = new URLSearchParams(window.location.search);
+			if (urlParams.has('error')) {
+				Swal.fire({
+					icon: 'error',
+					title: '로그인 실패',
+					text: '이메일 또는 비밀번호가 잘못되었습니다.',
+					confirmButtonColor: '#6b48ff'
+				});
+
+				window.history.replaceState({}, document.title, window.location.pathname);
+			}
+		});
+
 		const emailInput = document.getElementById('id');
 		const passwordInput = document.getElementById('pw');
 		const emailError = document.getElementById('emailError');

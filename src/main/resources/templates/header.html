@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<style>
+		.navbar-custom {
+			background-color: white;
+			border-bottom: 1px solid #e0e0e0;
+			padding: 0.8rem 2rem;
+			font-family: 'Noto Sans KR', sans-serif;
+		}
+
+		.navbar-custom .nav-link {
+			color: #333;
+			font-weight: 500;
+			margin-right: 1rem;
+		}
+
+		.navbar-custom .nav-link:hover {
+			color: #6b48ff;
+		}
+
+		.navbar-custom .btn-main {
+			background-color: #6b48ff;
+			color: white;
+			border: none;
+			border-radius: 8px;
+			padding: 6px 14px;
+			font-weight: 500;
+			transition: background-color 0.2s;
+		}
+
+		.navbar-custom .btn-main:hover {
+			background-color: #5838dd;
+		}
+	</style>
+</head>
+
+<body>
+	<div th:fragment="header">
+		<nav class="d-flex justify-content-between align-items-center navbar-custom">
+			<!-- 왼쪽 메뉴 -->
+			<div class="d-flex align-items-center">
+				<a class="nav-link" href="/">Main</a>
+				<a class="nav-link" href="/request">의뢰요청</a>
+				<a class="nav-link" href="/experts">전문가 찾기</a>
+				<a class="nav-link" href="/community">커뮤니티</a>
+			</div>
+
+			<!-- 오른쪽 메뉴 -->
+			<div class="d-flex align-items-center gap-2">
+				<a class="btn btn-main" href="/login">로그인</a>
+				<a class="btn btn-main" href="/signup">회원가입</a>
+				<a class="btn btn-main" href="/expert/register">전문가 등록</a>
+			</div>
+		</nav>
+	</div>
+</body>
+
+</html>

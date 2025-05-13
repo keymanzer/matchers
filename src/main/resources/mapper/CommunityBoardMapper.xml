@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.kosa.community.mapper.CommunityBoardMapper">
+
+    <resultMap type="kr.or.kosa.user.dto.Users" id="usersMap">
+        <id property="userId" column="USER_ID"/>
+        <result property="email" column="EMAIL"/>
+        <result property="nickname" column="NICKNAME"/>
+    </resultMap>
+
+    <resultMap type="kr.or.kosa.community.dto.CommunityBoard" id="communityBoardMap">
+        <id property="postId" column="POST_ID" />
+        <result property="lastUpdatedAt" column="LAST_UPDATED_AT"/>
+        <result property="views" column="VIEWS"/>
+        <collection property="users" resultMap="usersMap"></collection>
+    </resultMap>
+
+    <select id="getPostList" resultMap="communityBoardMap">
+        SELECT 
+            b.POST_ID, 
+            b.TITLE, 
+            b.CONTENT, 
+            b.CREATED_AT, 
+            b.USERID,
+            u.EMAIL,
+            u.NICKNAME
+        FROM BOARD b
+        LEFT JOIN USERS u ON b.USERID = u.USER_ID
+    </select>
+
+</mapper>

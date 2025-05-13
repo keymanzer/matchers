@@ -81,9 +81,11 @@ body {
 	transition: background-color 0.3s;
 	display: flex;
 	align-items: center;
+	font-size: 14px;
 }
 
 .btn:hover {
+	color: white;
 	background-color: #5e35b1;
 }
 
@@ -104,16 +106,8 @@ body {
 }
 
 .auth-buttons a:hover {
+	color: white;
 	background-color: #5e35b1;
-}
-
-.user-info {
-	font-size: 14px;
-	color: #666;
-}
-
-.user-info h3 {
-	margin: 0;
 }
 
 .nav li form {

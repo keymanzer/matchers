@@ -5,6 +5,7 @@
 	<meta charset="UTF-8">
 	<title>회원가입</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 	<link rel="stylesheet" th:href="@{/css/header.css}" />
 	<style>
 		.wrapper {
@@ -17,7 +18,7 @@
 
 		.signup-card {
 			width: 100%;
-			max-width: 400px;
+			max-width: 450px;
 			border: none;
 			border-radius: 16px;
 			box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
@@ -50,6 +51,9 @@
 			border-radius: 12px;
 			font-weight: 600;
 			font-size: 1rem;
+			width: 100%;
+			display: block;
+			text-align: center;
 		}
 
 		.btn-primary:hover {
@@ -60,7 +64,7 @@
 			font-size: 0.85rem;
 			color: red;
 			display: none;
-			margin-top: 4px;
+			margin: 16px 0;
 		}
 
 		.reset-link {
@@ -71,6 +75,42 @@
 
 		.reset-link:hover {
 			text-decoration: underline;
+		}
+
+		.check-wrapper {
+			border: 1px solid #ddd;
+			border-radius: 8px;
+			padding: 5px;
+		}
+
+		.form-check-label {
+			font-size: 0.95rem;
+			margin-left: 10px;
+		}
+
+		.check-wrapper input[type="checkbox"]:checked {
+			background-color: #6b48ff;
+			border-color: #6b48ff;
+		}
+
+		.check-wrapper input[type="checkbox"]:disabled {
+			background-color: #ddd;
+			cursor: not-allowed;
+		}
+
+		.btn-primary:disabled {
+			background-color: #ddd;
+			cursor: not-allowed;
+		}
+
+		input.form-control {
+			padding-right: 35px;
+		}
+
+		i {
+			font-size: 14px;
+			color: #6c757d;
+			cursor: pointer;
 		}
 	</style>
 
@@ -92,22 +132,48 @@
 						<div class="error-message" id="emailError">이메일을 입력해주세요.</div>
 					</div>
 
-					<div class="mb-3">
+					<div class="mb-2 position-relative">
 						<input type="password" class="form-control" id="password" name="password"
 							placeholder="비밀번호를 입력하세요">
-						<div class="error-message" id="passwordError">
-							비밀번호는 8자 이상, 대문자 1개 이상, 특수기호를 포함해야 합니다.
+						<i id="togglePasswordIcon" class="fa fa-eye position-absolute"
+							style="top: 50%; right: 10px; transform: translateY(-50%); cursor: pointer;"></i>
+					</div>
+					<div class="error-message" id="passwordError">
+						비밀번호는 8자 이상, 대문자 1개 이상, 특수기호를 포함해야 합니다.
+					</div>
+
+					<div class="mb-4 position-relative">
+						<input type="password" class="form-control" id="confirmPassword" name="confirmPassword"
+							placeholder="비밀번호 확인">
+						<i id="toggleConfirmPasswordIcon" class="fa fa-eye position-absolute"
+							style="top: 50%; right: 10px; transform: translateY(-50%); cursor: pointer;"></i>
+					</div>
+					<div class="error-message" id="confirmPasswordError">비밀번호가 일치하지 않습니다.</div>
+
+					<div class="mb-4 check-wrapper">
+						<div class="mb-4">
+							<input type="checkbox" id="agreeAll" class="form-check-input">
+							<label class="form-check-label" for="agreeAll">전체 동의</label>
+						</div>
+
+						<div class="mb-3">
+							<input type="checkbox" id="termsService" class="form-check-input" abled>
+							<label class="form-check-label" for="termsService">(필수) 서비스 이용약관 관련 전체 동의</label>
+						</div>
+
+						<div class="mb-3">
+							<input type="checkbox" id="privacyPolicy" class="form-check-input" abled>
+							<label class="form-check-label" for="privacyPolicy">(필수) 개인정보 수집 및 이용 동의</label>
+						</div>
+
+						<div class="mb-3">
+							<input type="checkbox" id="thirdPartySharing" class="form-check-input" abled>
+							<label class="form-check-label" for="thirdPartySharing">(필수) 개인정보 제3자 제공 동의</label>
 						</div>
 					</div>
 
-					<div class="mb-4">
-						<input type="password" class="form-control" id="confirmPassword" name="confirmPassword"
-							placeholder="비밀번호 확인">
-						<div class="error-message" id="confirmPasswordError">비밀번호가 일치하지 않습니다.</div>
-					</div>
-
-					<div class="d-grid mb-3">
-						<button type="submit" class="btn btn-primary">이메일로 가입하기</button>
+					<div class="d-grid mb-4">
+						<button type="submit" class="btn btn-primary" id="signupBtn" disabled>가입하기</button>
 					</div>
 
 					<div class="text-center">
@@ -119,6 +185,52 @@
 	</div>
 
 	<script>
+		document.getElementById("togglePasswordIcon").addEventListener("click", function () {
+			const passwordField = document.getElementById("password");
+			const type = passwordField.type === "password" ? "text" : "password";
+			passwordField.type = type;
+
+			this.classList.toggle("fa-eye");
+			this.classList.toggle("fa-eye-slash");
+		});
+
+		document.getElementById("toggleConfirmPasswordIcon").addEventListener("click", function () {
+			const confirmPasswordField = document.getElementById("confirmPassword");
+			const type = confirmPasswordField.type === "password" ? "text" : "password";
+			confirmPasswordField.type = type;
+
+			this.classList.toggle("fa-eye");
+			this.classList.toggle("fa-eye-slash");
+		});
+
+		document.getElementById("passwordError").style.marginTop = "10px";
+		document.getElementById("confirmPasswordError").style.marginTop = "10px";
+
+		document.getElementById("agreeAll").addEventListener("change", function () {
+			const isChecked = this.checked;
+			document.getElementById("termsService").checked = isChecked;
+			document.getElementById("privacyPolicy").checked = isChecked;
+			document.getElementById("thirdPartySharing").checked = isChecked;
+
+			toggleSubmitButton();
+		});
+
+		const checkboxes = ["termsService", "privacyPolicy", "thirdPartySharing"];
+		checkboxes.forEach(id => {
+			document.getElementById(id).addEventListener("change", toggleSubmitButton);
+		});
+
+		function toggleSubmitButton() {
+			const allChecked = checkboxes.every(id => document.getElementById(id).checked);
+			const submitButton = document.getElementById("signupBtn");
+
+			if (allChecked) {
+				submitButton.disabled = false;
+			} else {
+				submitButton.disabled = true;
+			}
+		}
+
 		const emailInput = document.getElementById('email');
 		const passwordInput = document.getElementById('password');
 		const confirmPasswordInput = document.getElementById('confirmPassword');

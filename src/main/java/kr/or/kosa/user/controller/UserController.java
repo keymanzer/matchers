@@ -1,6 +1,5 @@
 package kr.or.kosa.user.controller;
 
-import java.security.Principal;
 import java.util.Collections;
 import java.util.Map;
 
@@ -21,7 +20,7 @@ public class UserController {
 	private final UserService userService;
 
 	@GetMapping({ "", "/" })
-	public String home(Principal principal) {
+	public String home() {
 		return "index";
 	}
 

@@ -4,14 +4,10 @@
 <head>
 	<meta charset="UTF-8">
 	<title>로그인</title>
+	<link rel="stylesheet" th:href="@{/css/header.css}" />
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 	<style>
-		body {
-			background-color: #f8f9fa;
-			font-family: 'Noto Sans KR', sans-serif;
-		}
-
 		.login-card {
 			width: 100%;
 			max-width: 400px;
@@ -101,7 +97,6 @@
 
 <body>
 	<div th:replace="~{header :: header}"></div>
-
 	<div class="page-wrapper d-flex justify-content-center align-items-center" style="min-height: 100vh;">
 		<div class="card login-card">
 			<div class="card login-card">
@@ -136,7 +131,7 @@
 						<a href="/oauth2/authorization/kakao"
 							class="btn w-100 d-flex align-items-center justify-content-center gap-2"
 							style="background-color: #FEE500; color: #191919; font-weight: 600; border: none; padding: 10px 0; border-radius: 8px;">
-							<img src="/images/kakao.jpg" alt="카카오 로그인" style="width: 26px; height: 26px;" />
+							<img src="/images/kakao.png" alt="카카오 로그인" style="width: 26px; height: 26px;" />
 							<span>카카오로 시작하기</span>
 						</a>
 					</div>
@@ -145,9 +140,7 @@
 		</div>
 	</div>
 
-	<!-- 유효성 검사 스크립트 -->
 	<script>
-		// 로그인 실패 시 SweetAlert로 오류 표시
 		document.addEventListener('DOMContentLoaded', function () {
 			const urlParams = new URLSearchParams(window.location.search);
 			if (urlParams.has('error')) {
@@ -197,10 +190,8 @@
 			}
 		}
 
-		// 실시간 유효성 검사
 		let ignoreValidation = false;
 
-		// 실시간 유효성 검사
 		emailInput.addEventListener('input', () => {
 			if (!ignoreValidation) validateEmail();
 		});
@@ -215,7 +206,6 @@
 			if (!ignoreValidation) validatePassword();
 		});
 
-		// 로그인 버튼 클릭 시만 유효성 검사 실행
 		document.getElementById('loginBtn').addEventListener('click', function (e) {
 			ignoreValidation = false;
 
@@ -235,7 +225,6 @@
 			}
 		});
 
-		// 링크 클릭 시 유효성 검사 중지
 		document.querySelectorAll('a.reset-link').forEach(link => {
 			link.addEventListener('click', () => {
 				ignoreValidation = true;

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.kosa.quotationBoard.mapper.QuotationBoardMapper">
+
+ <resultMap id="QuotationBoardResultMap" type="kr.or.kosa.quotationBoard.dto.QuotationBoard">
+    <id property="postId" column="POST_ID" />
+    <result property="expertId" column="EXPERT_ID" />
+    <result property="categoryId" column="CATEGORY_ID" />
+    <result property="state" column="STATE" />
+</resultMap>
+
+    <insert id="insertQuotationBoard" parameterType="kr.or.kosa.quotationBoard.dto.QuotationBoard">
+        INSERT INTO quotation_board (post_id, expert_id, category_id, state)
+        VALUES (#{postId}, #{expertId}, #{categoryId}, #{state})
+    </insert>
+
+    <update id="updateQuotationBoard" parameterType="kr.or.kosa.quotationBoard.dto.QuotationBoard">
+        UPDATE quotation_board
+        SET
+            expert_id = #{expertId},
+            category_id = #{categoryId},
+            state = #{state}
+        WHERE post_id = #{postId}
+    </update>
+
+
+
+
+</mapper>

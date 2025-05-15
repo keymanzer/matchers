@@ -1,0 +1,168 @@
+/* 전체 폼 레이아웃 */
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	margin-top: 120px;
+}
+
+/* .container 내에서만 적용되도록 범위 지정 */
+.container {
+	max-width: 800px;
+	margin: 0 auto;
+	padding: 20px;
+	background-color: #f9f9f9;
+	border-radius: 8px;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* 폼 레이블 스타일 */
+.container .form-label {
+	font-weight: bold;
+	margin-bottom: 8px;
+	display: block;
+	color: #333;
+}
+
+/* 입력 폼의 기본 스타일 */
+.container .form-control {
+	width: 100%;
+	padding: 8px 10px;
+	margin-top: 5px;
+	margin-bottom: 15px;
+	border-radius: 4px;
+	border: 1px solid #ccc;
+	box-sizing: border-box;
+}
+
+#nickname {
+	width: 50%;
+}
+
+.container textarea.form-control {
+	resize: vertical;
+}
+
+/* 파일 업로드 버튼 및 미리보기 */
+.container input[type="file"] {
+	width: 30%;
+	padding: 10px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	margin-top: 5px;
+	display: block;
+}
+
+.container #profileImagePreview,
+.container #certImagePreview {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: 10px;
+}
+
+.container #profileImagePreview img,
+.container #certImagePreview img {
+	width: 100px;
+	height: 100px;
+	object-fit: cover;
+	border-radius: 8px;
+	cursor: pointer;
+}
+
+.container #profileImagePreview img:hover,
+.container #certImagePreview img:hover {
+	opacity: 0.8;
+}
+
+/* 선택된 항목 (카테고리, 위치) 표시 */
+.container .selected-item {
+	display: inline-block;
+	background-color: #5c6bc0;
+	color: white;
+	padding: 5px 10px;
+	border-radius: 20px;
+	margin: 5px;
+	font-size: 14px;
+}
+
+.container .selected-item span {
+	cursor: pointer;
+}
+
+.container .selected-item span:hover {
+	color: red;
+}
+
+/* 카테고리 및 위치 버튼 스타일 */
+.container #categoryButtons button,
+.container #locationButtons button {
+	margin: 5px;
+	padding: 8px 15px;
+	font-size: 14px;
+	border-radius: 20px;
+	cursor: pointer;
+	border: 1px solid #ccc;
+	transition: background-color 0.3s ease;
+}
+
+.container #categoryButtons button:hover,
+.container #locationButtons button:hover {
+	background-color: #5c6bc0;
+	color: white;
+}
+
+/* 선택된 카테고리, 위치 표시 스타일 */
+.container #selectedCategories,
+.container #selectedLocations {
+	margin-top: 10px;
+}
+
+.container #categoryButtons,
+.container #locationButtons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.container #categoryButtons button,
+.container #locationButtons button {
+	background-color: #f0f0f0;
+	border: 1px solid #ddd;
+	color: #333;
+}
+
+.container #categoryButtons button.selected,
+.container #locationButtons button.selected {
+	background-color: #5c6bc0;
+	color: white;
+}
+
+.container #categoryButtons button:focus,
+.container #locationButtons button:focus {
+	outline: none;
+	box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* 제출 버튼 */
+.container button[type="submit"] {
+	background-color: #7e57c2;
+	color: white;
+	padding: 12px 20px;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 16px;
+	width: 50%;
+	margin: 20px auto;
+	display: block;
+	transition: background-color 0.3s ease;
+}
+
+.container button[type="submit"]:focus {
+	outline: none;
+	box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}

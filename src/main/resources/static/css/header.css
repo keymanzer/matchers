@@ -24,25 +24,25 @@ body {
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.logo-link {
+.header .logo-link {
 	text-decoration: none;
 }
 
-.logo {
+.header .logo {
 	font-size: 24px;
 	font-weight: bold;
 	color: #5c6bc0;
 	flex-shrink: 0;
 }
 
-.nav-login-wrapper {
+.header .nav-login-wrapper {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	width: 100%;
 }
 
-.nav {
+.header .nav {
 	list-style: none;
 	display: flex;
 	gap: 20px;
@@ -50,11 +50,11 @@ body {
 	align-items: center;
 }
 
-.nav li {
+.header .nav li {
 	display: inline-block;
 }
 
-.nav a {
+.header .nav a {
 	text-decoration: none;
 	color: #333;
 	font-size: 16px;
@@ -65,13 +65,13 @@ body {
 	box-sizing: border-box;
 }
 
-.nav a:hover {
+.header .nav a:hover {
 	background-color: #f2f2f2;
 	border-radius: 0;
 	border-bottom: 3px solid #7e57c2;
 }
 
-.btn {
+.header .btn {
 	background-color: #7e57c2;
 	color: white;
 	padding: 8px 16px;
@@ -84,18 +84,18 @@ body {
 	font-size: 14px;
 }
 
-.btn:hover {
+.header .btn:hover {
 	color: white;
 	background-color: #5e35b1;
 }
 
-.auth-buttons {
+.header .auth-buttons {
 	display: flex;
 	gap: 10px;
 	align-items: center;
 }
 
-.auth-buttons a {
+.header .auth-buttons a {
 	font-size: 14px;
 	padding: 8px 16px;
 	background-color: #7e57c2;
@@ -105,12 +105,12 @@ body {
 	display: inline-block;
 }
 
-.auth-buttons a:hover {
+.header .auth-buttons a:hover {
 	color: white;
 	background-color: #5e35b1;
 }
 
-.nav li form {
+.header .nav li form {
 	list-style: none;
 	margin: 0;
 }

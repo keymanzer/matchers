@@ -42,4 +42,16 @@ VALUES ((SELECT user_id FROM USERS WHERE email = 'user2@test.com'), 'ROLE_USER')
 INSERT INTO USER_AUTH (user_id, authority)
 VALUES ((SELECT user_id FROM USERS WHERE email = 'user3@test.com'), 'ROLE_USER');
 
+-- location 테이블 
+INSERT INTO location(location_id, city, district) VALUES (LOCATION_SEQ.NEXTVAL, '서울', '양천구');								
+INSERT INTO location(location_id, city, district) VALUES (LOCATION_SEQ.NEXTVAL, '고양', '일산동구');								
+INSERT INTO location(location_id, city, district) VALUES (LOCATION_SEQ.NEXTVAL, '인천', '서구');								
+INSERT INTO location(location_id, city, district) VALUES (LOCATION_SEQ.NEXTVAL, '서울', '종로구');	
+
+-- category 테이블
+INSERT INTO category(category_id, name) VALUES (CATEGORY_SEQ.NEXTVAL, 'IT');								
+INSERT INTO category(category_id, name) VALUES (CATEGORY_SEQ.NEXTVAL, '자동차');								
+INSERT INTO category(category_id, name) VALUES (CATEGORY_SEQ.NEXTVAL, '과외');								
+INSERT INTO category(category_id, name) VALUES (CATEGORY_SEQ.NEXTVAL, '리모델링');
+
 COMMIT;

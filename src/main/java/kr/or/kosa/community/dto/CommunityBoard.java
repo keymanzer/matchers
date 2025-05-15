@@ -7,11 +7,19 @@ import lombok.Data;
 
 @Data
 public class CommunityBoard {
-	
-	//private Board board;
+
 	private Long postId;
 	private LocalDateTime lastUpdatedAt;
 	private Long views;
+	
+	//private Board board;
+	private Long boardSeq;
+	private String title;
+	private String content;
+	private LocalDateTime createdAt;
+	private String nickname;
+	private Long userId;
+	
 	private Users users;
 
 }

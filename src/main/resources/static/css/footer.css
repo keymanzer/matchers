@@ -1,11 +1,20 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
 .footer {
 	background-color: #f8f9fa;
 	padding: 20px 0;
 	text-align: center;
 	font-size: 0.9rem;
 	border-top: 1px solid #ddd;
+	margin-top: 40px;
+	/* 푸터와 컨텐츠의 간격을 주기 위해 */
 }
 
+/* 소셜 아이콘 영역 */
 .footer .social-icons {
 	margin: 10px 0;
 }
@@ -21,6 +30,7 @@
 	color: #6c757d;
 }
 
+/* 링크 영역 */
 .footer .links {
 	margin: 10px 0;
 }
@@ -35,6 +45,7 @@
 	text-decoration: underline;
 }
 
+/* 저작권 영역 */
 .footer .copyright {
 	margin-top: 15px;
 	color: #6c757d;

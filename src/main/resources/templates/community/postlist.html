@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시글 목록</title>
+</head>
+<body>
+    <h1>게시글 목록</h1>
+	<table>
+	    <thead>
+	        <tr>
+	            <th>게시글 ID</th>
+				<th>조회수</th>
+	        </tr>
+	    </thead>
+	    <tbody>
+	        <tr th:each="post : ${list}">
+				<td><a th:href="@{'/user/community/' + ${post.postId}}" th:text="${post.postId}"></a></td>
+	            <td th:text="${post.views}"></td>
+	        </tr>
+	    </tbody>
+	</table>
+	<hr>
+	<form>
+	    <input type="button" value="등록" th:onclick="|location.href='@{/user/community/insert}'|"/>
+	</form>
+
+</body>
+</html>

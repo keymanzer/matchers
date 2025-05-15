@@ -3,21 +3,22 @@ package kr.or.kosa.community.mapper;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import kr.or.kosa.community.dto.CommunityBoard;
-import lombok.extern.slf4j.Slf4j;
+import kr.or.kosa.user.dto.Users;
 
 @Mapper
 public interface CommunityBoardMapper {
 	
 	List<CommunityBoard> getPostList();
 
-	//CommunityBoard getPostListbyId(Long postId);
+	CommunityBoard getPostbyId(Long postId);
 	
-	//void insertPost(CommunityBoard communityBoard);
+	void insertPost(CommunityBoard communityBoard);
 	
-	//void updatePost(CommunityBoard communityBoard);
+	void updatePost(CommunityBoard communityBoard);
 	
-	//void deletePost(Long postId);
+	void deletePost(Long postId);
 	
 }

@@ -12,7 +12,7 @@ body {
 }
 
 .header {
-	position: absolute;
+	position: fixed;
 	top: 0;
 	background-color: #fff;
 	width: 100%;

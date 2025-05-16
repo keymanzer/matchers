@@ -1,5 +1,6 @@
 package kr.or.kosa.user.dto;
 
+import java.sql.Date;
 import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -47,6 +48,10 @@ public class CustomUser implements UserDetails, OAuth2User {
 
 	public Long getUserId() {
 		return user.getUserId();
+	}
+
+	public Date getUpdatedAt() {
+		return user.getUpdatedAt();
 	}
 
 	@Override

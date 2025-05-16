@@ -39,7 +39,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 		String nickname = (String) profile.get("nickname");
 		String providerId = String.valueOf(attributes.get("id"));
 
-		Users existingUser = userMapper.login(email);
+		Users existingUser = userMapper.findUserByEmail(email);
 
 		if (existingUser == null) {
 			Users newUser = new Users();
@@ -56,8 +56,8 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 			userAuth.setUserId(userId);
 			userAuth.setAuthority("ROLE_USER");
 			userMapper.addAuth(userAuth);
-			
-			existingUser = userMapper.login(email);
+
+			existingUser = userMapper.findUserByEmail(email);
 		}
 
 		return new CustomUser(existingUser);

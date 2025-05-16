@@ -33,14 +33,16 @@
 		SELECT COUNT(*) FROM USERS WHERE EMAIL = #{email}
 	</select>
 
-	<select id="login" resultMap="userMap">
+	<select id="findUserByEmail" resultMap="userMap">
 		SELECT U.USER_ID, U.EMAIL, U.PASSWORD, U.NICKNAME, U.ENABLED,
+		U.UPDATED_AT,
 		U.PROFILE_IMG, A.USER_ID,
 		A.AUTHORITY
 		FROM USERS U
 		LEFT JOIN USER_AUTH A
 		ON U.USER_ID = A.USER_ID
 		WHERE U.EMAIL = #{email}
+		AND U.IS_DELETED = 'N'
 	</select>
 
 	<insert id="signUp" parameterType="kr.or.kosa.user.dto.Users">
@@ -61,5 +63,34 @@
 		VALUES (#{userId}, #{authority})
 	</insert>
 
+	<update id="updateUserProfileImg">
+		UPDATE USERS
+		SET PROFILE_IMG = #{profileImg}, UPDATED_AT = SYSDATE
+		WHERE USER_ID = #{userId}
+	</update>
+
+	<update id="updateUserNickname">
+		UPDATE USERS
+		SET NICKNAME = #{nickname}, UPDATED_AT = SYSDATE
+		WHERE USER_ID = #{userId}
+	</update>
+
+	<select id="verifyPassword">
+		SELECT PASSWORD
+		FROM USERS
+		WHERE USER_ID = #{userId}
+	</select>
+
+	<update id="updatePassword">
+		UPDATE USERS
+		SET PASSWORD = #{password}, UPDATED_AT = SYSDATE
+		WHERE USER_ID = #{userId}
+	</update>
+
+	<update id="withdrawUser">
+		UPDATE USERS
+		SET IS_DELETED = 'Y', UPDATED_AT = SYSDATE
+		WHERE USER_ID = #{userId}
+	</update>
 
 </mapper>

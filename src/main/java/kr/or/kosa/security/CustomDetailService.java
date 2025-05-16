@@ -19,7 +19,7 @@ public class CustomDetailService implements UserDetailsService {
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-		Users user = userMapper.login(username);
+		Users user = userMapper.findUserByEmail(username);
 
 		if (user == null) {
 			throw new UsernameNotFoundException(username + "으로 가입된 정보가 없습니다 ");

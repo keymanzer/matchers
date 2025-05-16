@@ -1,7 +1,8 @@
 package kr.or.kosa.board.mapper;
-import kr.or.kosa.board.dto.Board;
 import org.apache.ibatis.annotations.Mapper;
-import java.util.List;
+import org.apache.ibatis.annotations.Param;
+
+import kr.or.kosa.board.dto.Board;
 
 @Mapper
 public interface BoardMapper {
@@ -10,10 +11,11 @@ public interface BoardMapper {
     void insertBoard(Board board);
 
     // 게시글 수정
-    void updateBoard(int postId, String title, String content);
+    void updateBoard(@Param("postId") int postId, @Param("title") String title, @Param("content") String content);
 
     // 게시글 삭제
     void deleteBoard(int postId);
 
     int getNextBoardId();
+
 }

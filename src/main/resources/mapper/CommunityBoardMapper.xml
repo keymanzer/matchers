@@ -8,8 +8,6 @@
         <result property="nickname" column="NICKNAME"/>
     </resultMap>
     
-    <!-- 나중에 board객체 불러올때 사용-->
-    <!--
 	<resultMap type="kr.or.kosa.board.dto.Board" id="boardMap">
 	    <id property="postId" column="POST_ID"/>
 	    <result property="title" column="TITLE"/>
@@ -18,17 +16,14 @@
 	    <result property="userNickname" column="USER_NICKNAME"/>
 	    <result property="userId" column="USERID"/>
 	</resultMap>		
-	-->
 
     <resultMap type="kr.or.kosa.community.dto.CommunityBoard" id="communityBoardMap">
         <id property="postId" column="POST_ID" />
         <result property="lastUpdatedAt" column="LAST_UPDATED_AT"/>
         <result property="views" column="VIEWS"/>
-        <result property="title" column="TITLE"/>
-        <result property="content" column="CONTENT"/>
-        <result property="createdAt" column="CREATED_AT"/>
-        <result property="userNickname" column="USER_NICKNAME"/>
-        <result property="userId" column="USERID"/>
+	    <result property="userNickname" column="USER_NICKNAME"/>
+	    <result property="userId" column="USERID"/>
+        <association property="board" resultMap="boardMap"/>
         <association property="users" resultMap="usersMap"/>
     </resultMap>
 
@@ -47,6 +42,7 @@
 		LEFT JOIN COMMUNITY_BOARD cb ON b.POST_ID = cb.POST_ID
 		LEFT JOIN USERS u ON b.USERID = u.USER_ID
 		WHERE cb.POST_ID = b.POST_ID
+		ORDER BY b.POST_ID DESC
     </select>
   
     <select id="getPostbyId" parameterType="Long" resultMap="communityBoardMap">
@@ -72,30 +68,22 @@
 		</selectKey>
 		INSERT ALL
 		INTO BOARD (POST_ID, TITLE, CONTENT, CREATED_AT, USER_NICKNAME, USERID)
-		VALUES (#{boardSeq}, #{title}, #{content}, SYSDATE, 'admin', 1)
+		VALUES (#{boardSeq}, #{title}, #{content}, SYSDATE, #{userNickname}, #{userId})
 		INTO COMMUNITY_BOARD (POST_ID, LAST_UPDATED_AT, VIEWS)
 		VALUES(#{boardSeq}, SYSDATE, 100)
 		SELECT * FROM DUAL		
 	</insert>
 
 	<update id="updatePost" parameterType="kr.or.kosa.community.dto.CommunityBoard">
-		UPDATE BOARD
+		UPDATE COMMUNITY_BOARD 
 		SET 
-		TITLE = #{title}, 
-		CONTENT = #{content}
+		    LAST_UPDATED_AT = SYSDATE
 		WHERE POST_ID = #{postId}
 	</update>
-
-	<!-- 나중에 CommunityBoardService에 CommunityBoardMapper와 BoardMapper에 update기능 transactional로 묶기-->
 
 	<delete id="deletePost" parameterType="Long">
 	    DELETE FROM COMMUNITY_BOARD
 	    WHERE POST_ID = #{postId}
 	</delete>
-
-	<!-- 나중에 CommunityBoardService에 CommunityBoardMapper와 BoardMapper에 delete기능 transactional로 묶기-->
-
-
-
-
+	
 </mapper>

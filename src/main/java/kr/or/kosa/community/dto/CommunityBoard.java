@@ -2,6 +2,7 @@ package kr.or.kosa.community.dto;
 
 import java.time.LocalDateTime;
 
+import kr.or.kosa.board.dto.Board;
 import kr.or.kosa.user.dto.Users;
 import lombok.Data;
 
@@ -11,15 +12,12 @@ public class CommunityBoard {
 	private Long postId;
 	private LocalDateTime lastUpdatedAt;
 	private Long views;
-	
-	//private Board board;
-	private Long boardSeq;
+    private Long userId;
+    private String userNickname;
 	private String title;
 	private String content;
-	private LocalDateTime createdAt;
-	private String nickname;
-	private Long userId;
-	
+	private Long boardSeq;
+	private Board board;
 	private Users users;
-
+	
 }

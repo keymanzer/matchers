@@ -6,13 +6,11 @@
 <body>
     <h1>게시글 상세</h1>
     <p th:text="${post.postId}">게시글 ID</p>
-    <p th:text="${post.users.email}">이메일주소</p>
-    <h3 th:text="${post.title}">제목</h3>
-    <p th:text="${post.content}">내용</p>
-    <p>작성자: <span th:text="${post.users.nickname}"></span></p> 
-    <p>최종수정일: <span th:text="${#temporals.format(post.lastUpdatedAt, 'yyyy-MM-dd HH:mm')}"></span></p>
+	<p>작성자: <span th:text="${post.users.nickname}"></span></p> 
+	<p>최종수정일: <span th:text="${#temporals.format(post.lastUpdatedAt, 'yyyy-MM-dd HH:mm')}"></span></p>    
+	<h3 th:text="${post.board.title}">제목</h3>
+    <p th:text="${post.board.content}">내용</p>
     <hr>
-
     <form style="display:inline;">
         <input type="button" value="수정"
                th:onclick="|location.href='@{/user/community/{postId}/update(postId=${post.postId})}'|"/>
@@ -23,6 +21,6 @@
     </form>
 
     <hr>
-    <a th:href="@{/user/community}">목록으로</a>
+    <a th:href="@{/user/community}">목록으로</a>	
 </body>
 </html>

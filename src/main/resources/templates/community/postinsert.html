@@ -5,16 +5,17 @@
 </head>
 <body>
     <h1>게시글 등록</h1>
-	<p>작성자: <span th:text="${nickname}"></span></p>
-	<p>이메일주소: <span th:text="${email}"></span></p>
 	<form th:action="@{/user/community}" method="post">
+		<!-- hidden input 필수, 안 넘기면 userId, userNickname null로 처리됨 -->
+		<input type="hidden" name="userId" th:value="${post.userId}" />
+		<input type="hidden" name="userNickname" th:value="${post.userNickname}" />		
 		제목: <input type="text" name="title" th:value="${post.title}" /><br>
 		내용: <textarea name="content" th:text="${post.content}"></textarea><br>>
 	    <button type="submit">작성</button>
 	</form>
 	<p>게시글 ID: <span th:text="${post.postId}"></span></p>
 
-    <a th:href="@{/user/community}">목록으로</a>
+    <a th:href="@{/user/community}">목록으로</a>	
 </body>
 </html>
 

@@ -1,7 +1,6 @@
 package kr.or.kosa.community.controller;
 
 import java.security.Principal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import kr.or.kosa.community.dto.CommunityBoard;
 import kr.or.kosa.community.service.CommunityBoardService;
 import kr.or.kosa.user.dto.CustomUser;
-import lombok.extern.slf4j.Slf4j;
 
 
 @Controller
@@ -33,6 +31,7 @@ public class CommunityBoardController {
 	
 	@GetMapping
 	public String getPostList(Model model) {
+		
 		List<CommunityBoard> list = communityBoardService.getPostList();
 		model.addAttribute("list", list);
 		return "community/postlist";
@@ -40,6 +39,7 @@ public class CommunityBoardController {
 	
 	@GetMapping("/{postId}")
 	public String getPostbyId(@PathVariable("postId") Long postId, Model model) {
+		
 		CommunityBoard post = communityBoardService.getPostbyId(postId);
 		model.addAttribute("post", post);
 		return "community/postdetail";
@@ -47,18 +47,21 @@ public class CommunityBoardController {
 	
 	@GetMapping("/insert")
 	public String insertPost(Model model, Principal principal) {
-	    if (principal instanceof CustomUser) {
+
+ 		if (principal instanceof CustomUser) {
 	        CustomUser user = (CustomUser) principal;
 	    }
-
 	    CustomUser user = (CustomUser) ((Authentication) principal).getPrincipal();
 
+	    Long userId = user.getUserId();
 	    String nickname = user.getNickname();
 	    String email = user.getUsername();
+
 		CommunityBoard post = new CommunityBoard();
-	
-	    model.addAttribute("nickname", nickname);
-	    model.addAttribute("email", email);
+		post.setUserId(userId);
+		post.setUserNickname(nickname);
+		System.out.println(post);
+		
 		model.addAttribute("post", post);
 	
 		return "community/postinsert";
@@ -66,26 +69,64 @@ public class CommunityBoardController {
 	
 	@PostMapping
 	public String insertPost(@ModelAttribute CommunityBoard post) {
+		
+		String title = (post.getTitle() == null) || (post.getTitle() == "") ? "제목없음" : post.getTitle();
+		
+		post.setTitle(title);
 		communityBoardService.insertPost(post);
 		return "redirect:/user/community";
 	}
 	
 	@GetMapping("/{postId}/update")
 	public String updatePost(@PathVariable("postId") Long postId, Model model) {
+		
 		CommunityBoard post = communityBoardService.getPostbyId(postId);
+	
 		model.addAttribute("post", post);
 		return "community/postupdate";
 	}
 	
-	@PostMapping("/{postId}")
-	public String updatePost(@PathVariable("postId") Long postId, @ModelAttribute CommunityBoard post) {
+	@PostMapping("/{postId}/update")
+	public String updatePost(@PathVariable("postId") Long postId, @ModelAttribute CommunityBoard post, Principal principal) {
+		
+		String title = (post.getTitle() == null) || (post.getTitle() == "") ? "제목없음" : post.getTitle();
+		
+		post.setTitle(title);
 		post.setPostId(postId);
+	    
+ 		if (principal instanceof CustomUser) {
+	        CustomUser user = (CustomUser) principal;
+	    }
+	    CustomUser user = (CustomUser) ((Authentication) principal).getPrincipal();
+	    CommunityBoard postCheck = communityBoardService.getPostbyId(postId);
+    
+		if(postCheck.getBoard().getUserId() == user.getUserId()) {
+			System.out.println("사용자와 작성자 일치: 수정가능합니다");
+		} else {
+			System.out.println("사용자와 작성자 불일치: 수정불가");
+			return "redirect:/user/community";
+		}
+
 		communityBoardService.updatePost(post);
-		return "redirect:/user/community";
+	    return "redirect:/user/community";
 	}
 	
     @PostMapping("/{postId}/delete")
-    public String deletePost(@PathVariable("postId") Long postId) {	
+    public String deletePost(@PathVariable("postId") Long postId, Principal principal) {
+		
+ 		if (principal instanceof CustomUser) {
+	        CustomUser user = (CustomUser) principal;
+	    }
+	    CustomUser user = (CustomUser) ((Authentication) principal).getPrincipal();
+	    CommunityBoard postCheck = communityBoardService.getPostbyId(postId);
+    
+		if(postCheck.getBoard().getUserId() == user.getUserId()) {
+			System.out.println("사용자와 작성자 일치: 삭제가능합니다");
+		} else {
+			System.out.println("사용자와 작성자 불일치: 삭제불가");
+			return "redirect:/user/community";
+		}
+		
     	communityBoardService.deletePost(postId);
         return "redirect:/user/community";
     }

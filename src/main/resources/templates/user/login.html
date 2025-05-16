@@ -5,6 +5,7 @@
 	<meta charset="UTF-8">
 	<title>로그인</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 	<link rel="stylesheet" th:href="@{/css/header.css}" />
 	<link rel="stylesheet" th:href="@{/css/footer.css}" />
@@ -83,7 +84,7 @@
 			font-size: 0.9em;
 			color: red;
 			display: none;
-			margin-top: 16px;
+			margin: 16px 0;
 		}
 
 		.text-separator {
@@ -96,6 +97,16 @@
 		body.swal2-shown {
 			overflow: hidden !important;
 			padding-right: 0 !important;
+		}
+
+		input.form-control {
+			padding-right: 35px;
+		}
+
+		i {
+			font-size: 14px;
+			color: #6c757d;
+			cursor: pointer;
 		}
 	</style>
 </head>
@@ -115,10 +126,12 @@
 							<input id="id" type="text" class="form-control" name="id" placeholder="이메일을 입력하세요">
 							<div class="error-message" id="emailError">이메일을 입력해주세요.</div>
 						</div>
-						<div class="mb-3">
+						<div class="mb-3 position-relative">
 							<input id="pw" type="password" class="form-control" name="pw" placeholder="비밀번호를 입력하세요">
-							<div class="error-message" id="passwordError">비밀번호를 입력해주세요.</div>
+							<i id="togglePasswordIcon" class="fa fa-eye position-absolute"
+								style="top: 50%; right: 10px; transform: translateY(-50%); cursor: pointer;"></i>
 						</div>
+						<div class="error-message" id="passwordError">비밀번호를 입력해주세요.</div>
 						<div class="d-grid mb-3">
 							<button id="loginBtn" type="submit" class="btn btn-primary">로그인</button>
 						</div>
@@ -147,6 +160,15 @@
 	<div th:replace="~{footer :: footer}"></div>
 
 	<script>
+		document.getElementById("togglePasswordIcon").addEventListener("click", function () {
+			const passwordField = document.getElementById("pw");
+			const type = passwordField.type === "password" ? "text" : "password";
+			passwordField.type = type;
+
+			this.classList.toggle("fa-eye");
+			this.classList.toggle("fa-eye-slash");
+		});
+
 		document.addEventListener('DOMContentLoaded', function () {
 			const urlParams = new URLSearchParams(window.location.search);
 			if (urlParams.has('error')) {

@@ -17,9 +17,9 @@
 		<div class="nav-login-wrapper">
 			<ul class="nav">
 				<li><a href="/">홈</a></li>
-				<li><a href="/quote">견적요청</a></li>
-				<li><a href="/search">전문가 찾기</a></li>
-				<li><a href="/community">커뮤니티</a></li>
+				<li><a href="/">견적요청</a></li>
+				<li><a href="/">전문가 찾기</a></li>
+				<li><a href="/">커뮤니티</a></li>
 			</ul>
 
 			<th:block sec:authorize="isAnonymous()">
@@ -38,7 +38,7 @@
 					</li>
 					<th:block sec:authorize="!hasAnyRole('ROLE_EXPERT', 'ROLE_ADMIN')">
 						<li>
-							<button class="btn" onclick="location.href='/expert/register'">전문가 등록</button>
+							<button class="btn" onclick="location.href='/user/expert/register'">전문가 등록</button>
 						</li>
 					</th:block>
 				</ul>

@@ -17,4 +17,5 @@ public interface BoardMapper {
     void deleteBoard(int postId);
 
     int getNextBoardId();
+
 }

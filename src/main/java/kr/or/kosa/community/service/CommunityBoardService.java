@@ -47,5 +47,5 @@ public class CommunityBoardService {
     	communityBoardMapper.deletePost(postId);
         boardMapper.deleteBoard(postId.intValue());
     }
-	
+
 }

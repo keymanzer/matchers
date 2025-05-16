@@ -20,5 +20,5 @@ public interface CommunityBoardMapper {
 	void updatePost(CommunityBoard communityBoard);
 	
 	void deletePost(Long postId);
-	
+
 }

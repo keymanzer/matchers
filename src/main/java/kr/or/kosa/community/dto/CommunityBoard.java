@@ -19,5 +19,5 @@ public class CommunityBoard {
 	private Long boardSeq;
 	private Board board;
 	private Users users;
-
+	
 }

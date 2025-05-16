@@ -85,5 +85,5 @@
 	    DELETE FROM COMMUNITY_BOARD
 	    WHERE POST_ID = #{postId}
 	</delete>
-
+	
 </mapper>

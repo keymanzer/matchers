@@ -2,53 +2,59 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-	<meta charset="UTF-8">
+	<meta charset="UTF-8" />
 	<title>메인</title>
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
 	<link rel="stylesheet" th:href="@{/css/header.css}" />
 	<link rel="stylesheet" th:href="@{/css/footer.css}" />
-	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-	<style>
-		body {
-			margin-top: 80px;
-		}
-
-		section {
-			height: 700px;
-		}
-	</style>
+	<link rel="stylesheet" th:href="@{/css/index.css}" />
 </head>
 
 <body>
 	<div th:replace="~{header :: header}"></div>
 
-	<section>
-		<h1>메인 페이지</h1>
+	<!-- 캐러셀 -->
+	<div id="mainCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
+		<div class="carousel-inner">
+			<div class="carousel-item active">
+				<img src="/images/kakao.png" class="d-block w-100" alt="첫 번째 배너" />
+			</div>
+			<div class="carousel-item">
+				<img src="/images/profileImg.png" class="d-block w-100" alt="두 번째 배너" />
+			</div>
+			<div class="carousel-item">
+				<img src="/images/kakao.png" class="d-block w-100" alt="세 번째 배너" />
+			</div>
+		</div>
+		<button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
+			<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+			<span class="visually-hidden">이전</span>
+		</button>
+		<button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next">
+			<span class="carousel-control-next-icon" aria-hidden="true"></span>
+			<span class="visually-hidden">다음</span>
+		</button>
+	</div>
+
+	<!-- 게시판, 리뷰 자리 -->
+	<section class="content-area">
+		<h2>게시판</h2>
+		<!-- 게시판 컨텐츠가 여기에 들어갑니다 -->
+		<div id="boardList">
+			<p>게시판 목록은 구현 중입니다.</p>
+		</div>
+
+		<h2 class="mt-5">리뷰</h2>
+		<!-- 리뷰 컨텐츠가 여기에 들어갑니다 -->
+		<div id="reviewList">
+			<p>리뷰 목록은 구현 중입니다.</p>
+		</div>
 	</section>
 
 	<div th:replace="~{footer :: footer}"></div>
 
-	<script src="https://kit.fontawesome.com/a076d05399.js"></script>
-	<script th:inline="javascript" th:if="${expertRegSuccess != null}">
-		/*<![CDATA[*/
-		if ('[[${expertRegSuccess}]]' === 'true') {
-			Swal.fire({
-				icon: 'success',
-				title: '전문가 가입을 축하합니다!',
-				text: '관리자가 승인할 때까지 조금만 기다려주세요.',
-				confirmButtonText: '확인'
-			});
-		} else {
-			Swal.fire({
-				icon: 'error',
-				title: '가입 실패',
-				text: '전문가 가입 중 문제가 발생했습니다. 다시 시도해주세요.',
-				confirmButtonText: '확인'
-			});
-		}
-		/*]]>*/
-	</script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

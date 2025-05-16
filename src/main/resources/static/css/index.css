@@ -1,0 +1,38 @@
+/* mainpage.css */
+body.mainpage {
+	margin-top: 120px;
+}
+
+/* 캐러셀 높이와 여백 */
+#mainCarousel {
+	max-height: 400px;
+	overflow: hidden;
+	margin-top: 120px;
+}
+
+#mainCarousel .carousel-item img {
+	object-fit: contain;
+	height: 400px;
+	width: 100%;
+	background-color: #000;
+}
+
+/* 캐러셀 화살표 버튼 hover 시 표시 */
+#mainCarousel:hover .carousel-control-prev,
+#mainCarousel:hover .carousel-control-next {
+	opacity: 1;
+	transition: opacity 0.3s;
+}
+
+.carousel-control-prev,
+.carousel-control-next {
+	opacity: 0;
+	transition: opacity 0.3s;
+}
+
+/* 게시판, 리뷰 섹션 */
+section.content-area {
+	padding: 2rem 1rem;
+	max-width: 1200px;
+	margin: 0 auto;
+}

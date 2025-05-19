@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,8 +18,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.servlet.http.HttpServletRequest;
 import kr.or.kosa.user.dto.CustomUser;
 import kr.or.kosa.user.dto.Users;
+import kr.or.kosa.user.service.PasswordResetService;
 import kr.or.kosa.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 
@@ -27,6 +30,8 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
 
 	private final UserService userService;
+
+	private final PasswordResetService passwordResetService;
 
 	@GetMapping({ "", "/" })
 	public String home() {
@@ -178,5 +183,38 @@ public class UserController {
 		}
 
 		return result;
+	}
+
+	@PostMapping("/reset-password")
+	@ResponseBody
+	public ResponseEntity<String> processForgotPassword(@RequestParam("email") String email,
+			HttpServletRequest request) {
+		String resetLink = passwordResetService.generateResetLink(email, request);
+		if (resetLink == null) {
+			return ResponseEntity.badRequest().body("이메일이 존재하지 않습니다.");
+		}
+		return ResponseEntity.ok("이메일 전송 완료");
+	}
+
+	@GetMapping("/reset-password/confirm")
+	public String showResetPasswordForm(@RequestParam("token") String token, Model model) {
+		if (!passwordResetService.isValidToken(token)) {
+			return "user/invalid-token";
+		}
+		model.addAttribute("token", token);
+		return "user/reset-confirm";
+	}
+
+	@PostMapping("/reset-password/confirm")
+	public String resetPassword(@RequestParam("token") String token, @RequestParam("newPassword") String newPassword,
+			Model model) {
+		if (!passwordResetService.isValidToken(token)) {
+			return "user/invalid-token";
+		}
+		Long userId = passwordResetService.getUserIdByToken(token);
+		userService.updatePassword(userId, newPassword);
+		passwordResetService.invalidateToken(token);
+		model.addAttribute("message", "비밀번호가 성공적으로 변경되었습니다.");
+		return "user/reset-success";
 	}
 }

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="_csrf" th:content="${_csrf.token}" />
+	<meta name="_csrf_header" th:content="${_csrf.headerName}" />
+	<title>관리자 페이지</title>
+	<style>
+		body {
+			font-family: 'Courier New', monospace;
+			padding: 20px;
+			background: #f8f8f8;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			margin-top: 20px;
+			background: #fff;
+		}
+
+		th,
+		td {
+			border: 1px solid #ccc;
+			padding: 8px;
+			text-align: center;
+		}
+
+		th {
+			background: #eee;
+		}
+
+		tr:hover {
+			background-color: #f0f8ff;
+			cursor: pointer;
+		}
+
+		#detail {
+			margin-top: 30px;
+			padding: 20px;
+			border: 1px solid #aaa;
+			background: #fff;
+		}
+
+		.btn {
+			padding: 5px 10px;
+			background-color: #666;
+			color: white;
+			border: none;
+			cursor: pointer;
+		}
+
+		.btn:hover {
+			background-color: #000;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="admin-tabs">
+		<button onclick="switchTab('experts')">전문가 관리</button>
+		<button onclick="switchTab('users')">유저 관리</button>
+		<form id="logoutForm" action="/logout" method="POST" style="display:none;">
+			<input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+		</form>
+
+		<button class="btn" onclick="document.getElementById('logoutForm').submit()">로그아웃</button>
+	</div>
+
+	<div class="tab-content" id="expertsTab">
+		<h1>전문가 관리</h1>
+
+		<table id="expertTable">
+			<thead>
+				<tr>
+					<th>닉네임</th>
+					<th>이메일</th>
+					<th>경력</th>
+					<th>상태</th>
+				</tr>
+			</thead>
+			<tbody id="expertBody">
+			</tbody>
+		</table>
+
+		<div id="detail" style="display: none;">
+			<h3>상세 정보</h3>
+			<p><strong>닉네임:</strong> <span id="nickname"></span></p>
+			<p><strong>프로필:</strong> <img id="profileImg" src="" alt="프로필 이미지" width="100"
+					onclick="openImage(this.src)" /></p>
+			<p><strong>이메일:</strong> <span id="email"></span></p>
+			<p><strong>경력:</strong> <span id="career"></span></p>
+			<p><strong>상태:</strong> <span id="status"></span></p>
+			<div>
+				<strong>자격증 목록:</strong>
+				<ul id="licenseList"></ul>
+			</div>
+
+			<div>
+				<strong>카테고리 목록:</strong>
+				<ul id="categoryList"></ul>
+			</div>
+
+			<div>
+				<strong>활동 지역:</strong>
+				<ul id="locationList"></ul>
+			</div>
+			<button class="btn" onclick="approve()">승인</button>
+			<button class="btn" onclick="hideDetail()">취소</button>
+		</div>
+	</div>
+
+	<div class="tab-content" id="usersTab" style="display:none;">
+		<h1>유저 관리</h1>
+		<p>유저 관리 기능 준비 중...</p>
+	</div>
+
+	<script>
+		function getCsrfToken() {
+			const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+			const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+			return {token, header};
+		}
+
+		function switchTab(tab) {
+			document.querySelectorAll('.tab-content').forEach(div => div.style.display = 'none');
+			document.getElementById(tab + 'Tab').style.display = 'block';
+		}
+
+		window.onload = () => fetchExpertList();
+
+		function fetchExpertList() {
+			fetch('/admin/list')
+				.then(res => res.json())
+				.then(data => {
+					const tbody = document.getElementById('expertBody');
+					tbody.innerHTML = '';
+					data.forEach(expert => {
+						const tr = document.createElement('tr');
+						tr.innerHTML = `
+              <td>${expert.nickname}</td>
+              <td>${expert.email}</td>
+              <td>${expert.career}</td>
+              <td>${expert.status}</td>
+            `;
+						tr.onclick = () => showDetail(expert);
+						tbody.appendChild(tr);
+					});
+				});
+		}
+
+		function showDetail(expert) {
+			const userId = expert.userId;
+
+			document.getElementById('nickname').innerText = expert.nickname;
+			document.getElementById('profileImg').src = `/uploads/${expert.profileImg}`;
+			document.getElementById('email').innerText = expert.email;
+			document.getElementById('career').innerText = expert.career;
+			document.getElementById('status').innerText = expert.status;
+
+			fetch(`/admin/licenses?userId=${userId}`)
+				.then(res => res.json())
+				.then(data => {
+					const ul = document.getElementById('licenseList');
+					ul.innerHTML = '';
+					data.forEach(item => {
+						ul.innerHTML += `<li><img src="/uploads/${item.name}" width="60" onclick="openImage(this.src)"/></li>`;
+					});
+				});
+
+			fetch(`/admin/categories?userId=${userId}`)
+				.then(res => res.json())
+				.then(data => {
+					const ul = document.getElementById('categoryList');
+					ul.innerHTML = '';
+					data.forEach(item => {
+						ul.innerHTML += `<li>${item.name}</li>`;
+					});
+				});
+
+			fetch(`/admin/locations?userId=${userId}`)
+				.then(res => res.json())
+				.then(data => {
+					const ul = document.getElementById('locationList');
+					ul.innerHTML = '';
+					data.forEach(item => {
+						ul.innerHTML += `<li>${item.location}</li>`;
+					});
+				});
+
+			document.getElementById('detail').style.display = 'block';
+		}
+
+		function openImage(src) {
+			window.open(src, '_blank');
+		}
+
+		function hideDetail() {
+			document.getElementById('detail').style.display = 'none';
+		}
+
+		function approve() {
+			const email = document.getElementById('email').innerText;
+			const {token, header} = getCsrfToken();
+
+			fetch(`/admin/approve?email=${email}`, {
+				method: 'POST',
+				headers: {
+					[header]: token
+				}
+			})
+				.then(res => res.text())
+				.then(msg => {
+					alert(msg);
+					fetchExpertList();
+					document.getElementById('detail').style.display = 'none';
+				});
+		}
+	</script>
+</body>
+
+</html>

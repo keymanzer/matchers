@@ -2,18 +2,45 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="kr.or.kosa.attachedFile.mapper.AttachedFileMapper">
 
+
+
     <resultMap id="attachedFileMap" type="kr.or.kosa.attachedFile.dto.AttachedFile">
         <id property="attachedFileId" column="ATTACHED_FILE_ID"/>
         <result property="name" column="NAME"/>
         <result property="path" column="PATH"/>
         <result property="postId" column="POST_ID"/>
+
     </resultMap>
 
-
-    <!-- 첨부파일을 DB에 삽입 -->
     <insert id="insertAttachedFile" parameterType="kr.or.kosa.attachedFile.dto.AttachedFile">
-        INSERT INTO attached_files (attached_file_id, name, path, post_id)
-        VALUES (attached_file_seq.nextval, #{name}, #{path}, #{postId})
+        <selectKey keyProperty="attachedFileId"
+                   resultType="long"
+                   order="BEFORE">
+            SELECT ATTACHED_FILE_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+
+
+        INSERT INTO attached_file
+            (attached_file_id, post_id, name, path)
+        VALUES
+            (#{attachedFileId}, #{postId}, #{name}, #{path})
     </insert>
 
+    <select id="findAttachedFilesByPostId"
+            parameterType="int"
+            resultType="kr.or.kosa.attachedFile.dto.AttachedFile">
+        SELECT attached_file_id   AS attachedFileId,
+               post_id            AS postId,
+               name,
+               path
+        FROM attached_file
+        WHERE post_id = #{postId}
+    </select>
+
+    <delete id="deleteAttachedFilesByPostId" parameterType="int">
+        DELETE FROM attached_file WHERE post_id = #{postId}
+    </delete>
+
 </mapper>
+
+

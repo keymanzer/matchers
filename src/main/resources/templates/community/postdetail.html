@@ -1,26 +1,149 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8">
     <title>게시글 상세</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .wrapper {
+            margin-top: 80px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .post-detail-card {
+            width: 90%;
+            max-width: 800px;
+            border-radius: 16px;
+            background-color: white;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 2rem;
+        }
+
+        .post-meta {
+            font-size: 0.95rem;
+            color: #6c757d;
+            margin-bottom: 1rem;
+        }
+
+        .post-title {
+            font-weight: bold;
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .post-content {
+            white-space: pre-wrap;
+            margin-bottom: 2rem;
+        }
+
+        .file-section h3 {
+            margin-bottom: 1rem;
+        }
+
+        .file-button {
+            display: inline-block;
+            background-color: #e9ecef;
+            padding: 6px 10px;
+            border-radius: 8px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            text-decoration: none;
+            color: #333;
+            font-weight: 400;
+        }
+
+        .file-button:hover {
+            background-color: #ced4da;
+        }
+
+        .action-buttons {
+            margin-top: 1rem;
+        }
+
+        .btn-custom {
+            background-color: #6b48ff;
+            color: white;
+            font-weight: 600;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            margin-right: 8px;
+        }
+
+        .btn-custom:hover {
+            background-color: #5838dd;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 2rem;
+            color: #6b48ff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+		a:empty {
+		    display: none !important;
+		}
+    </style>
 </head>
 <body>
-    <h1>게시글 상세</h1>
-    <p th:text="${post.postId}">게시글 ID</p>
-	<p>작성자: <span th:text="${post.users.nickname}"></span></p> 
-	<p>최종수정일: <span th:text="${#temporals.format(post.lastUpdatedAt, 'yyyy-MM-dd HH:mm')}"></span></p>    
-	<h3 th:text="${post.board.title}">제목</h3>
-    <p th:text="${post.board.content}">내용</p>
-    <hr>
-    <form style="display:inline;">
-        <input type="button" value="수정"
-               th:onclick="|location.href='@{/user/community/{postId}/update(postId=${post.postId})}'|"/>
-    </form>
+<div class="wrapper">
+    <div class="post-detail-card">
+        <h1>게시글 상세</h1>
 
-    <form th:action="@{'/user/community/' + ${post.postId} + '/delete'}" method="post" style="display:inline;">
-        <input type="submit" value="삭제" />
-    </form>
+        <div class="post-meta">
+            <div><strong>작성자:</strong> <span th:text="${post.users.nickname}"></span></div>
+            <div><strong>날짜:</strong> <span th:text="${#temporals.format(post.lastUpdatedAt, 'yyyy-MM-dd HH:mm')}"></span></div>
+        </div>
+		<br>
+        <div class="post-title" th:text="${post.board.title}">제목</div>
+        <div class="post-content" th:text="${post.board.content}">내용</div>
+		<br><br>
+		<hr>
+		<th:block th:if="${post.attachedFiles != null and !post.attachedFiles.isEmpty()}">
+		    <div class="file-section">
+		        <p class="post-meta"><strong>첨부파일</strong></p>
+		        <div>
+		            <a th:each="file : ${post.attachedFiles}"
+		               th:href="@{|/file/download/${file.name}|}"
+		               th:text="${file.name}"
+		               class="file-button"></a>
+		        </div>
+		    </div>
+		</th:block>
+		<br><br>
+        <div class="action-buttons">
+            <form style="display:inline;">
+                <button type="button" class="btn btn-custom"
+                        th:onclick="|location.href='@{/user/community/{postId}/update(postId=${post.postId})}'|">
+                    수정
+                </button>
+            </form>
+            <form th:action="@{'/user/community/' + ${post.postId} + '/delete'}" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-custom">삭제</button>
+            </form>
+        </div>
 
-    <hr>
-    <a th:href="@{/user/community}">목록으로</a>	
+        <a th:href="@{/user/community}" class="back-link">돌아가기 &#8656;</a>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

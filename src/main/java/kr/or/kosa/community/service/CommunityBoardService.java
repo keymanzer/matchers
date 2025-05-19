@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import kr.or.kosa.attachedFile.mapper.AttachedFileMapper;
 import kr.or.kosa.board.mapper.BoardMapper;
 import kr.or.kosa.community.dto.CommunityBoard;
 import kr.or.kosa.community.mapper.CommunityBoardMapper;
@@ -19,6 +20,9 @@ public class CommunityBoardService {
 	
 	@Autowired
 	private BoardMapper boardMapper;
+	
+	@Autowired
+	private AttachedFileMapper attachedFileMapper;
 	
 	public void setCommunityBoardMapper(CommunityBoardMapper communityBoardMapper) {
 		this.communityBoardMapper = communityBoardMapper;
@@ -44,6 +48,7 @@ public class CommunityBoardService {
 		
     @Transactional
     public void deletePost(Long postId) {
+    	attachedFileMapper.deleteAttachedFilesByPostId(postId.intValue());
     	communityBoardMapper.deletePost(postId);
         boardMapper.deleteBoard(postId.intValue());
     }

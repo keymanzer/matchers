@@ -1,27 +1,40 @@
-/* mainpage.css */
-body.mainpage {
+/* 전체 페이지 설정 */
+body {
+	background-color: #f9f9f9;
+	font-family: 'Pretendard', sans-serif;
+	color: #333;
+	margin: 0;
+	padding: 0;
+}
+
+.section-title {
 	margin-top: 120px;
 }
 
-/* 캐러셀 높이와 여백 */
+.section-title h2 {
+	color: #5c6bc0;
+	display: inline-block;
+	padding-bottom: 5px;
+}
+
+/* 캐러셀 영역 */
 #mainCarousel {
-	max-height: 400px;
+	max-width: 1200px;
+	max-height: 300px;
+	margin-bottom: 2rem;
 	overflow: hidden;
-	margin-top: 120px;
+	margin: 40px auto 60px auto;
+	z-index: 1;
 }
 
-#mainCarousel .carousel-item img {
+#mainCarousel .carousel-inner {
+	border-radius: 10px;
+}
+
+#mainCarousel img {
 	object-fit: contain;
-	height: 400px;
-	width: 100%;
-	background-color: #000;
-}
-
-/* 캐러셀 화살표 버튼 hover 시 표시 */
-#mainCarousel:hover .carousel-control-prev,
-#mainCarousel:hover .carousel-control-next {
-	opacity: 1;
-	transition: opacity 0.3s;
+	height: 300px;
+	background-color: #e8eaf6;
 }
 
 .carousel-control-prev,
@@ -30,9 +43,84 @@ body.mainpage {
 	transition: opacity 0.3s;
 }
 
-/* 게시판, 리뷰 섹션 */
-section.content-area {
-	padding: 2rem 1rem;
+#mainCarousel:hover .carousel-control-prev,
+#mainCarousel:hover .carousel-control-next {
+	opacity: 1;
+}
+
+/* 콘텐츠 영역 */
+.content-area {
 	max-width: 1200px;
 	margin: 0 auto;
+	padding: 2rem 1rem;
+	background-color: #fff;
+	border-radius: 12px;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* 후기 섹션 */
+.review-summary {
+	margin-top: 0 !important;
+	padding-top: 0 !important;
+}
+
+.review-summary h2 {
+	margin-top: 0 !important;
+	font-size: 1.6rem;
+	font-weight: 600;
+}
+
+.review-summary blockquote {
+	background-color: #f3f4f8;
+	padding: 1rem;
+	border-left: 5px solid #7e57c2;
+	margin: 1rem 0;
+	font-style: italic;
+}
+
+.review-link {
+	text-decoration: none;
+	color: #5c6bc0;
+	/* 포인트 컬러 */
+	font-weight: 500;
+	transition: all 0.2s ease-in-out;
+}
+
+.review-link:hover {
+	text-decoration: underline;
+	color: #3f51b5;
+	/* hover 시 조금 더 진한 색 */
+}
+
+/* 게시판, 리뷰 */
+.content-area h2 {
+	font-size: 1.5rem;
+	font-weight: 600;
+	margin-top: 3rem;
+	margin-bottom: 1rem;
+}
+
+/* CTA 배너 */
+.cta-banner {
+	background: #e8eaf6;
+	border-radius: 12px;
+	margin-top: 3rem;
+	padding: 2rem;
+}
+
+.cta-banner h4 {
+	font-weight: 700;
+	margin-bottom: 0.5rem;
+}
+
+.cta-banner p {
+	margin-bottom: 1rem;
+	color: #555;
+}
+
+.cta-banner .btn-primary {
+	background-color: #7e57c2;
+	border-color: #7e57c2;
+	padding: 0.5rem 1.2rem;
+	font-weight: 500;
 }

@@ -70,11 +70,21 @@
 			<p>리뷰 목록은 구현 중입니다.</p>
 		</div>
 
-		<div class="cta-banner text-center mt-5 p-4" style="background: #e8eaf6; border-radius: 10px;">
-			<h4>전문가이신가요?</h4>
-			<p>지금 등록하고 고객과 매칭되어 보세요.</p>
-			<a href="/user/expert/register" class="btn btn-primary">전문가 등록하기</a>
-		</div>
+		<th:block sec:authorize="!hasRole('ROLE_EXPERT')">
+			<div class="cta-banner text-center mt-5 p-4" style="background: #e8eaf6; border-radius: 10px;">
+				<h4>전문가이신가요?</h4>
+				<p>지금 등록하고 고객과 매칭되어 보세요.</p>
+				<a href="/user/expert/register" class="btn btn-primary">전문가 등록하기</a>
+			</div>
+		</th:block>
+
+		<th:block sec:authorize="hasRole('ROLE_EXPERT')">
+			<div class="cta-banner text-center mt-5 p-4" style="background: #e8eaf6; border-radius: 10px;">
+				<h4>전문가로 활약하고 싶으신가요?</h4>
+				<p>견적 게시판에서 고객과 매칭하세요.</p>
+				<a href="/" class="btn btn-primary">견적 게시판 확인하기</a>
+			</div>
+		</th:block>
 	</section>
 
 	<div th:replace="~{footer :: footer}"></div>

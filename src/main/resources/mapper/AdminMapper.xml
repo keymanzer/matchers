@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.kosa.mapper.AdminMapper">
+
+	<resultMap type="kr.or.kosa.admin.dto.ExpertDetail" id="expertDetail">
+		<result property="userId" column="USER_ID" />
+		<result property="email" column="EMAIL" />
+		<result property="nickname" column="NICKNAME" />
+		<result property="profileImg" column="PROFILE_IMG" />
+		<result property="career" column="CAREER" />
+		<result property="status" column="STATUS" />
+		<result property="reviewedAt" column="REVIEWED_AT" />
+	</resultMap>
+
+	<resultMap type="kr.or.kosa.admin.dto.ExpertLicense" id="expertLicense">
+		<result property="userId" column="USER_ID" />
+		<result property="name" column="NAME" />
+		<result property="path" column="PATH" />
+	</resultMap>
+
+	<resultMap type="kr.or.kosa.admin.dto.ExpertCategory" id="expertCategory">
+		<result property="userId" column="USER_ID" />
+		<result property="name" column="NAME" />
+	</resultMap>
+
+	<resultMap type="kr.or.kosa.admin.dto.ExpertLocation" id="expertLocation">
+		<result property="userId" column="USER_ID" />
+		<result property="location" column="LOCATION" />
+	</resultMap>
+
+	<select id="getExpertList" resultMap="expertDetail">
+		SELECT U.USER_ID, U.EMAIL, U.NICKNAME, U.PROFILE_IMG, E.CAREER,
+		E.STATUS, E.REVIEWED_AT
+		FROM USERS U
+		LEFT JOIN EXPERT E
+		ON U.USER_ID = E.USER_ID
+		WHERE 1 = 1
+		AND E.STATUS = 'PENDING'
+		AND E.REVIEWED_AT IS NULL
+		ORDER BY U.UPDATED_AT
+	</select>
+
+	<select id="getLicenses" resultMap="expertLicense">
+		SELECT USER_ID, NAME, PATH
+		FROM EXPERT_LICENSE
+		WHERE USER_ID = #{userId}
+	</select>
+
+	<select id="getCategories" resultMap="expertCategory">
+		SELECT E.USER_ID, C.NAME
+		FROM EXPERT_CATEGORY E
+		LEFT JOIN CATEGORY C
+		ON E.CATEGORY_ID = C.CATEGORY_ID
+		WHERE E.USER_ID = #{userId}
+	</select>
+
+	<select id="getLocations" resultMap="expertLocation">
+		SELECT E.USER_ID, L.CITY || ' ' || L.DISTRICT AS LOCATION
+		FROM EXPERT_LOCATION E
+		LEFT JOIN LOCATION L
+		ON E.LOCATION_ID = L.LOCATION_ID
+		WHERE E.USER_ID = #{userId}
+	</select>
+
+	<update id="approveExpertByEmail">
+		UPDATE EXPERT
+		SET STATUS = 'APPROVED',
+		REVIEWED_AT = SYSDATE
+		WHERE USER_ID = (
+		SELECT USER_ID FROM USERS WHERE EMAIL = #{email}
+		)
+	</update>
+
+	<insert id="insertExpertAuth">
+		INSERT INTO USER_AUTH (USER_ID, AUTHORITY)
+		VALUES (
+		(SELECT USER_ID FROM USERS WHERE EMAIL = #{email}),
+		'ROLE_EXPERT'
+		)
+	</insert>
+
+</mapper>

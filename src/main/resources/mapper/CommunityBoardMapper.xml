@@ -2,29 +2,38 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="kr.or.kosa.community.mapper.CommunityBoardMapper">
 
-    <resultMap type="kr.or.kosa.user.dto.Users" id="usersMap">
+    <resultMap id="usersMap" type="kr.or.kosa.user.dto.Users">
         <id property="userId" column="USER_ID"/>
         <result property="email" column="EMAIL"/>
         <result property="nickname" column="NICKNAME"/>
     </resultMap>
     
-	<resultMap type="kr.or.kosa.board.dto.Board" id="boardMap">
+	<resultMap id="boardMap" type="kr.or.kosa.board.dto.Board">
 	    <id property="postId" column="POST_ID"/>
 	    <result property="title" column="TITLE"/>
 	    <result property="content" column="CONTENT"/>
 	    <result property="createdAt" column="CREATED_AT"/>
 	    <result property="userNickname" column="USER_NICKNAME"/>
 	    <result property="userId" column="USERID"/>
-	</resultMap>		
+	</resultMap>
 
-    <resultMap type="kr.or.kosa.community.dto.CommunityBoard" id="communityBoardMap">
+    <resultMap id="attachedFileMap" type="kr.or.kosa.attachedFile.dto.AttachedFile">
+	    <id property="attachedFileId" column="ATTACHED_FILE_ID"/>
+	    <result property="name" column="NAME"/>
+	    <result property="path" column="PATH"/>
+	    <result property="postId" column="POST_ID"/>
+	</resultMap>
+
+    <resultMap id="communityBoardMap" type="kr.or.kosa.community.dto.CommunityBoard">
         <id property="postId" column="POST_ID" />
         <result property="lastUpdatedAt" column="LAST_UPDATED_AT"/>
         <result property="views" column="VIEWS"/>
 	    <result property="userNickname" column="USER_NICKNAME"/>
 	    <result property="userId" column="USERID"/>
+	    <result property="attachedFileExists" column="ATTACHED_FILE_EXISTS"/>
         <association property="board" resultMap="boardMap"/>
         <association property="users" resultMap="usersMap"/>
+        <collection property="attachedFiles" ofType="kr.or.kosa.attachedFile.dto.AttachedFile" resultMap="attachedFileMap"/>
     </resultMap>
 
     <select id="getPostList" resultMap="communityBoardMap">
@@ -34,13 +43,14 @@
 		    b.CONTENT, 
 		    b.CREATED_AT, 
 		    b.USERID,
-		    u.EMAIL,
 		    u.NICKNAME,
 		    cb.LAST_UPDATED_AT, 
-		    cb.VIEWS
+		    cb.VIEWS,
+		    (CASE WHEN a.NAME IS NOT NULL THEN 1 ELSE 0 END) AS ATTACHED_FILE_EXISTS
 		FROM BOARD b
 		LEFT JOIN COMMUNITY_BOARD cb ON b.POST_ID = cb.POST_ID
 		LEFT JOIN USERS u ON b.USERID = u.USER_ID
+		LEFT JOIN ATTACHED_FILE a ON b.POST_ID = a.POST_ID
 		WHERE cb.POST_ID = b.POST_ID
 		ORDER BY b.POST_ID DESC
     </select>
@@ -50,16 +60,20 @@
 		    b.POST_ID, 
 		    b.TITLE, 
 		    b.CONTENT, 
-		    b.CREATED_AT,
+		    b.CREATED_AT, 
 		    b.USERID,
 		    u.EMAIL,
 		    u.NICKNAME,
 		    cb.LAST_UPDATED_AT, 
-		    cb.VIEWS
+		    cb.VIEWS,
+		    a.ATTACHED_FILE_ID,
+		    a.NAME,
+		    a.PATH
 		FROM BOARD b
 		LEFT JOIN COMMUNITY_BOARD cb ON b.POST_ID = cb.POST_ID
 		LEFT JOIN USERS u ON b.USERID = u.USER_ID
-		WHERE cb.POST_ID = b.POST_ID AND cb.POST_ID = #{post_id}
+		LEFT JOIN ATTACHED_FILE a ON b.POST_ID = a.POST_ID
+		WHERE cb.POST_ID = b.POST_ID AND cb.POST_ID = #{postId}
     </select>
 	
 	<insert id="insertPost" parameterType="kr.or.kosa.community.dto.CommunityBoard">

@@ -2,17 +2,47 @@ package kr.or.kosa.attachedFile.service;
 
 import kr.or.kosa.attachedFile.dto.AttachedFile;
 import kr.or.kosa.attachedFile.mapper.AttachedFileMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+
+import java.io.File;
+import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class AttachedFileService {
 
-    @Autowired
-    private AttachedFileMapper attachedFileMapper;  // Mapper를 주입받습니다.
+    private final AttachedFileMapper attachedFileMapper;
 
-    // 첨부파일을 DB에 저장
-    public void saveAttachedFile(AttachedFile attachedFile) {
-        attachedFileMapper.insertAttachedFile(attachedFile);  // Mapper에서 insert 쿼리 호출
+    @Value("${spring.servlet.multipart.location}")
+    private String uploadDirectory;
+
+    /** 첨부파일 저장(DB + 물리경로) */
+    public void saveAttachedFileMetadata(AttachedFile af) {
+        attachedFileMapper.insertAttachedFile(af);
+    }
+    /** postId 기준으로 파일 메타 조회 */
+    public List<AttachedFile> findByPostId(int postId) {
+        return attachedFileMapper.findAttachedFilesByPostId(postId);
+    }
+
+    /** postId 기준으로 물리+DB 모두 삭제 */
+    @Transactional
+    public void deleteAttachedFilesByPostId(int postId) {
+        // 1) DB에서 메타만 조회
+        List<AttachedFile> files = attachedFileMapper.findAttachedFilesByPostId(postId);
+        System.out.println("files = " + files);
+        // 2) 물리 삭제
+        for (AttachedFile f : files) {
+            File diskFile = new File(uploadDirectory, f.getName());
+            if (diskFile.exists()) {
+                diskFile.delete();
+            }
+        }
+        // 3) DB 메타 삭제
+        attachedFileMapper.deleteAttachedFilesByPostId(postId);
     }
 }

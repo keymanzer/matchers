@@ -2,12 +2,26 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="kr.or.kosa.quotationBoard.mapper.QuotationBoardMapper">
 
- <resultMap id="QuotationBoardResultMap" type="kr.or.kosa.quotationBoard.dto.QuotationBoard">
-    <id property="postId" column="POST_ID" />
-    <result property="expertId" column="EXPERT_ID" />
-    <result property="categoryId" column="CATEGORY_ID" />
-    <result property="state" column="STATE" />
-</resultMap>
+    <resultMap id="QuotationBoardResultMap"
+               type="kr.or.kosa.quotationBoard.dto.QuotationBoard">
+        <!-- 기본 필드 매핑 -->
+        <id     property="postId"        column="POST_ID"/>
+        <result property="expertId"      column="EXPERT_ID"/>
+        <result property="categoryId"    column="CATEGORY_ID"/>
+        <result property="state"         column="STATE"/>
+        <result property="title"         column="TITLE"/>
+        <result property="content"       column="CONTENT"/>
+        <result property="createdAt"     column="CREATED_AT"/>
+        <result property="userNickname"  column="USER_NICKNAME"/>
+        <result property="userId"        column="USERID"/>
+
+        <!-- 컬렉션 매핑 -->
+        <collection property="quotationLocations" ofType="kr.or.kosa.quotationBoard.dto.location">
+            <id     property="locationId" column="LOCATION_ID"/>
+            <result property="city"       column="CITY"/>
+            <result property="district"   column="DISTRICT"/>
+        </collection>
+    </resultMap>
 
     <insert id="insertQuotationBoard" parameterType="kr.or.kosa.quotationBoard.dto.QuotationBoard">
         INSERT INTO quotation_board (post_id, expert_id, category_id, state)
@@ -23,7 +37,82 @@
         WHERE post_id = #{postId}
     </update>
 
+    <!-- 추가: 지역 매핑 먼저 삭제 -->
+    <delete id="deleteQuotationLocations" parameterType="int">
+        DELETE FROM quotation_location
+        WHERE post_id = #{postId}
+    </delete>
+
+    <delete id="deleteQuotationBoard" parameterType="int">
+        DELETE FROM quotation_board WHERE post_id = #{postId}
+    </delete>
+
+    <select id="findAll" parameterType="long" resultMap="QuotationBoardResultMap">
+        SELECT DISTINCT
+            qb.post_id,
+            qb.expert_id,
+            qb.category_id,
+            qb.state,
+            b.title,
+            b.content,
+            b.created_at,
+            b.user_nickname,
+            b.userid,
+            l.location_id,
+            l.city,
+            l.district
+        FROM quotation_board qb
+                 JOIN board b
+                      ON qb.post_id = b.post_id
+                 JOIN quotation_location ql
+                      ON ql.post_id = qb.post_id
+                 JOIN location l
+                      ON l.location_id = ql.location_id
+        WHERE qb.category_id IN (
+            SELECT ec.category_id
+            FROM expert_category ec
+            WHERE ec.user_id = #{userid}
+        )
+          AND ql.location_id IN (
+            SELECT el.location_id
+            FROM expert_location el
+            WHERE el.user_id =  #{userid}
+        )
+        ORDER BY qb.post_id, l.location_id
+    </select>
 
 
+    <select id="findByPostIdWithLocations" parameterType="int" resultMap="QuotationBoardResultMap">
+        SELECT
+            qb.post_id     AS POST_ID,
+            qb.expert_id   AS EXPERT_ID,
+            qb.category_id AS CATEGORY_ID,
+            qb.state       AS STATE,
+            b.title        AS TITLE,
+            b.content      AS CONTENT,
+            b.created_at   AS CREATED_AT,
+            b.user_nickname AS USER_NICKNAME,
+            b.userid       AS USERID,
+            l.location_id  AS LOCATION_ID,
+            l.city         AS CITY,
+            l.district     AS DISTRICT
+        FROM quotation_board qb
+                 JOIN board b ON qb.post_id = b.post_id
+                 LEFT JOIN quotation_location ql ON b.post_id = ql.post_id
+                 LEFT JOIN location l ON ql.location_id = l.location_id
+        WHERE qb.post_id = #{postId}
+    </select>
+
+
+    <insert id="insertQuotationLocation" parameterType="map">
+        INSERT INTO quotation_location (
+            post_id,
+            location_id
+        )
+        VALUES (
+                   #{postId},
+                   #{locationId}
+               )
+    </insert>
 
 </mapper>

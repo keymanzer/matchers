@@ -3,6 +3,9 @@ package kr.or.kosa.quotationBoard.mapper;
 import kr.or.kosa.quotationBoard.dto.QuotationBoard;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 @Mapper
 public interface QuotationBoardMapper {
@@ -11,4 +14,16 @@ public interface QuotationBoardMapper {
     void insertQuotationBoard(QuotationBoard quotationBoard);
 
     int updateQuotationBoard(QuotationBoard quotationBoard);
+
+    void deleteQuotationBoard(int postId);
+
+    List<QuotationBoard> findAll(long userId);
+
+    QuotationBoard findByPostIdWithLocations(int postId);
+
+    void insertQuotationLocation(@Param("postId") int postId,
+                                 @Param("locationId") int locationId);
+
+    void deleteQuotationLocations(int postId);
+
 }

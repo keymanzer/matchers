@@ -4,17 +4,33 @@ import kr.or.kosa.attachedFile.dto.AttachedFile;
 import kr.or.kosa.attachedFile.service.AttachedFileService;
 import kr.or.kosa.board.dto.Board;
 import kr.or.kosa.board.service.BoardService;
+import kr.or.kosa.expert.dto.Location;
+import kr.or.kosa.expert.service.ExpertService;
 import kr.or.kosa.quotationBoard.dto.QuotationBoard;
 import kr.or.kosa.quotationBoard.service.QuotationBoardService;
+import kr.or.kosa.user.dto.CustomUser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
 
 @Controller
 @RequestMapping("/user/quotationBoard")
@@ -29,62 +45,172 @@ public class QuotationBoardController {
     @Autowired
     private AttachedFileService attachedFileService;
 
+    // ★ 새로 추가: DB에서 지역·카테고리 가져올 서비스
+    @Autowired
+    private ExpertService expertService;
+
+    @Value("${spring.servlet.multipart.location}")
+    private String uploadDirectory;
     // 게시판 생성 화면 요청
+
     @GetMapping("/create")
     public String showCreateQuotationBoardForm(Model model) {
         model.addAttribute("quotationBoard", new QuotationBoard());
+        // DB에서 실제 지역 목록 가져오기
+        List<Location> locations = expertService.getLocationList();
+        model.addAttribute("locations", locations);
+
+        // 중복 제거된 도시 목록
+        List<String> cities = locations.stream()
+                .map(Location::getCity)
+                .distinct()
+                .toList();
+        model.addAttribute("cities", cities);
+
+        // DB에서 실제 카테고리 목록 가져오기
+        model.addAttribute("categories", expertService.getCategoryList());
+
+
         System.out.println("model = " + model);
         System.out.println("크리에이트 폼요청");
         return "quotationBoard/create";  // 게시판 생성 폼을 표시하는 뷰
     }
 
     // 게시판 생성 처리
+    // 2) 게시글 + 지역 + 첨부파일 생성 처리
     @PostMapping("/create")
-    public String createQuotationBoard(QuotationBoard quotationBoard/*, List<MultipartFile> attachedFiles*/) {
-        // 1. 먼저 board 테이블에 게시글 삽입
+    @Transactional
+    public String createQuotationBoard(
+            @ModelAttribute QuotationBoard quotationBoard,
+            @AuthenticationPrincipal CustomUser customUser,
+            @RequestParam("locationIds") List<Integer> locationIds,
+            @RequestParam(name = "attachedFiles", required = false) List<MultipartFile> attachedFiles
+    ) {
+        // --- 2-1. Board 테이블에 삽입 ---
         Board board = new Board();
-        System.out.println(quotationBoard);
-        // 사용자가 입력한 title과 content를 BoardDTO에 설정
-        board.setTitle(quotationBoard.getTitle());  // 사용자가 입력한 제목
-        board.setContent(quotationBoard.getContent());  // 사용자가 입력한 본문 내용
-        board.setUserNickname("defaultNickname");  // 로그인한 유저 정보로 설정 (임시값)
-        board.setUserId(1);  // 로그인한 유저 ID (임시값)
-        System.out.println(board);
+        board.setTitle(quotationBoard.getTitle());
+        board.setContent(quotationBoard.getContent());
+        board.setUserNickname(customUser.getNickname());
+        board.setUserId(2);//customUser.getUserId()
 
+        int postId = boardService.getNextBoardId();
+        board.setPostId(postId);
+        boardService.createBoard(board);
 
-        int postid = boardService.getNextBoardId();
-        System.out.println(postid);
-        board.setPostId(postid);
-        // boardService 호출하여 board 테이블에 데이터 삽입
-        boardService.createBoard(board);  // postId가 생성됨 (insert 후 postId 설정됨)
+        // --- 2-2. QuotationBoard 테이블에 삽입 ---
+        quotationBoard.setPostId(postId);
+        quotationBoard.setUserNickname(customUser.getNickname());
+        quotationBoard.setUserId(2);//customUser.getUserId()
+        quotationBoardService.createQuotationBoard(quotationBoard);
 
-        // 2. 생성된 board의 postId를 quotationBoard에 설정
-        quotationBoard.setPostId(postid);  // board에서 생성된 postId를 설정
-        quotationBoard.setUserNickname("defaultNickname");  // 로그인한 유저 정보로 설정 (임시값)
-        quotationBoard.setUserId(1);  // 로그인한 유저 ID (임시값)
+        // --- 2-3. Quotation_Location 매핑 삽입 ---
+        for (Integer locId : locationIds) {
+            quotationBoardService.addQuotationLocation(postId, locId);
+        }
 
-        System.out.println(quotationBoard);
-        // 3. 첨부파일 처리 (첨부파일 목록을 받아서 처리)
-//        if (attachedFiles != null && !attachedFiles.isEmpty()) {
-//            for (MultipartFile file : attachedFiles) {
-//                // 첨부파일 정보 처리 (파일명, 경로, postId 등)
-//                AttachedFile attachedFile = new AttachedFile();
-//                attachedFile.setName(file.getOriginalFilename());  // 파일 이름
-//                attachedFile.setPath("/uploads/" + file.getOriginalFilename());  // 예시 경로 (파일 저장 위치)
-//                attachedFile.setPostId(board.getPostId());  // 게시글과 연결되는 postId 설정
-//
-//                // 파일 저장 처리 로직 (파일 시스템이나 DB에 저장)
-//                // 예: 파일을 서버에 저장하고, 파일 경로를 DB에 저장
-//
-//                // 첨부파일 정보를 DB에 저장 (첨부파일 서비스 호출)
-//                attachedFileService.saveAttachedFile(attachedFile);
-//            }
-//        }
+        // 4) 첨부파일 저장 & 메타 삽입
+        if (attachedFiles != null && !attachedFiles.isEmpty()) {
+            System.out.println("attachedFiles.size() = " + attachedFiles.size());
+            for (MultipartFile file : attachedFiles) {
+                if (!file.isEmpty()) {
+                    // 물리 저장
+                    String savedName = saveFile(file);
 
-        // 3. quotationBoard를 생성
-        quotationBoardService.createQuotationBoard(quotationBoard);  // quotation_board 테이블에 삽입
+                    // DB 메타 삽입
+                    AttachedFile af = new AttachedFile();
+                    af.setPostId(postId);
+                    af.setName(savedName);
+                    af.setPath(uploadDirectory + "/" + savedName);
+                    attachedFileService.saveAttachedFileMetadata(af);
+                }
+            }
+        }
 
-        // 4. 생성 후 목록 페이지로 리다이렉트
-        return "redirect:/quotationBoard/list";  // 성공 후 리스트 페이지로 리다이렉트
+        return "redirect:/user/quotationBoard/list";
     }
+
+    // 파일 저장 헬퍼 (원본 파일명 그대로)
+    private String saveFile(MultipartFile file) {
+        try {
+            // 1) 원본 파일명 꺼내기
+            String originalName = file.getOriginalFilename();
+
+            // 2) 저장 경로 생성
+            Path target = Paths.get(uploadDirectory).resolve(originalName);
+            Files.createDirectories(target.getParent());
+
+            // 3) 실제 저장
+            file.transferTo(target.toFile());
+
+            // 4) 뷰에 전달할 파일명으로 원본명을 반환
+            return originalName;
+        } catch (IOException e) {
+            throw new RuntimeException("파일 업로드 실패", e);
+        }
+    }
+
+
+    @PostMapping("/update")
+    public String updateQuotationBoard(QuotationBoard quotationBoard) {
+        System.out.println(quotationBoard);
+        quotationBoardService.updateQuotationBoard(quotationBoard);
+        return "redirect:/user/quotationBoard/list"; // 수정 후 목록 페이지 이동
+    }
+
+    @PostMapping("/delete")
+    public String deleteQuotationBoard(int postId) {
+        System.out.println(postId);
+        quotationBoardService.deleteQuotationBoard(postId);
+        return "redirect:/user/quotationBoard/list";
+    }
+
+    @GetMapping("/list")
+    public String quotationBoardList(Model model, @AuthenticationPrincipal CustomUser customUser) {
+        List<QuotationBoard> list = quotationBoardService.findAllQuotationBoards(2);
+        System.out.println("List size: " + list.size());
+        model.addAttribute("quotationBoards", list);
+        System.out.println("list = " + list);
+        System.out.println(model.getAttribute("quotationBoards"));
+        return "quotationBoard/list";
+    }
+
+
+    @GetMapping("/list/{postId}")
+    public String quotationBoardDetail(@PathVariable int postId, Model model) {
+        QuotationBoard qb = quotationBoardService.findByPostIdWithLocations(postId);
+        List<AttachedFile> attachedFiles = attachedFileService.findByPostId(postId);
+        model.addAttribute("quotationBoard", qb);
+        model.addAttribute("attachedFiles", attachedFiles);
+        return "quotationBoard/detail";
+    }
+
+
+    @GetMapping("/download/{fileName:.+}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) throws MalformedURLException {
+        Path file = Paths.get(uploadDirectory).resolve(fileName);
+        Resource resource = new UrlResource(file.toUri());
+        if (!resource.exists() || !resource.isReadable()) {
+            return ResponseEntity.notFound().build();
+        }
+        // 파일의 MIME 타입을 추측 (실패 시 application/octet-stream)
+        String contentType = null;
+        try {
+            contentType = Files.probeContentType(file);
+        } catch (IOException e) {
+            // 무시
+        }
+        if (contentType == null) {
+            contentType = "application/octet-stream";
+        }
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + fileName + "\"")
+                .body(resource);
+    }
+
 }
+
+
+
+

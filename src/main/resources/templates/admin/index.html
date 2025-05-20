@@ -154,7 +154,7 @@
 			const userId = expert.userId;
 
 			document.getElementById('nickname').innerText = expert.nickname;
-			document.getElementById('profileImg').src = `/uploads/${expert.profileImg}`;
+			document.getElementById('profileImg').src = `${expert.profileImg}`;
 			document.getElementById('email').innerText = expert.email;
 			document.getElementById('career').innerText = expert.career;
 			document.getElementById('status').innerText = expert.status;
@@ -165,7 +165,7 @@
 					const ul = document.getElementById('licenseList');
 					ul.innerHTML = '';
 					data.forEach(item => {
-						ul.innerHTML += `<li><img src="/uploads/${item.name}" width="60" onclick="openImage(this.src)"/></li>`;
+						ul.innerHTML += `<li><img src="${item.path}" width="60" onclick="openImage(this.src)"/></li>`;
 					});
 				});
 

@@ -40,6 +40,16 @@
 		ORDER BY U.UPDATED_AT
 	</select>
 
+	<select id="getExpertByUserId" resultMap="expertDetail">
+		SELECT U.USER_ID, U.EMAIL, U.NICKNAME, U.PROFILE_IMG, E.CAREER,
+		E.STATUS, E.REVIEWED_AT
+		FROM USERS U
+		LEFT JOIN EXPERT E
+		ON U.USER_ID = E.USER_ID
+		WHERE 1 = 1
+		AND U.USER_ID = #{userId}
+	</select>
+
 	<select id="getLicenses" resultMap="expertLicense">
 		SELECT USER_ID, NAME, PATH
 		FROM EXPERT_LICENSE

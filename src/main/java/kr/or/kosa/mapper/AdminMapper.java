@@ -14,6 +14,8 @@ public interface AdminMapper {
 
 	List<ExpertDetail> getExpertList();
 
+	ExpertDetail getExpertByUserId(Long userId);
+
 	List<ExpertLicense> getLicenses(Long userId);
 
 	List<ExpertCategory> getCategories(Long userId);

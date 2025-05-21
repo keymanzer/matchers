@@ -8,7 +8,35 @@
 	<link rel="stylesheet" th:href="@{/css/header.css}" />
 	<link rel="stylesheet" th:href="@{/css/footer.css}" />
 	<link rel="stylesheet" th:href="@{/css/expert/register.css}" />
+	<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 </head>
+
+<style>
+	.select2-container--default .select2-selection--single {
+		height: auto;
+		padding: 0.7rem 0.9rem;
+		border-radius: 8px;
+		border: 1.5px solid #e0e0ff;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+	}
+
+	.select2-container--default .select2-selection--single .select2-selection__arrow {
+		height: 100%;
+		top: 0;
+	}
+
+	.select2-container--default .select2-results__option--highlighted[aria-selected] {
+		background-color: #7e57c2;
+		color: white;
+	}
+
+	.select2-dropdown {
+		border-radius: 8px;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	}
+</style>
 
 <body>
 	<div th:replace="~{header :: header}"></div>
@@ -50,15 +78,20 @@
 			</div>
 
 			<div class="mb-3">
-				<label for="locations" class="form-label">위치</label>
-				<div id="selectedLocations" class="mt-2"></div>
-				<div id="locationButtons" class="mt-2">
-					<th:block th:each="location : ${locationList}">
-						<button type="button" class="location-option btn btn-outline-secondary"
-							th:value="${location.locationId}"
-							th:text="${location.city} + ' ' + ${location.district}"></button>
-					</th:block>
+				<label for="locations" class="form-label">활동 지역</label>
+				<!-- 선택된 지역 배지 표시 -->
+				<div id="selectedLocations" class="mb-2"></div>
+
+				<!-- 도시 선택 드롭다운 -->
+				<div class="custom-dropdown mb-2">
+					<select id="citySelect" class="form-select">
+						<option value="">도시를 선택하세요</option>
+						<option th:each="city : ${cities}" th:value="${city}" th:text="${city}">도시명</option>
+					</select>
 				</div>
+
+				<!-- 구/군 버튼 리스트 -->
+				<div id="districtButtons"></div>
 			</div>
 
 			<div class="mb-3">
@@ -74,7 +107,6 @@
 	</div>
 
 	<div th:replace="~{footer :: footer}"></div>
-	<script src="https://kit.fontawesome.com/a076d05399.js"></script>
 
 	<script>
 		document.getElementById('profileImgFile').addEventListener('change', function (event) {
@@ -201,6 +233,106 @@
 			document.getElementById("locationsInput").value = selectedLocations.join(",");
 			document.getElementById("categoriesInput").value = selectedCategories.join(",");
 		}
+	</script>
+
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+		const locations = /*[[${locations}]]*/[];
+		const citySelect = document.getElementById('citySelect');
+		const districtButtons = document.getElementById('districtButtons');
+		const selectedContainer = document.getElementById('selectedLocations');
+		const selectedIds = new Set();
+
+		citySelect.addEventListener('change', () => {
+			const city = citySelect.value;
+			districtButtons.innerHTML = '';
+			if (!city) return;
+			locations.filter(loc => loc.city === city).forEach(loc => {
+				const btn = document.createElement('button');
+				btn.type = 'button';
+				btn.className = 'district-option';
+				btn.textContent = loc.district;
+				btn.dataset.id = loc.locationId;
+				btn.dataset.city = loc.city;
+				btn.addEventListener('click', () => {
+					const id = btn.dataset.id;
+					if (selectedIds.has(id)) return;
+					selectedIds.add(id);
+					const span = document.createElement('span');
+					span.className = 'selected-item';
+					span.textContent = btn.dataset.city + ' ' + btn.textContent;
+					const remove = document.createElement('span');
+					remove.className = 'remove';
+					remove.textContent = '×';
+					remove.addEventListener('click', () => {
+						selectedIds.delete(id);
+						span.remove();
+						document.querySelector(`input[value="${id}"]`)?.remove();
+					});
+					span.appendChild(remove);
+
+					const input = document.createElement('input');
+					input.type = 'hidden';
+					input.name = 'locationIds';
+					input.value = id;
+
+					selectedContainer.appendChild(span);
+					selectedContainer.appendChild(input);
+				});
+				districtButtons.appendChild(btn);
+			});
+		});
+		/*]]>*/
+	</script>
+
+	<script>
+		$(document).ready(function () {
+			$('#citySelect').select2({
+				width: '100%',
+				minimumResultsForSearch: Infinity
+			}).on('change', function () {
+				const city = $(this).val();
+				districtButtons.innerHTML = '';
+				if (!city) return;
+				locations.filter(loc => loc.city === city).forEach(loc => {
+					const btn = document.createElement('button');
+					btn.type = 'button';
+					btn.className = 'district-option';
+					btn.textContent = loc.district;
+					btn.dataset.id = loc.locationId;
+					btn.dataset.city = loc.city;
+					btn.addEventListener('click', () => {
+						const id = btn.dataset.id;
+						if (selectedIds.has(id)) return;
+						selectedIds.add(id);
+
+						const span = document.createElement('span');
+						span.className = 'selected-item';
+						span.textContent = btn.dataset.city + ' ' + btn.textContent;
+
+						const remove = document.createElement('span');
+						remove.className = 'remove';
+						remove.textContent = '×';
+						remove.addEventListener('click', () => {
+							selectedIds.delete(id);
+							span.remove();
+							document.querySelector(`input[value="${id}"]`)?.remove();
+						});
+
+						span.appendChild(remove);
+
+						const input = document.createElement('input');
+						input.type = 'hidden';
+						input.name = 'locationIds';
+						input.value = id;
+
+						selectedContainer.appendChild(span);
+						selectedContainer.appendChild(input);
+					});
+					districtButtons.appendChild(btn);
+				});
+			});
+		});
 	</script>
 </body>
 

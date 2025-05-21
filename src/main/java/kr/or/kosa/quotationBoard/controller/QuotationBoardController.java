@@ -29,8 +29,10 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/user/quotationBoard")
@@ -60,12 +62,13 @@ public class QuotationBoardController {
         List<Location> locations = expertService.getLocationList();
         model.addAttribute("locations", locations);
 
-        // 중복 제거된 도시 목록
+        // city 만 뽑아서 중복 제거
         List<String> cities = locations.stream()
                 .map(Location::getCity)
                 .distinct()
-                .toList();
+                .collect(Collectors.toList());
         model.addAttribute("cities", cities);
+
 
         // DB에서 실제 카테고리 목록 가져오기
         model.addAttribute("categories", expertService.getCategoryList());
@@ -75,6 +78,7 @@ public class QuotationBoardController {
         System.out.println("크리에이트 폼요청");
         return "quotationBoard/create";  // 게시판 생성 폼을 표시하는 뷰
     }
+
 
     // 게시판 생성 처리
     // 2) 게시글 + 지역 + 첨부파일 생성 처리
@@ -164,13 +168,45 @@ public class QuotationBoardController {
         return "redirect:/user/quotationBoard/list";
     }
 
+
     @GetMapping("/list")
-    public String quotationBoardList(Model model, @AuthenticationPrincipal CustomUser customUser) {
-        List<QuotationBoard> list = quotationBoardService.findAllQuotationBoards(2);
-        System.out.println("List size: " + list.size());
-        model.addAttribute("quotationBoards", list);
-        System.out.println("list = " + list);
-        System.out.println(model.getAttribute("quotationBoards"));
+    public String quotationBoardList(Model model,
+                                     @AuthenticationPrincipal CustomUser customUser,
+                                     @RequestParam(defaultValue = "1") int page) {
+        // 페이지당 항목 수
+        int pageSize = 10;
+
+        // 전체 견적 요청 목록 조회
+        List<QuotationBoard> allBoards = quotationBoardService.findAllQuotationBoards(2);
+        //customUser.getUserId(); 2로 되어있는거 이걸로 나중에 대체
+
+        // 전체 항목 수
+        int totalItems = allBoards.size();
+
+        // 전체 페이지 수 계산
+        int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+
+        // 페이지 유효성 검사
+        if (page < 1) page = 1;
+        if (page > totalPages && totalPages > 0) page = totalPages;
+
+        // 현재 페이지에 해당하는 데이터만 추출
+        int startIndex = (page - 1) * pageSize;
+        int endIndex = Math.min(startIndex + pageSize, totalItems);
+
+        List<QuotationBoard> currentPageBoards;
+        if (startIndex < totalItems) {
+            currentPageBoards = allBoards.subList(startIndex, endIndex);
+        } else {
+            currentPageBoards = new ArrayList<>();
+        }
+
+        // 모델에 데이터 추가
+        model.addAttribute("quotationBoards", currentPageBoards);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalItems", totalItems);
+
         return "quotationBoard/list";
     }
 

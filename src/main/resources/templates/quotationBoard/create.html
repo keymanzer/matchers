@@ -6,87 +6,580 @@
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #5e60ce;
+            --primary-hover: #4e54c8;
+            --secondary-color: #7b2cbf;
+            --light-color: #f0f4ff;
+            --border-radius: 8px;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+        }
+
+        .container {
+            max-width: 900px;
+            background-color: #fff;
+            border-radius: var(--border-radius);
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--light-color);
+        }
+
+        .section-card {
+            background-color: #fff;
+            border-radius: var(--border-radius);
+            box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+
+        .section-card:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+            border-color: #e0e0ff;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title i {
+            margin-right: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control, .form-select {
+            border-radius: var(--border-radius);
+            border: 1.5px solid #e0e0ff;
+            padding: 0.7rem 0.9rem;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(94, 96, 206, 0.25);
+        }
+
+        /* 드롭다운 스타일 개선 */
+        .custom-dropdown {
+            position: relative;
+            width: 100%;
+        }
+
+        .custom-dropdown select {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 100%;
+            padding-right: 2.5rem;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%235e60ce' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: calc(100% - 12px) center;
+            cursor: pointer;
+        }
+
+        .custom-dropdown::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: 1rem;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        /* 셀렉트 옵션 스타일링 */
+        select option {
+            padding: 10px;
+            font-size: 0.95rem;
+        }
+
+        /* 셀렉트 스타일링 - 추가 */
+        .form-select {
+            transition: box-shadow 0.15s ease-in-out;
+        }
+
+        /* 커스텀 셀렉트 스타일링 */
+        .styled-select {
+            position: relative;
+            display: block;
+            max-width: 100%;
+            width: 100%;
+        }
+
+        .styled-select select {
+            width: 100%;
+            border: 1.5px solid #e0e0ff;
+            border-radius: var(--border-radius);
+            padding: 0.7rem 0.9rem;
+            font-size: 1rem;
+            color: #333;
+            cursor: pointer;
+            outline: none;
+            background-color: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+        }
+
+        .styled-select select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(94, 96, 206, 0.25);
+        }
+
+        .styled-select select:hover {
+            border-color: var(--primary-color);
+        }
+
         /* 선택된 지역 배지 스타일 */
         .selected-item {
             display: inline-flex;
             align-items: center;
-            background-color: #0d6efd;
+            background-color: var(--secondary-color);
             color: #fff;
-            border-radius: .25rem;
-            padding: .25rem .5rem;
-            margin-right: .5rem;
-            margin-bottom: .5rem;
-            font-size: .875rem;
-            transition: background-color .2s;
+            border-radius: var(--border-radius);
+            padding: 0.4rem 0.8rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
         }
+
         .selected-item:hover {
-            background-color: #0b5ed7;
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
         }
+
         .selected-item span.remove {
-            margin-left: .5rem;
+            margin-left: 0.5rem;
             cursor: pointer;
             font-weight: bold;
+            font-size: 1rem;
+            opacity: 0.8;
+            transition: opacity 0.2s;
         }
-        /* 구/군 버튼 애니메이션 */
-        .district-option {
-            transition: transform .1s, background-color .2s;
+
+        .selected-item span.remove:hover {
+            opacity: 1;
         }
-        .district-option:hover {
-            transform: scale(1.05);
-            background-color: #e2e6ea;
+
+        /* 구/군 버튼 컨테이너를 그리드로 */
+        #districtButtons {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 0.5rem;
+            margin-top: 1rem; /* 0.75rem에서 1rem으로 증가 */
+            padding-top: 0.25rem; /* 추가: 상단에 패딩 추가 */
+            max-height: 250px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        /* 버튼 스타일 */
+        #districtButtons .district-option {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 2.5rem;
+            text-align: center;
+            padding: 0.35rem 0.6rem;
+            background-color: #f0f4ff;
+            color: #333;
+            border: 1px solid #e0e0ff;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        /* 호버 시 효과 */
+        #districtButtons .district-option:hover {
+            background-color: var(--light-color);
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        /* 보라색 버튼 스타일 */
+        .btn-purple {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: #fff;
+            border-radius: var(--border-radius);
+            padding: 0.6rem 1.8rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            box-shadow: 0 0.25rem 0.5rem rgba(94, 96, 206, 0.25);
+        }
+
+        .btn-purple:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 0.5rem 1rem rgba(94, 96, 206, 0.3);
+        }
+
+        .btn-secondary {
+            border-radius: var(--border-radius);
+            padding: 0.6rem 1.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 위치 선택 영역 */
+        .location-selection {
+            background-color: var(--light-color);
+            border-radius: var(--border-radius);
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .selection-header {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.05rem;
+        }
+
+        /* 파일 첨부 */
+        .file-upload-wrapper {
+            border: 2px dashed #dee2e6;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            text-align: center;
+            transition: border-color 0.2s;
+            background-color: #fcfcff;
+        }
+
+        .file-upload-wrapper:hover {
+            border-color: var(--primary-color);
+            background-color: var(--light-color);
+        }
+
+        /* 스크롤바 스타일 */
+        #districtButtons::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #districtButtons::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        #districtButtons::-webkit-scrollbar-thumb {
+            background: #c0c0ff;
+            border-radius: 10px;
+        }
+
+        #districtButtons::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+
+        /* 단계 표시기 */
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            position: relative;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e0e0ff;
+            z-index: 0;
+        }
+
+        .step {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 25%;
+        }
+
+        .step-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #e0e0ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #888;
+            transition: all 0.3s;
+        }
+
+        .step.active .step-circle {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 0 0 4px rgba(94, 96, 206, 0.25);
+        }
+
+        .step-title {
+            font-size: 0.85rem;
+            color: #888;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .step.active .step-title {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        /* 카드 헤더 스타일 */
+        .card-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: rgba(94, 96, 206, 0.15);
+            margin-right: 0.75rem;
+        }
+
+        .card-icon i {
+            color: var(--primary-color);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Summernote 에디터 스타일 */
+        .note-editor {
+            border-radius: var(--border-radius) !important;
+            border-color: #e0e0ff !important;
+        }
+
+        .note-toolbar {
+            background-color: #f8f9ff !important;
+            border-bottom-color: #e0e0ff !important;
+            border-top-left-radius: var(--border-radius) !important;
+            border-top-right-radius: var(--border-radius) !important;
+        }
+
+        .note-statusbar {
+            border-bottom-left-radius: var(--border-radius) !important;
+            border-bottom-right-radius: var(--border-radius) !important;
+        }
+
+        .note-btn {
+            border-color: #e0e0ff !important;
+        }
+
+        /* 파일 목록 스타일 */
+        #fileListContainer {
+            background-color: #fcfcff;
+            border-radius: var(--border-radius);
+            border: 1px solid #e0e0ff;
+            padding: 0.5rem;
+        }
+
+        #fileListContainer h6 {
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            padding-left: 0.5rem;
+        }
+
+        #fileListContainer .list-group-item {
+            border-color: #e0e0ff;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .remove-file {
+            padding: 0.1rem 0.5rem;
+            line-height: 1;
+        }
+
+        .remove-file:hover {
+            background-color: #ff6b6b;
+            border-color: #ff6b6b;
+            color: white;
+        }
+    </style>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- 부트스트랩 아이콘 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Select2 라이브러리 추가 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- summernote -->
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
+
+    <style>
+        /* Select2 커스텀 스타일 */
+        .select2-container--default .select2-selection--single {
+            height: auto;
+            padding: 0.7rem 0.9rem;
+            border-radius: var(--border-radius);
+            border: 1.5px solid #e0e0ff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 100%;
+            top: 0;
+        }
+
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: var(--primary-color);
+        }
+
+        .select2-dropdown {
+            border: 1.5px solid #e0e0ff;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .select2-results__option {
+            padding: 10px 15px;
+        }
+
+        .select2-container--open .select2-dropdown--below {
+            margin-top: 4px;
         }
     </style>
 </head>
 <body>
-<div class="container mt-5">
-    <h2>견적 요청 작성</h2>
+<div class="container">
+    <h2 class="text-center">견적 요청 작성</h2>
+
+    <!-- 단계 표시기 제거 -->
+
     <form th:action="@{/user/quotationBoard/create}" th:object="${quotationBoard}" method="post" enctype="multipart/form-data">
 
         <!-- 상태를 '진행전' 으로 기본값 설정 -->
         <input type="hidden" th:field="*{state}" th:value="'진행전'"/>
 
-        <div class="mb-3">
-            <label for="title" class="form-label">제목</label>
-            <input type="text" th:field="*{title}" id="title" class="form-control" required>
-        </div>
-        <div class="mb-3">
-            <label for="content" class="form-label">내용</label>
-            <textarea th:field="*{content}" id="content" class="form-control" rows="5" required></textarea>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">카테고리</label>
-            <select th:field="*{categoryId}" class="form-select" required>
-                <option th:each="cat : ${categories}" th:value="${cat.categoryId}" th:text="${cat.name}">카테고리명</option>
-            </select>
+        <!-- 카테고리 선택 섹션 -->
+        <div class="section-card">
+            <div class="section-title">
+                <div class="card-icon"><i class="bi bi-grid-3x3-gap-fill"></i></div>
+                카테고리 선택
+            </div>
+            <div class="custom-dropdown">
+                <select th:field="*{categoryId}" class="form-select" required>
+                    <option value="0" selected disabled>어떤 서비스가 필요하신가요?</option>
+                    <option th:each="cat : ${categories}" th:value="${cat.categoryId}" th:text="${cat.name}">카테고리명</option>
+                </select>
+            </div>
         </div>
 
-        <!-- 지역 선택 UI -->
-        <div class="mb-3">
-            <label class="form-label">위치</label>
+        <!-- 지역 선택 섹션 -->
+        <div class="section-card">
+            <div class="section-title">
+                <div class="card-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                지역 선택
+            </div>
+
             <!-- 선택된 지역 배지 표시 -->
-            <div id="selectedLocations" class="mb-2"></div>
-            <!-- 도시 선택 드롭다운 -->
-            <div class="row mb-3">
-                <div class="col-md-6">
+            <div id="selectedLocations" class="mb-3"></div>
+
+            <div class="location-selection">
+                <!-- 도시 선택 드롭다운 -->
+                <div class="custom-dropdown mb-3">
                     <select id="citySelect" class="form-select">
-                        <option value="">--도시 선택--</option>
-                        <option th:each="loc : ${locations}" th:value="${loc.city}" th:text="${loc.city} + '시'"></option>
+                        <option value="">도시를 선택하세요</option>
+                        <option th:each="city : ${cities}"
+                                th:value="${city}"
+                                th:text="${city}">도시명</option>
                     </select>
                 </div>
+
                 <!-- 구/군 버튼 리스트 -->
-                <div class="col-md-6">
-                    <div id="districtButtons" class="d-flex flex-wrap"></div>
+                <div id="districtButtons"></div>
+            </div>
+        </div>
+
+        <!-- 제목 및 내용 섹션 -->
+        <div class="section-card">
+            <div class="section-title">
+                <div class="card-icon"><i class="bi bi-pencil-square"></i></div>
+                견적 상세 정보
+            </div>
+
+            <div class="mb-4">
+                <label for="title" class="form-label">제목</label>
+                <input type="text" th:field="*{title}" id="title" class="form-control" placeholder="견적 요청 제목을 입력하세요" required>
+            </div>
+
+            <div class="mb-4">
+                <label for="contentEditor" class="form-label">내용</label>
+                <textarea th:field="*{content}" id="contentEditor" class="form-control" rows="6"
+                          placeholder="필요한 서비스에 대해 상세히 설명해주세요" required></textarea>
+            </div>
+
+            <div class="mb-4">
+                <label for="attachedFiles" class="form-label">첨부파일</label>
+                <div class="file-upload-wrapper">
+                    <i class="bi bi-cloud-arrow-up fs-3 mb-2 text-primary"></i>
+                    <input class="form-control border-0 bg-transparent" type="file" id="attachedFiles" name="attachedFiles" multiple>
+                    <small class="text-muted mt-2 d-block">드래그 앤 드롭 또는 클릭하여 파일 선택 (여러 파일 가능)</small>
                 </div>
             </div>
         </div>
 
-        <div class="mb-3">
-            <label for="attachedFiles" class="form-label">첨부파일</label>
-            <input class="form-control" type="file" id="attachedFiles" name="attachedFiles" multiple>
+        <div class="d-flex justify-content-center gap-3 mt-5">
+            <a th:href="@{/user/quotationBoard/list}" class="btn btn-secondary">
+                <i class="bi bi-x-circle me-1"></i> 취소
+            </a>
+            <button type="submit" class="btn btn-purple">
+                <i class="bi bi-check2-circle me-1"></i> 견적 요청 등록
+            </button>
         </div>
-
-        <button type="submit" class="btn btn-primary">등록</button>
-        <a th:href="@{/user/quotationBoard/list}" class="btn btn-secondary">취소</a>
     </form>
 </div>
 
@@ -106,7 +599,7 @@
             .forEach(loc => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
-                btn.className = 'district-option btn btn-outline-secondary me-2 mb-2';
+                btn.className = 'district-option';
                 btn.textContent = loc.district;
                 btn.dataset.id = loc.locationId;
                 btn.dataset.city = loc.city;
@@ -116,7 +609,7 @@
                     selectedIds.add(id);
                     const span = document.createElement('span');
                     span.className = 'selected-item';
-                    span.textContent = btn.dataset.city + '시 ' + btn.textContent;
+                    span.textContent = btn.dataset.city +'-'+ btn.textContent;
                     const remove = document.createElement('span');
                     remove.className = 'remove';
                     remove.textContent = '×';
@@ -137,5 +630,199 @@
     /*]]>*/
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- 초기화 스크립트 -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    let selectedFiles = [];
+    $(document).ready(function() {
+        $('#contentEditor').summernote({
+            placeholder: '필요한 서비스에 대해 상세히 설명해주세요',
+            height: 300,
+            lang: 'ko-KR',
+            fontNames: ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', '맑은 고딕', '궁서', '굴림체', '돋움체'],
+            fontSizes: ['8','9','10','11','12','14','16','18','20','24','28','32','36','48','64','82','150'],
+            toolbar: [
+                ['style',      ['style','clear']],
+                ['font',       ['bold','italic','underline','strikethrough']],
+                ['fontname',   ['fontname']],
+                ['fontsize',   ['fontsize']],
+                ['color',      ['color']],
+                ['para',       ['ul','ol','paragraph']],
+                ['insert',     ['link','picture','video','table']],
+                ['view',       ['fullscreen','codeview','help']]
+            ],
+            popover: {
+                image: [
+                    ['image', ['resizeFull', 'resizeHalf', 'resizeQuarter', 'resizeNone']],
+                    ['float', ['floatLeft', 'floatRight', 'floatNone']],
+                    ['remove', ['removeMedia']]
+                ]
+            }
+        });
+
+        // 셀렉트 박스에 변형된 스타일 적용
+        $('select').each(function() {
+            $(this).select2({
+                dropdownCssClass: "custom-select-dropdown",
+                minimumResultsForSearch: Infinity,
+                width: '100%'
+            });
+        });
+
+        // Select2 이벤트 리스너 추가 - citySelect의 변경 감지
+        $('#citySelect').on('select2:select', function(e) {
+            const city = e.params.data.id;
+            updateDistrictButtons(city);
+        });
+
+        function updateDistrictButtons(city) {
+            districtButtons.innerHTML = '';
+            if (!city) return;
+            locations.filter(loc => loc.city === city)
+                .forEach(loc => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'district-option';
+                    btn.textContent = loc.district;
+                    btn.dataset.id = loc.locationId;
+                    btn.dataset.city = loc.city;
+
+                    // 이미 선택된 지역인지 확인
+                    if (selectedIds.has(loc.locationId)) {
+                        btn.disabled = true;
+                        btn.classList.add('disabled');
+                        btn.style.opacity = '0.6';
+                        btn.style.cursor = 'not-allowed';
+                    }
+
+                    btn.addEventListener('click', () => {
+                        const id = btn.dataset.id;
+                        if (selectedIds.has(id)) return;
+                        selectedIds.add(id);
+                        const span = document.createElement('span');
+                        span.className = 'selected-item';
+                        span.textContent = btn.dataset.city +'-'+ btn.textContent;
+                        const remove = document.createElement('span');
+                        remove.className = 'remove';
+                        remove.textContent = '×';
+                        remove.addEventListener('click', () => {
+                            selectedIds.delete(id);
+                            span.remove();
+
+                            // 선택 해제 시 버튼 활성화 (현재 표시 중인 도시에 해당하는 경우)
+                            if (citySelect.value === loc.city) {
+                                const btnToEnable = districtButtons.querySelector(`button[data-id="${id}"]`);
+                                if (btnToEnable) {
+                                    btnToEnable.disabled = false;
+                                    btnToEnable.classList.remove('disabled');
+                                    btnToEnable.style.opacity = '';
+                                    btnToEnable.style.cursor = '';
+                                }
+                            }
+                        });
+                        span.appendChild(remove);
+                        // hidden input
+                        const input = document.createElement('input');
+                        input.type = 'hidden'; input.name = 'locationIds'; input.value = id;
+                        selectedContainer.appendChild(span);
+                        selectedContainer.appendChild(input);
+
+                        // 선택 후 버튼 비활성화
+                        btn.disabled = true;
+                        btn.classList.add('disabled');
+                        btn.style.opacity = '0.6';
+                        btn.style.cursor = 'not-allowed';
+                    });
+                    districtButtons.appendChild(btn);
+                });
+        }
+
+        // 파일 선택 이벤트 처리
+        $("#attachedFiles").on("change", function(e) {
+            const newFiles = Array.from(e.target.files);
+
+            // 새로 선택한 파일들을 배열에 추가
+            selectedFiles = selectedFiles.concat(newFiles);
+
+            // 파일 목록 업데이트
+            updateFileList();
+
+            // 파일 인풋 초기화 (다음 선택을 위해)
+            $(this).val('');
+        });
+
+        // 파일 목록 UI 업데이트 함수
+        function updateFileList() {
+            // 파일 목록 컨테이너가 없으면 생성
+            if ($("#fileListContainer").length === 0) {
+                $("<div id='fileListContainer' class='mt-3'><h6>첨부된 파일 목록:</h6><ul class='list-group'></ul></div>")
+                    .insertAfter(".file-upload-wrapper");
+            }
+
+            // 목록 비우기
+            $("#fileListContainer ul").empty();
+
+            // 각 파일에 대한 목록 항목 생성
+            selectedFiles.forEach((file, index) => {
+                const fileSize = (file.size / 1024).toFixed(1) + " KB";
+                const listItem = $(`
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-file-earmark me-2"></i>
+                        <span class="filename">${file.name}</span>
+                        <small class="text-muted ms-2">${fileSize}</small>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-file" data-index="${index}">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </li>
+            `);
+
+                $("#fileListContainer ul").append(listItem);
+            });
+
+            // 선택된 파일이 없으면 메시지 표시
+            if (selectedFiles.length === 0) {
+                $("#fileListContainer ul").append('<li class="list-group-item text-muted">첨부된 파일이 없습니다.</li>');
+            }
+
+            // 파일 제거 버튼 이벤트 처리
+            $(".remove-file").on("click", function() {
+                const index = $(this).data("index");
+                selectedFiles.splice(index, 1);
+                updateFileList();
+            });
+        }
+
+        // 폼 제출 처리
+        $("form").on("submit", function(e) {
+            // 기존 파일 input은 폼 제출에 참여하지 않도록 함
+            $("#attachedFiles").attr("name", "");
+
+            // 이미 존재하는 동적으로 추가된 파일 input 제거
+            $(".dynamic-file-input").remove();
+
+            // 선택된 파일들을 위한 새로운 파일 input 요소들을 생성하여 폼에 추가
+            selectedFiles.forEach((file, index) => {
+                // 파일 데이터를 새로운 File 객체로 변환하여 FileList와 유사한 형태로 만듦
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+
+                // 새 input 요소 생성
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.name = 'attachedFiles';  // 컨트롤러에서 기대하는 이름과 일치해야 함
+                input.classList.add('dynamic-file-input');
+                input.style.display = 'none';
+                input.files = dataTransfer.files;
+
+                // 폼에 추가
+                this.appendChild(input);
+            });
+        });
+
+
+    });
+</script>
 </body>
 </html>

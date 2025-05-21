@@ -18,7 +18,6 @@ public class CommunityBoard {
     private String userNickname;
 	private String title;
 	private String content;
-	private Long boardSeq;
 	private Board board;
 	private Users users;
 	private List<AttachedFile> attachedFiles; // 첨부파일 목록

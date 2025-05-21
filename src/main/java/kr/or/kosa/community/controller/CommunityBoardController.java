@@ -1,7 +1,10 @@
 package kr.or.kosa.community.controller;
 
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -18,6 +21,8 @@ import org.springframework.web.multipart.MultipartFile;
 import kr.or.kosa.attachedFile.dto.AttachedFile;
 import kr.or.kosa.attachedFile.service.AttachedFileService;
 import kr.or.kosa.community.dto.CommunityBoard;
+import kr.or.kosa.community.dto.CommunityBoardComment;
+import kr.or.kosa.community.service.CommunityBoardCommentService;
 import kr.or.kosa.community.service.CommunityBoardService;
 import kr.or.kosa.user.dto.CustomUser;
 
@@ -25,95 +30,131 @@ import kr.or.kosa.user.dto.CustomUser;
 @RequestMapping("/user/community")
 public class CommunityBoardController {
 
-	@Autowired
-	private CommunityBoardService communityBoardService;
+   @Autowired
+   private CommunityBoardService communityBoardService;
 
-	@Autowired
-	private AttachedFileService attachedFileService;
+   @Autowired
+   private AttachedFileService attachedFileService;
+   
+   @Autowired
+   private CommunityBoardCommentService communityBoardCommentService;
+   
 
-	public void setCommunityBoardService(CommunityBoardService communityBoardService) {
-		this.communityBoardService = communityBoardService;
-	}
+   public void setCommunityBoardService(CommunityBoardService communityBoardService) {
+      this.communityBoardService = communityBoardService;
+   }
 
-	public void setAttcheAttachedFileService(AttachedFileService attachedFileService) {
-		this.attachedFileService = attachedFileService;
-	}
+   public void setAttcheAttachedFileService(AttachedFileService attachedFileService) {
+      this.attachedFileService = attachedFileService;
+   }
 
-	@GetMapping
-	public String getPostList(Model model) {
+   @GetMapping
+   public String getPostList(Model model) {
 
-		List<CommunityBoard> list = communityBoardService.getPostList();
-		model.addAttribute("list", list);
-		System.out.println("============전체목록조회 완료============");
-		return "community/postlist";
-	}
+      List<CommunityBoard> list = communityBoardService.getPostList();
+      model.addAttribute("list", list);
+      System.out.println("============전체목록조회 완료============");
+      return "community/postlist";
+   }
 
-	@GetMapping("/{postId}")
-	public String getPostbyId(@PathVariable("postId") Long postId, Model model) {
+   @GetMapping("/{postId}")
+   public String getPostbyId(@PathVariable("postId") Long postId, Model model, Principal principal) {
+       CommunityBoard post = communityBoardService.getPostbyId(postId);
+       List<CommunityBoardComment> allComments = communityBoardCommentService.getCommentListByPostId(postId);
+       
+       // 대댓글 그룹핑
+       Map<Long, CommunityBoardComment> commentMap = new HashMap<>();
+       List<CommunityBoardComment> topLevelComments = new ArrayList<>();
+       
+       for (CommunityBoardComment comment : allComments) {
+           comment.setReplies(new ArrayList<>());
+           commentMap.put(comment.getCommentId(), comment);
+       }
+       
+       for (CommunityBoardComment comment : allComments) {
+           if (comment.getParentCommentId() == null) {
+               topLevelComments.add(comment);
+           } else {
+               CommunityBoardComment parent = commentMap.get(comment.getParentCommentId());
+               if (parent != null) {
+            	   System.out.println("=========대댓글 등록되었습니다==========");
+                   parent.getReplies().add(comment);
+               }
+           }
+       }
+       
+       model.addAttribute("post", post);
+       model.addAttribute("comments", topLevelComments);
+       System.out.println(topLevelComments);
+       
+       
+       if (principal instanceof Authentication) {
+           CustomUser user = (CustomUser) ((Authentication) principal).getPrincipal();
+           model.addAttribute("loginUserId", user.getUserId());
+           model.addAttribute("loginNickname", user.getNickname());
+       }
 
-		CommunityBoard post = communityBoardService.getPostbyId(postId);
-		model.addAttribute("post", post);
-		System.out.println("============상세조회 완료============");
-		return "community/postdetail";
-	}
+       System.out.println("============상세조회 완료============");
+       return "community/postdetail";
+   }
 
-	@GetMapping("/insert")
-	public String insertPost(Model model, Principal principal) {
+   @GetMapping("/insert")
+   public String insertPost(Model model, Principal principal) {
 
-		if (principal instanceof CustomUser) {
-			CustomUser user = (CustomUser) principal;
-		}
-		CustomUser user = (CustomUser) ((Authentication) principal).getPrincipal();
+      if (principal instanceof CustomUser) {
+         CustomUser user = (CustomUser) principal;
+      }
+      CustomUser user = (CustomUser) ((Authentication) principal).getPrincipal();
 
-		CommunityBoard post = new CommunityBoard();
-		post.setUserId(user.getUserId());
-		post.setUserNickname(user.getNickname());
+      CommunityBoard post = new CommunityBoard();
+      post.setUserId(user.getUserId());
+      post.setUserNickname(user.getNickname());
 
-		model.addAttribute("post", post);
+      model.addAttribute("post", post);
 
-		return "community/postinsert";
-	}
+      return "community/postinsert";
+   }
 
-	@PostMapping
-	public String insertPost(@ModelAttribute CommunityBoard post,
-			@RequestParam("attachedFile") MultipartFile[] attachedFiles) {
+   @PostMapping
+   public String insertPost(@ModelAttribute CommunityBoard post,
+         @RequestParam("attachedFile") MultipartFile[] attachedFiles) {
 
-		// 제목이 Null이거나 빈값일 경우 default 제목은 "제목없음"
-		String title = (post.getTitle() == null || post.getTitle().trim().isEmpty()) ? "제목없음" : post.getTitle();
-		post.setTitle(title);
-		communityBoardService.insertPost(post);
+      // 제목이 Null이거나 빈값일 경우 default 제목은 "제목없음"
+      String title = (post.getTitle() == null || post.getTitle().trim().isEmpty()) ? "제목없음" : post.getTitle();
+      post.setTitle(title);
+      communityBoardService.insertPost(post);
 
-		// Board 객체 값에 있는 postId CommunityBoard 객체에 복사
-		post.setPostId(post.getBoardSeq());
+      // Board 객체 값에 있는 postId CommunityBoard 객체에 복사
+      post.setPostId(post.getPostId());
 
-		// 첨부파일 업로드
-		if (attachedFiles != null) {
-			for (MultipartFile file : attachedFiles) {
+      // 첨부파일 업로드
+      if (attachedFiles != null) {
+         for (MultipartFile file : attachedFiles) {
 
-				AttachedFile attachedFile = new AttachedFile();
-				attachedFile.setName(file.getOriginalFilename()); // 파일 이름
-				attachedFile.setPath("/upload/" + file.getOriginalFilename()); // 예시 경로 (파일 저장 위치)
-				attachedFile.setPostId(post.getBoardSeq().intValue());
+            AttachedFile attachedFile = new AttachedFile();
+            attachedFile.setName(file.getOriginalFilename()); // 파일 이름
+            attachedFile.setPath("/upload/" + file.getOriginalFilename()); // 예시 경로 (파일 저장 위치)
+            attachedFile.setPostId(post.getPostId().intValue());
 
-				attachedFileService.saveAttachedFileMetadata(attachedFile);
+            attachedFileService.saveAttachedFileMetadata(attachedFile);
 
-			}
-		}
-		System.out.println("============게시글 등록 완료============");
+         }
+      }
+      System.out.println("============게시글 등록 완료============");
 
-		return "redirect:/user/community";
-	}
+      return "redirect:/user/community";
+   }
 
-	@GetMapping("/{postId}/update")
-	public String updatePost(@PathVariable("postId") Long postId, Model model) {
+   @GetMapping("/{postId}/update")
+   public String updatePost(@PathVariable("postId") Long postId, Model model) {
 
-		CommunityBoard post = communityBoardService.getPostbyId(postId);
+      CommunityBoard post = communityBoardService.getPostbyId(postId);
 
-		model.addAttribute("post", post);
-		post.setTitle(post.getBoard().getTitle());
-		post.setContent(post.getBoard().getContent());
-		return "community/postupdate";
-	}
+      model.addAttribute("post", post);
+      post.setTitle(post.getBoard().getTitle());
+      post.setContent(post.getBoard().getContent());
+      return "community/postupdate";
+   }
 
     @PostMapping("/{postId}/update")
     public String updatePost(@PathVariable("postId") Long postId,
@@ -163,7 +204,7 @@ public class CommunityBoardController {
         String title = (post.getTitle() == null || post.getTitle().trim().isEmpty()) ? "제목없음" : post.getTitle();
         post.setTitle(title);
 
-        post.setPostId(postId); // 누락 방지
+        post.setPostId(postId);
 
         communityBoardService.updatePost(post);
         System.out.println("============게시글 수정 완료============");
@@ -171,26 +212,26 @@ public class CommunityBoardController {
         return "redirect:/user/community";
     }
 
-	@PostMapping("/{postId}/delete")
-	public String deletePost(@PathVariable("postId") Long postId, Principal principal) {
+   @PostMapping("/{postId}/delete")
+   public String deletePost(@PathVariable("postId") Long postId, Principal principal) {
 
-		if (principal instanceof CustomUser) {
-			CustomUser user = (CustomUser) principal;
-		}
-		CustomUser user = (CustomUser) ((Authentication) principal).getPrincipal();
-		CommunityBoard postCheck = communityBoardService.getPostbyId(postId);
+      if (principal instanceof CustomUser) {
+         CustomUser user = (CustomUser) principal;
+      }
+      CustomUser user = (CustomUser) ((Authentication) principal).getPrincipal();
+      CommunityBoard postCheck = communityBoardService.getPostbyId(postId);
 
-		if (postCheck.getBoard().getUserId() == user.getUserId()) {
-			System.out.println("사용자와 작성자 일치: 삭제가능합니다");
-		} else {
-			System.out.println("사용자와 작성자 불일치: 삭제불가");
-			return "redirect:/user/community";
-		}
+      if (postCheck.getBoard().getUserId() == user.getUserId()) {
+         System.out.println("사용자와 작성자 일치: 삭제가능합니다");
+      } else {
+         System.out.println("사용자와 작성자 불일치: 삭제불가");
+         return "redirect:/user/community";
+      }
 
-		communityBoardService.deletePost(postId);
-		System.out.println("============게시글 삭제 완료============");
+      communityBoardService.deletePost(postId);
+      System.out.println("============게시글 삭제 완료============");
 
-		return "redirect:/user/community";
-	}
+      return "redirect:/user/community";
+   }
 
 }

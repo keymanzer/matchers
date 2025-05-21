@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.kosa.comments.mapper.CommentsMapper">
+
+    <resultMap id="commentsMap" type="kr.or.kosa.comments.dto.Comments">
+        <id property="commentId" column="COMMENT_ID"/>
+        <result property="content" column="CONTENT"/>
+        <result property="createdAt" column="CREATED_AT"/>
+        <result property="userNickname" column="USER_NICKNAME"/>
+    </resultMap>
+    
+    <!-- 부모 테이블에서 다음 ID 가져오기 -->
+    <select id="getNextCommentId" resultType="Long">
+        SELECT COMMENTS_SEQ.NEXTVAL FROM DUAL
+    </select>
+	
+	<!-- 부모 테이블에 댓글 삽입 -->
+	<insert id="insertComment" parameterType="kr.or.kosa.comments.dto.Comments">
+	    INSERT INTO COMMENTS (
+   			COMMENT_ID, CONTENT, CREATED_AT, USER_NICKNAME
+		) VALUES (
+	        #{commentId}, #{content}, #{createdAt}, #{userNickname})
+	</insert>
+	
+    <!-- 댓글 수정 -->
+	<update id="updateComment" parameterType="kr.or.kosa.comments.dto.Comments">
+	    UPDATE COMMENTS
+	    SET 
+	        CONTENT = #{content}
+	    WHERE COMMENT_ID = #{commentId}
+	</update>
+	
+	<!-- 댓글 삭제 -->
+	<delete id="deleteComment" parameterType="Long">
+	    DELETE FROM COMMENTS 
+	    WHERE COMMENT_ID = #{commentId}
+	</delete>
+
+</mapper>

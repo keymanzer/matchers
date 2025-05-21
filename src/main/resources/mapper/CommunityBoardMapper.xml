@@ -14,7 +14,7 @@
 	    <result property="content" column="CONTENT"/>
 	    <result property="createdAt" column="CREATED_AT"/>
 	    <result property="userNickname" column="USER_NICKNAME"/>
-	    <result property="userId" column="USERID"/>
+	    <result property="userId" column="USERID"/>	
 	</resultMap>
 
     <resultMap id="attachedFileMap" type="kr.or.kosa.attachedFile.dto.AttachedFile">
@@ -77,12 +77,12 @@
     </select>
 	
 	<insert id="insertPost" parameterType="kr.or.kosa.community.dto.CommunityBoard">
-		<selectKey order="BEFORE" keyProperty="boardSeq" resultType="Long">
+		<selectKey order="BEFORE" keyProperty="postId" resultType="Long">
 			SELECT BOARD_SEQ.NEXTVAL FROM DUAL
 		</selectKey>
 		INSERT ALL
 		INTO BOARD (POST_ID, TITLE, CONTENT, CREATED_AT, USER_NICKNAME, USERID)
-		VALUES (#{boardSeq}, #{title}, #{content}, SYSDATE, #{userNickname}, #{userId})
+		VALUES (#{postId}, #{title}, #{content}, SYSDATE, #{userNickname}, #{userId})
 		INTO COMMUNITY_BOARD (POST_ID, LAST_UPDATED_AT, VIEWS)
 		VALUES(#{boardSeq}, SYSDATE, 100)
 		SELECT * FROM DUAL		

@@ -2,6 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="kr.or.kosa.quotationBoard.mapper.QuotationBoardMapper">
 
+    <!-- 1) resultMap: 그대로 유지 -->
     <resultMap id="QuotationBoardResultMap"
                type="kr.or.kosa.quotationBoard.dto.QuotationBoard">
         <!-- 기본 필드 매핑 -->
@@ -14,9 +15,11 @@
         <result property="createdAt"     column="CREATED_AT"/>
         <result property="userNickname"  column="USER_NICKNAME"/>
         <result property="userId"        column="USERID"/>
+        <result property="categoryName" column="CATEGORY_NAME"/>
 
         <!-- 컬렉션 매핑 -->
-        <collection property="quotationLocations" ofType="kr.or.kosa.quotationBoard.dto.location">
+        <collection property="quotationLocations"
+                    ofType="kr.or.kosa.quotationBoard.dto.location">
             <id     property="locationId" column="LOCATION_ID"/>
             <result property="city"       column="CITY"/>
             <result property="district"   column="DISTRICT"/>
@@ -47,46 +50,15 @@
         DELETE FROM quotation_board WHERE post_id = #{postId}
     </delete>
 
-    <select id="findAll" parameterType="long" resultMap="QuotationBoardResultMap">
-        SELECT DISTINCT
-            qb.post_id,
-            qb.expert_id,
-            qb.category_id,
-            qb.state,
-            b.title,
-            b.content,
-            b.created_at,
-            b.user_nickname,
-            b.userid,
-            l.location_id,
-            l.city,
-            l.district
-        FROM quotation_board qb
-                 JOIN board b
-                      ON qb.post_id = b.post_id
-                 JOIN quotation_location ql
-                      ON ql.post_id = qb.post_id
-                 JOIN location l
-                      ON l.location_id = ql.location_id
-        WHERE qb.category_id IN (
-            SELECT ec.category_id
-            FROM expert_category ec
-            WHERE ec.user_id = #{userid}
-        )
-          AND ql.location_id IN (
-            SELECT el.location_id
-            FROM expert_location el
-            WHERE el.user_id =  #{userid}
-        )
-        ORDER BY qb.post_id, l.location_id
-    </select>
-
-
-    <select id="findByPostIdWithLocations" parameterType="int" resultMap="QuotationBoardResultMap">
+    <!-- 2) 카테고리+지역 조건 조회 (findAll) - DISTINCT 제거 -->
+    <select id="findAll"
+            parameterType="long"
+            resultMap="QuotationBoardResultMap">
         SELECT
             qb.post_id     AS POST_ID,
             qb.expert_id   AS EXPERT_ID,
             qb.category_id AS CATEGORY_ID,
+            c.name     AS CATEGORY_NAME,
             qb.state       AS STATE,
             b.title        AS TITLE,
             b.content      AS CONTENT,
@@ -97,12 +69,55 @@
             l.city         AS CITY,
             l.district     AS DISTRICT
         FROM quotation_board qb
-                 JOIN board b ON qb.post_id = b.post_id
-                 LEFT JOIN quotation_location ql ON b.post_id = ql.post_id
-                 LEFT JOIN location l ON ql.location_id = l.location_id
-        WHERE qb.post_id = #{postId}
+                 JOIN board b
+                      ON qb.post_id = b.post_id
+                 JOIN category c
+                      ON qb.category_id = c.category_id
+                 JOIN quotation_location ql
+                      ON qb.post_id = ql.post_id
+                 JOIN location l
+                      ON ql.location_id = l.location_id
+        WHERE qb.category_id IN (
+            SELECT ec.category_id
+            FROM expert_category ec
+            WHERE ec.user_id = #{userid}
+        )
+          AND ql.location_id IN (
+            SELECT el.location_id
+            FROM expert_location el
+            WHERE el.user_id = #{userid}
+        )
+        ORDER BY qb.post_id DESC, l.location_id
     </select>
 
+
+    <!-- 3) 단일 포스트+위치 조회 (findByPostIdWithLocations) - 기존 그대로, 필요 시 ORDER BY 추가 -->
+    <select id="findByPostIdWithLocations"
+            parameterType="int"
+            resultMap="QuotationBoardResultMap">
+        SELECT
+            qb.post_id      AS POST_ID,
+            qb.expert_id    AS EXPERT_ID,
+            qb.category_id  AS CATEGORY_ID,
+            qb.state        AS STATE,
+            b.title         AS TITLE,
+            b.content       AS CONTENT,
+            b.created_at    AS CREATED_AT,
+            b.user_nickname AS USER_NICKNAME,
+            b.userid        AS USERID,
+            l.location_id   AS LOCATION_ID,
+            l.city          AS CITY,
+            l.district      AS DISTRICT
+        FROM quotation_board qb
+                 JOIN board b
+                      ON qb.post_id = b.post_id
+                 LEFT JOIN quotation_location ql
+                           ON qb.post_id = ql.post_id
+                 LEFT JOIN location l
+                           ON ql.location_id = l.location_id
+        WHERE qb.post_id = #{postId}
+        ORDER BY l.location_id
+    </select>
 
     <insert id="insertQuotationLocation" parameterType="map">
         INSERT INTO quotation_location (

@@ -43,7 +43,7 @@
 					<h3 class="mb-4 fw-bold" style="color:#5c6bc0;">내 정보</h3>
 
 					<div class="d-flex align-items-center mb-4 profile-actions">
-						<img th:src="${user.profileImg} != null ? @{/uploads/{filename}(filename=${user.profileImg})} : @{/images/profileImg.png}"
+						<img th:src="${user.profileImg != null} ? ${user.profileImg} : @{/images/profileImg.png}"
 							alt="프로필 이미지" class="profile-img" />
 						<label for="profileFile" class="custom-file-label">프로필 변경</label>
 						<input type="file" id="profileFile" class="custom-file-input" accept="image/*" />

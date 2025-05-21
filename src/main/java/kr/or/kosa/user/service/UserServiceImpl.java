@@ -1,18 +1,15 @@
 package kr.or.kosa.user.service;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import kr.or.kosa.common.S3Service;
 import kr.or.kosa.mapper.UserMapper;
 import kr.or.kosa.user.dto.UserAuth;
 import kr.or.kosa.user.dto.Users;
@@ -28,8 +25,7 @@ public class UserServiceImpl implements UserService {
 
 	private final NicknameGeneratorService nicknameGeneratorService;
 
-	@Value("${spring.servlet.multipart.location}")
-	private String uploadDirectory;
+	private final S3Service s3Service;
 
 	@Override
 	@Transactional
@@ -61,23 +57,17 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public String saveProfileImage(MultipartFile file, Long userId) {
-		String profileImg = saveFile(file);
+		String profileImg = null;
+		try {
+			profileImg = s3Service.uploadFile(file, "profile");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		Map<String, Object> userImgParams = new HashMap<>();
 		userImgParams.put("userId", userId);
 		userImgParams.put("profileImg", profileImg);
 		userMapper.updateUserProfileImg(userImgParams);
 		return profileImg;
-	}
-
-	private String saveFile(MultipartFile file) {
-		try {
-			String fileName = file.getOriginalFilename();
-			Path path = Paths.get(uploadDirectory + File.separator + fileName);
-			file.transferTo(path.toFile());
-			return fileName;
-		} catch (IOException e) {
-			throw new RuntimeException("파일 업로드 실패", e);
-		}
 	}
 
 	@Override

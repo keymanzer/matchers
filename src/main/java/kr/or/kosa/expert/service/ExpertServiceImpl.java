@@ -1,18 +1,15 @@
 package kr.or.kosa.expert.service;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import kr.or.kosa.common.S3Service;
 import kr.or.kosa.expert.dto.Category;
 import kr.or.kosa.expert.dto.ExpertDto;
 import kr.or.kosa.expert.dto.Location;
@@ -25,8 +22,7 @@ public class ExpertServiceImpl implements ExpertService {
 
 	private final ExpertMapper expertMapper;
 
-	@Value("${spring.servlet.multipart.location}")
-	private String uploadDirectory;
+	private final S3Service s3Service;
 
 	@Override
 	@Transactional
@@ -35,7 +31,12 @@ public class ExpertServiceImpl implements ExpertService {
 		MultipartFile profileImgFile = expert.getProfileImgFile();
 
 		if (profileImgFile != null && !profileImgFile.isEmpty()) {
-			String profileImg = saveFile(profileImgFile);
+			String profileImg = null;
+			try {
+				profileImg = s3Service.uploadFile(profileImgFile, "profile");
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			expert.setProfileImg(profileImg);
 		}
 
@@ -68,11 +69,16 @@ public class ExpertServiceImpl implements ExpertService {
 
 		for (MultipartFile certImage : expert.getCertImages()) {
 			if (certImage != null && !certImage.isEmpty()) {
-				String fileName = saveFile(certImage);
+				String fileName = null;
+				try {
+					fileName = s3Service.uploadFile(certImage, "certificate");
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 				Map<String, Object> licenseParams = new HashMap<>();
 				licenseParams.put("userId", expert.getUserId());
-				licenseParams.put("name", fileName);
-				licenseParams.put("path", uploadDirectory + "/" + fileName);
+				licenseParams.put("name", certImage.getOriginalFilename());
+				licenseParams.put("path", fileName);
 				result += expertMapper.expertLcsReg(licenseParams);
 			}
 		}
@@ -86,16 +92,5 @@ public class ExpertServiceImpl implements ExpertService {
 
 	public List<Category> getCategoryList() {
 		return expertMapper.getCategoryList();
-	}
-
-	private String saveFile(MultipartFile file) {
-		try {
-			String fileName = file.getOriginalFilename();
-			Path path = Paths.get(uploadDirectory + File.separator + fileName);
-			file.transferTo(path.toFile());
-			return fileName;
-		} catch (IOException e) {
-			throw new RuntimeException("파일 업로드 실패", e);
-		}
 	}
 }

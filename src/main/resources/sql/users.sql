@@ -17,7 +17,7 @@ CREATE TABLE users (
     email VARCHAR2(255) UNIQUE NOT NULL,
     password VARCHAR2(255),
     nickname VARCHAR2(255) NOT NULL,
-    profile_img VARCHAR2(255),
+    profile_img VARCHAR2(512),
     provider VARCHAR2(30),
     provider_id VARCHAR2(100),
     enabled CHAR(1) DEFAULT 'Y',
@@ -48,7 +48,7 @@ CREATE TABLE expert (
 CREATE TABLE expert_license (
     license_id NUMBER PRIMARY KEY,
     name VARCHAR2(255) NOT NULL,
-    path VARCHAR(255) NOT NULL,
+    path VARCHAR(512) NOT NULL,
     user_id NUMBER NOT NULL REFERENCES expert(user_id)
 );
 

@@ -4,36 +4,246 @@
     <meta charset="UTF-8">
     <title>견적 요청 목록</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #5e60ce;
+            --primary-hover: #4e54c8;
+            --secondary-color: #7b2cbf;
+            --light-color: #f0f4ff;
+        }
+
+        body {
+            background-color: var(--light-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            border: none;
+        }
+
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px 20px;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+        }
+
+        .btn-success {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .btn-success:hover {
+            background-color: #6a1b9a;
+            border-color: #6a1b9a;
+        }
+
+        /* 목록 항목 스타일 개선 */
+        .quotation-item {
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease-in-out;
+            margin-bottom: 16px;
+            padding: 16px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .quotation-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .quotation-id {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .quotation-category {
+            display: inline-block;
+            background-color: var(--light-color);
+            color: var(--primary-color);
+            font-weight: 500;
+            font-size: 0.85rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-bottom: 8px;
+        }
+
+        .quotation-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .quotation-info {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .quotation-areas {
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin: 10px 0;
+            max-height: 60px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .quotation-areas.with-fade:after {
+            content: "...";
+            position: absolute;
+            bottom: 0;
+            right: 10px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .view-btn {
+            text-align: right;
+        }
+
+        .empty-list {
+            padding: 40px;
+            text-align: center;
+            color: #6c757d;
+        }
+
+        /* 페이지네이션 스타일 변경 */
+        .pagination .page-item .page-link {
+            color: var(--primary-color);
+            border: 1px solid #dee2e6;
+        }
+
+        .pagination .page-item .page-link:hover {
+            color: var(--primary-hover);
+            background-color: #f8f9fa;
+        }
+
+        /* 현재 페이지 강조 스타일 */
+        .pagination .page-item.active .page-link {
+            color: white;
+            font-weight: bold;
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(94, 96, 206, 0.25);
+            transform: scale(1.1);
+        }
+    </style>
 </head>
 <body>
 <div class="container mt-5">
-    <h2>견적 요청 목록</h2>
-    <a th:href="@{/user/quotationBoard/create}" class="btn btn-success mb-3">새 견적 요청</a>
-    <table class="table table-hover">
-        <thead>
-        <tr>
-            <th>번호</th>
-            <th>제목</th>
-            <th>작성자</th>
-            <th>등록일</th>
-            <th>상태</th>
-            <th>상세보기</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="qb : ${quotationBoards}">
-            <td th:text="${qb.postId}">1</td>
-            <td th:text="${qb.title}">제목</td>
-            <td th:text="${qb.userNickname}">닉네임</td>
-            <td th:text="${#temporals.format(qb.createdAt, 'yyyy-MM-dd HH:mm')}">…</td>
-            <td th:text="${qb.state}">진행중</td>
-            <td>
-                <a th:href="@{/user/quotationBoard/list/{id}(id=${qb.postId})}"
-                   class="btn btn-primary btn-sm">보기</a>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">견적 요청 목록</h2>
+            <a class="btn btn-success" th:href="@{/user/quotationBoard/create}">
+                <i class="bi bi-plus-circle"></i> 새 견적 요청
+            </a>
+        </div>
+        <div class="card-body">
+            <!-- 리스트가 비어있을 경우 -->
+            <div class="empty-list" th:if="${#lists.isEmpty(quotationBoards)}">
+                <p>견적 요청 내역이 없습니다. 새로운 견적을 요청해보세요!</p>
+            </div>
+
+            <!-- 리스트가 있을 경우 - 새로운 슬롯 스타일 UI -->
+            <div th:unless="${#lists.isEmpty(quotationBoards)}">
+                <div class="row">
+                    <div class="col-12" th:each="qb : ${quotationBoards}">
+                        <div class="quotation-item">
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="quotation-id me-3" th:text="${'#' + qb.postId}">번호</span>
+                                        <span class="quotation-category" th:text="${qb.categoryName}">카테고리</span>
+                                    </div>
+                                    <h3 class="quotation-title" th:text="${qb.title}">제목</h3>
+                                    <div class="quotation-info">
+                                        <span class="me-3"><i class="bi bi-person-fill"></i> <span th:text="${qb.userNickname}">작성자</span></span>
+                                        <span><i class="bi bi-calendar3"></i> <span th:text="${#temporals.format(qb.createdAt, 'yyyy-MM-dd HH:mm')}">날짜</span></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 d-flex align-items-center justify-content-end">
+                                    <a class="btn btn-primary" th:href="@{/user/quotationBoard/list/{id}(id=${qb.postId})}">
+                                        <i class="bi bi-eye-fill me-1"></i> 상세보기
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- 지역 정보 - 최대 8개로 확장 -->
+                            <div class="quotation-areas" th:classappend="${qb.quotationLocations.size() > 8 ? 'with-fade' : ''}">
+                                <i class="bi bi-geo-alt-fill me-1"></i>
+                                <th:block th:with="max=${qb.quotationLocations.size() > 8 ? 8 : qb.quotationLocations.size()}">
+                                    <th:block th:each="loc, iterStat : ${qb.quotationLocations}" th:if="${iterStat.index < max}">
+                                        <span th:text="${loc.city + ' ' + loc.district}">지역정보</span>
+                                        <span th:if="${!iterStat.last && iterStat.index < (max - 1)}">, </span>
+                                    </th:block>
+                                </th:block>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 페이징 처리 - 스타일 변경 -->
+                <nav aria-label="Page navigation" th:if="${totalPages > 0}">
+                    <ul class="pagination justify-content-center">
+                        <!-- 이전 페이지 -->
+                        <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+                            <a aria-label="Previous" class="page-link"
+                               th:href="@{/user/quotationBoard/list(page=${currentPage - 1})}">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+
+                        <!-- 페이지 번호 -->
+                        <li class="page-item" th:classappend="${pageNum == currentPage} ? 'active'"
+                            th:each="pageNum : ${#numbers.sequence(1, totalPages)}">
+                            <a class="page-link" th:href="@{/user/quotationBoard/list(page=${pageNum})}"
+                               th:text="${pageNum}"></a>
+                        </li>
+
+                        <!-- 다음 페이지 -->
+                        <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+                            <a aria-label="Next" class="page-link"
+                               th:href="@{/user/quotationBoard/list(page=${currentPage + 1})}">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <!-- 페이지 정보 표시 -->
+                <div class="text-center mt-2 text-muted">
+                    <small>전체 <span th:text="${totalItems}">0</span>개 항목 중
+                        <span th:text="${(currentPage - 1) * 10 + 1}">1</span>-<span
+                                th:text="${currentPage * 10 > totalItems ? totalItems : currentPage * 10}">10</span>번 항목</small>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Bootstrap JS & Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

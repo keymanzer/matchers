@@ -45,4 +45,9 @@ public class AdminServiceImpl implements AdminService {
 		return adminMapper.getLocations(userId);
 	}
 
+	@Override
+	public ExpertDetail getExpertByUserId(Long userId) {
+		return adminMapper.getExpertByUserId(userId);
+	}
+
 }

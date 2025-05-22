@@ -23,24 +23,21 @@
         notification_id,
         receiver_user_id,
         is_read,
-        sender_user_id,
-        <trim prefixOverrides="," suffixOverrides=",">
-            <if test="chatRoomId != null">chat_room_id,</if>
-        </trim>,
-        content,
+        sender_user_id
+        <if test="chatRoomId != null">, chat_room_id</if>   <!-- 콤마를 if 안으로 이동 -->
+        , content,
         notification_type
         ) VALUES (
         #{notificationId},
         #{receiverUserId},
         #{isRead},
-        #{senderUserId},
-        <trim prefixOverrides="," suffixOverrides=",">
-            <if test="chatRoomId != null">#{chatRoomId},</if>
-        </trim>,
-        #{content},
+        #{senderUserId}
+        <if test="chatRoomId != null">, #{chatRoomId}</if>  <!-- 마찬가지로 값 쪽도 -->
+        , #{content},
         #{notificationType}
         )
     </insert>
+
 
     <!-- 사용자의 모든 알림 조회 (최신순) -->
     <select id="selectNotificationsByUserId" resultMap="notificationMap">

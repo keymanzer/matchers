@@ -13,8 +13,8 @@ public interface AttachedFileMapper {
     void insertAttachedFile(AttachedFile attachedFile);
 
     /** 게시글 전체 첨부파일 메타 삭제 */
-    void deleteAttachedFilesByPostId(@Param("postId") int postId);
+    void deleteAttachedFilesByPostId(@Param("postId") long postId);
 
     /** 게시글별 첨부파일 목록 조회 */
-    List<AttachedFile> findAttachedFilesByPostId(@Param("postId") int postId);
+    List<AttachedFile> findAttachedFilesByPostId(@Param("postId") long postId);
 }

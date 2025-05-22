@@ -11,11 +11,11 @@ public interface BoardMapper {
     void insertBoard(Board board);
 
     // 게시글 수정
-    void updateBoard(@Param("postId") int postId, @Param("title") String title, @Param("content") String content);
+    void updateBoard(@Param("postId") long postId, @Param("title") String title, @Param("content") String content);
 
     // 게시글 삭제
-    void deleteBoard(int postId);
+    void deleteBoard(long postId);
 
-    int getNextBoardId();
+    long getNextBoardId();
 
 }

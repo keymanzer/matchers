@@ -27,7 +27,7 @@
     </insert>
 
     <select id="findAttachedFilesByPostId"
-            parameterType="int"
+            parameterType="long"
             resultType="kr.or.kosa.attachedFile.dto.AttachedFile">
         SELECT attached_file_id   AS attachedFileId,
                post_id            AS postId,
@@ -37,7 +37,7 @@
         WHERE post_id = #{postId}
     </select>
 
-    <delete id="deleteAttachedFilesByPostId" parameterType="int">
+    <delete id="deleteAttachedFilesByPostId" parameterType="long">
         DELETE FROM attached_file WHERE post_id = #{postId}
     </delete>
 

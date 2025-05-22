@@ -88,7 +88,7 @@ public class SseController {
         }
     }
 
-    // 알림 전송 메서드 (DB 저장 + 실시간 알림)
+    // 알림 전송 메서드 (DB 저장 + 실시간 알림) >> 채팅 알람
     public void sendNotification(Long receiverUserId, Long senderUserId, Long chatRoomId, String message) {
         log.info("알림 전송 시작: receiverUserId={}, message={}", receiverUserId, message);
 
@@ -105,6 +105,45 @@ public class SseController {
                 // 알림 데이터 전송
                 emitter.send(SseEmitter.event()
                         .name("chat-message")
+                        .data(notification)
+                );
+
+                // 읽지 않은 알림 개수 전송
+                long unreadCount = notificationService.countUnreadNotifications(receiverUserId);
+                emitter.send(SseEmitter.event()
+                        .name("unread-count")
+                        .data(unreadCount)
+                );
+
+                log.info("SSE 알림 전송 완료: userId={}", receiverUserId);
+            } catch (IOException e) {
+                log.error("SSE 알림 전송 실패: userId={}, error={}", receiverUserId, e.getMessage());
+                emitters.remove(receiverUserId);
+            }
+        } else {
+            log.info("SSE emitter not found for user: {}", receiverUserId);
+            // emitter가 없어도 DB에는 저장되어 있으므로 나중에 확인 가능
+        }
+    }
+
+
+    // 권한 승인 알람
+    public void sendNotification(Long receiverUserId, Long senderUserId, String message) {
+        log.info("알림 전송 시작: receiverUserId={}, message={}", receiverUserId, message);
+
+        // 1. DB에 알림 저장
+        NotificationDto notification = notificationService.createAdminNotification(
+                receiverUserId, senderUserId, message);
+
+        // 2. SSE를 통한 실시간 알림 전송
+        SseEmitter emitter = emitters.get(receiverUserId);
+        if (emitter != null) {
+            try {
+                log.info("SSE 알림 전송: userId={}, message={}", receiverUserId, message);
+
+                // 알림 데이터 전송
+                emitter.send(SseEmitter.event()
+                        .name("admin-message")
                         .data(notification)
                 );
 

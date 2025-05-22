@@ -2,6 +2,8 @@ package kr.or.kosa.admin.controller;
 
 import java.util.List;
 
+import kr.or.kosa.user.dto.CustomUser;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -55,8 +57,9 @@ public class AdminController {
 
 	@PostMapping("/approve")
 	@ResponseBody
-	public String approveExpert(@RequestParam("email") String email) {
-		adminService.approveExpertByEmail(email);
+	public String approveExpert(@RequestParam("email") String email, @AuthenticationPrincipal CustomUser customUser) {
+		Long senderId = customUser.getUserId();
+		adminService.approveExpertByEmail(email, senderId);
 		return "승인 완료";
 	}
 }

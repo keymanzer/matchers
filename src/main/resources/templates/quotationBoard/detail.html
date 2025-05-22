@@ -145,7 +145,37 @@
             margin: 0;
         }
 
-        .location-item, .file-item {
+        .location-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .location-item {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(94, 96, 206, 0.2);
+        }
+
+        .location-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(94, 96, 206, 0.3);
+        }
+
+        .location-item i {
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        .file-item {
             background: white;
             padding: 12px 18px;
             margin: 8px 0;
@@ -157,12 +187,12 @@
             transition: all 0.3s ease;
         }
 
-        .location-item:hover, .file-item:hover {
+        .file-item:hover {
             background: var(--light-color);
             border-color: var(--primary-color);
         }
 
-        .location-item i, .file-item i {
+        .file-item i {
             color: var(--primary-color);
             width: 20px;
         }
@@ -226,18 +256,6 @@
             transform: translateY(-2px);
         }
 
-        .btn-danger-custom {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
-        }
-
-        .btn-danger-custom:hover {
-            background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
-        }
-
         .empty-state {
             text-align: center;
             color: #888;
@@ -297,11 +315,30 @@
                     <i class="fas fa-calendar-alt"></i>
                     <span th:text="${#temporals.format(quotationBoard.createdAt, 'yyyy-MM-dd HH:mm')}">2024-01-15 14:30</span>
                 </div>
-
+                <div class="meta-item">
+                    <i class="fas fa-tags"></i>
+                    <span th:text="${quotationBoard.categoryName}">카테고리 정보</span>
+                </div>
             </div>
         </div>
 
         <div class="card-body">
+            <div class="content-section">
+                <h3 class="section-title">
+                    <i class="fas fa-map-marker-alt"></i>
+                    의뢰 지역
+                </h3>
+                <ul class="location-list" th:if="${quotationBoard.quotationLocations != null and !#lists.isEmpty(quotationBoard.quotationLocations)}">
+                    <li class="location-item" th:each="loc : ${quotationBoard.quotationLocations}">
+                        <i class="fas fa-map-pin"></i>
+                        <span th:text="${loc.city} + ' ' + ${loc.district}">서울 강남구</span>
+                    </li>
+                </ul>
+                <div class="empty-state" th:unless="${quotationBoard.quotationLocations != null and !#lists.isEmpty(quotationBoard.quotationLocations)}">
+                    지역 정보가 없습니다.
+                </div>
+            </div>
+
             <div class="content-section">
                 <h3 class="section-title">
                     <i class="fas fa-file-alt"></i>
@@ -309,32 +346,6 @@
                 </h3>
                 <div class="content-text" th:utext="${quotationBoard.content}">
                     견적 요청 상세 내용이 여기에 표시됩니다.
-                </div>
-            </div>
-
-            <div class="info-grid">
-                <div class="info-card">
-                    <h4 class="section-title">
-                        <i class="fas fa-tags"></i>
-                        카테고리
-                    </h4>
-                    <p class="mb-0" th:text="${quotationBoard.categoryId}">카테고리 정보</p>
-                </div>
-
-                <div class="info-card">
-                    <h4 class="section-title">
-                        <i class="fas fa-map-marker-alt"></i>
-                        의뢰 지역
-                    </h4>
-                    <ul class="location-list" th:if="${quotationBoard.quotationLocations != null and !#lists.isEmpty(quotationBoard.quotationLocations)}">
-                        <li class="location-item" th:each="loc : ${quotationBoard.quotationLocations}">
-                            <i class="fas fa-map-pin"></i>
-                            <span th:text="${loc.city} + ' ' + ${loc.district}">서울 강남구</span>
-                        </li>
-                    </ul>
-                    <div class="empty-state" th:unless="${quotationBoard.quotationLocations != null and !#lists.isEmpty(quotationBoard.quotationLocations)}">
-                        지역 정보가 없습니다.
-                    </div>
                 </div>
             </div>
 
@@ -365,15 +376,6 @@
                     <i class="fas fa-comments"></i>
                     의뢰자와 대화하기
                 </button>
-
-                <form th:action="@{/user/quotationBoard/delete}" method="post" class="d-inline"
-                      onsubmit="return confirm('정말 삭제하시겠습니까?');">
-                    <input type="hidden" name="postId" th:value="${quotationBoard.postId}">
-                    <button type="submit" class="btn btn-custom btn-danger-custom">
-                        <i class="fas fa-trash-alt"></i>
-                        삭제
-                    </button>
-                </form>
             </div>
         </div>
     </div>

@@ -118,25 +118,28 @@
             parameterType="long"
             resultMap="QuotationBoardResultMap">
         SELECT
-            qb.post_id      AS POST_ID,
-            qb.expert_id    AS EXPERT_ID,
-            qb.category_id  AS CATEGORY_ID,
-            qb.state        AS STATE,
-            b.title         AS TITLE,
-            b.content       AS CONTENT,
-            b.created_at    AS CREATED_AT,
-            b.user_nickname AS USER_NICKNAME,
-            b.userid        AS USERID,
-            l.location_id   AS LOCATION_ID,
-            l.city          AS CITY,
-            l.district      AS DISTRICT
+        qb.post_id      AS POST_ID,
+        qb.expert_id    AS EXPERT_ID,
+        qb.category_id  AS CATEGORY_ID,
+        c.name          AS CATEGORY_NAME,  <!-- 여기에서 카테고리 이름을 추가 -->
+        qb.state        AS STATE,
+        b.title         AS TITLE,
+        b.content       AS CONTENT,
+        b.created_at    AS CREATED_AT,
+        b.user_nickname AS USER_NICKNAME,
+        b.userid        AS USERID,
+        l.location_id   AS LOCATION_ID,
+        l.city          AS CITY,
+        l.district      AS DISTRICT
         FROM quotation_board qb
-                 JOIN board b
-                      ON qb.post_id = b.post_id
-                 LEFT JOIN quotation_location ql
-                           ON qb.post_id = ql.post_id
-                 LEFT JOIN location l
-                           ON ql.location_id = l.location_id
+        JOIN board b
+        ON qb.post_id = b.post_id
+        LEFT JOIN quotation_location ql
+        ON qb.post_id = ql.post_id
+        LEFT JOIN location l
+        ON ql.location_id = l.location_id
+        LEFT JOIN category c  <!-- category 테이블을 조인 -->
+        ON qb.category_id = c.category_id  <!-- category_id로 매칭 -->
         WHERE qb.post_id = #{postId}
         ORDER BY l.location_id
     </select>

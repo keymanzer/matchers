@@ -25,13 +25,13 @@ public class AttachedFileService {
         attachedFileMapper.insertAttachedFile(af);
     }
     /** postId 기준으로 파일 메타 조회 */
-    public List<AttachedFile> findByPostId(int postId) {
+    public List<AttachedFile> findByPostId(long postId) {
         return attachedFileMapper.findAttachedFilesByPostId(postId);
     }
 
     /** postId 기준으로 물리+DB 모두 삭제 */
     @Transactional
-    public void deleteAttachedFilesByPostId(int postId) {
+    public void deleteAttachedFilesByPostId(long postId) {
         // 1) DB에서 메타만 조회
         List<AttachedFile> files = attachedFileMapper.findAttachedFilesByPostId(postId);
         System.out.println("files = " + files);

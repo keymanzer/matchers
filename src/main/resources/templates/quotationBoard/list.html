@@ -52,6 +52,33 @@
             border-color: #6a1b9a;
         }
 
+        /* 필터 영역 스타일 */
+        .filter-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--secondary-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .filter-section .form-select {
+            border-color: #ced4da;
+            border-radius: 6px;
+        }
+
+        .filter-section .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(94, 96, 206, 0.25);
+        }
+
+        .filter-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
         /* 목록 항목 스타일 개선 */
         .quotation-item {
             border-radius: 8px;
@@ -160,12 +187,40 @@
             </a>
         </div>
         <div class="card-body">
+            <!-- 필터 섹션 -->
+            <div class="filter-section">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="filter-title">카테고리</div>
+                        <select class="form-select" id="categoryFilter" name="categoryId">
+                            <option value="">전체</option>
+                            <option th:each="category : ${categories}"
+                                    th:value="${category.categoryId}"
+                                    th:text="${category.name}"
+                                    th:selected="${param.categoryId != null and param.categoryId[0] == category.categoryId.toString()}">카테고리명</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="filter-title">지역</div>
+                        <select class="form-select" id="locationFilter" name="locationId">
+                            <option value="">전체</option>
+                            <option th:each="loc : ${locations}"
+                                    th:value="${loc.locationId}"
+                                    th:text="${loc.city + ' ' + loc.district}"
+                                    th:selected="${param.locationId != null and param.locationId[0] == loc.locationId.toString()}">
+                                지역명
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             <!-- 리스트가 비어있을 경우 -->
             <div class="empty-list" th:if="${#lists.isEmpty(quotationBoards)}">
                 <p>견적 요청 내역이 없습니다. 새로운 견적을 요청해보세요!</p>
             </div>
 
-            <!-- 리스트가 있을 경우 - 새로운 슬롯 스타일 UI -->
+            <!-- 리스트가 있을 경우 -->
             <div th:unless="${#lists.isEmpty(quotationBoards)}">
                 <div class="row">
                     <div class="col-12" th:each="qb : ${quotationBoards}">
@@ -189,7 +244,7 @@
                                 </div>
                             </div>
 
-                            <!-- 지역 정보 - 최대 8개로 확장 -->
+                            <!-- 지역 정보 -->
                             <div class="quotation-areas" th:classappend="${qb.quotationLocations.size() > 8 ? 'with-fade' : ''}">
                                 <i class="bi bi-geo-alt-fill me-1"></i>
                                 <th:block th:with="max=${qb.quotationLocations.size() > 8 ? 8 : qb.quotationLocations.size()}">
@@ -203,13 +258,13 @@
                     </div>
                 </div>
 
-                <!-- 페이징 처리 - 스타일 변경 -->
+                <!-- 페이징 처리 -->
                 <nav aria-label="Page navigation" th:if="${totalPages > 0}">
                     <ul class="pagination justify-content-center">
                         <!-- 이전 페이지 -->
                         <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
                             <a aria-label="Previous" class="page-link"
-                               th:href="@{/user/quotationBoard/list(page=${currentPage - 1})}">
+                               th:href="@{/user/quotationBoard/list(page=${currentPage - 1}, categoryId=${param.categoryId}, locationId=${param.locationId})}">
                                 <span aria-hidden="true">&laquo;</span>
                             </a>
                         </li>
@@ -217,14 +272,14 @@
                         <!-- 페이지 번호 -->
                         <li class="page-item" th:classappend="${pageNum == currentPage} ? 'active'"
                             th:each="pageNum : ${#numbers.sequence(1, totalPages)}">
-                            <a class="page-link" th:href="@{/user/quotationBoard/list(page=${pageNum})}"
+                            <a class="page-link" th:href="@{/user/quotationBoard/list(page=${pageNum}, categoryId=${param.categoryId}, locationId=${param.locationId})}"
                                th:text="${pageNum}"></a>
                         </li>
 
                         <!-- 다음 페이지 -->
                         <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
                             <a aria-label="Next" class="page-link"
-                               th:href="@{/user/quotationBoard/list(page=${currentPage + 1})}">
+                               th:href="@{/user/quotationBoard/list(page=${currentPage + 1}, categoryId=${param.categoryId}, locationId=${param.locationId})}">
                                 <span aria-hidden="true">&raquo;</span>
                             </a>
                         </li>
@@ -245,5 +300,43 @@
 <!-- Bootstrap JS & Icons -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- 즉시 필터링 자바스크립트 -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const categoryFilter = document.getElementById('categoryFilter');
+        const locationFilter = document.getElementById('locationFilter');
+
+        // 셀렉트 박스 변경 시 즉시 필터링
+        categoryFilter.addEventListener('change', function() {
+            applyFilter();
+        });
+
+        locationFilter.addEventListener('change', function() {
+            applyFilter();
+        });
+
+        // 필터 적용 함수
+        function applyFilter() {
+            const categoryId = categoryFilter.value;
+            const locationId = locationFilter.value;
+
+            // URL 파라미터 생성
+            const params = new URLSearchParams();
+            params.set('page', '1'); // 필터 변경 시 첫 페이지로
+
+            if (categoryId) {
+                params.set('categoryId', categoryId);
+            }
+
+            if (locationId) {
+                params.set('locationId', locationId);
+            }
+
+            // 새 URL로 이동
+            window.location.href = '/user/quotationBoard/list?' + params.toString();
+        }
+    });
+</script>
 </body>
 </html>

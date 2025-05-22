@@ -8,12 +8,12 @@ import java.util.stream.Collectors;
 
 @Data
 public class QuotationBoard {
-    private int postId;
+    private long postId;
     private String title;        // 게시글 제목
     private String content;
     private String userNickname; // 작성자 닉네임
-    private int userId;         // 유저 ID
-    private int expertId;
+    private long userId;         // 유저 ID
+    private long expertId;
     private String state;
     private int categoryId;
     private LocalDateTime createdAt; // 추가

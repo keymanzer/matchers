@@ -23,15 +23,15 @@ public class BoardService {
 
     }
 
-    public void updateBoard(int postId, Board board) {
+    public void updateBoard(long postId, Board board) {
         boardMapper.updateBoard(postId, board.getTitle(), board.getContent());
     }
 
-    public void deleteBoard(int postId) {
+    public void deleteBoard(long postId) {
         boardMapper.deleteBoard(postId);
     }
 
-    public int getNextBoardId() {
+    public long getNextBoardId() {
         return boardMapper.getNextBoardId();
     }
 }

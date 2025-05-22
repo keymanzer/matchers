@@ -12,7 +12,7 @@
     </resultMap>
 
     <!-- 부모 테이블에서 다음 ID 가져오기 -->
-    <select id="getNextBoardId" resultType="int">
+    <select id="getNextBoardId" resultType="long">
         SELECT board_seq.NEXTVAL FROM dual
     </select>
 

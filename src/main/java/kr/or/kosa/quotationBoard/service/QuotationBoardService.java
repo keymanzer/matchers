@@ -26,7 +26,7 @@ public class QuotationBoardService {
     public void createQuotationBoard(QuotationBoard quotationBoard) {
         quotationBoardMapper.insertQuotationBoard(quotationBoard);
     }
-    public void addQuotationLocation(int postId, int locationId) {
+    public void addQuotationLocation(long postId, int locationId) {
         quotationBoardMapper.insertQuotationLocation(postId, locationId);
     }
 
@@ -35,7 +35,7 @@ public class QuotationBoardService {
     }
 
     @Transactional
-    public void deleteQuotationBoard(int postId) {
+    public void deleteQuotationBoard(long postId) {
         System.out.println("postId = " + postId);
         // 1) 첨부파일 삭제
         attachedFileService.deleteAttachedFilesByPostId(postId);
@@ -47,8 +47,8 @@ public class QuotationBoardService {
         boardService.deleteBoard(postId);
     }
 
-    public List<QuotationBoard> findAllQuotationBoards(long userId) {
-        List<QuotationBoard> list = quotationBoardMapper.findAll(userId);
+    public List<QuotationBoard> findAllQuotationBoards(long userId,Long categoryId, Integer locationId) {
+        List<QuotationBoard> list = quotationBoardMapper.findAll(userId,categoryId,locationId);
         System.out.println("Returned List Size: " + list.size());     // 3건 확인
         list.forEach(b -> System.out.println(
                 "Post " + b.getPostId() + " locations: " + b.getQuotationLocations().size()
@@ -59,7 +59,7 @@ public class QuotationBoardService {
 
 
 
-    public QuotationBoard findByPostIdWithLocations(int postId) {
+    public QuotationBoard findByPostIdWithLocations(long postId) {
         return quotationBoardMapper.findByPostIdWithLocations(postId);
     }
 

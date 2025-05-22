@@ -96,19 +96,20 @@ public class QuotationBoardController {
     ) {
         // --- 2-1. Board 테이블에 삽입 ---
         Board board = new Board();
+        long userId = customUser.getUserId();
         board.setTitle(quotationBoard.getTitle());
         board.setContent(quotationBoard.getContent());
         board.setUserNickname(customUser.getNickname());
-        board.setUserId(2);//customUser.getUserId()
+        board.setUserId(userId);
 
-        int postId = boardService.getNextBoardId();
+        long postId = boardService.getNextBoardId();
         board.setPostId(postId);
         boardService.createBoard(board);
 
         // --- 2-2. QuotationBoard 테이블에 삽입 ---
         quotationBoard.setPostId(postId);
         quotationBoard.setUserNickname(customUser.getNickname());
-        quotationBoard.setUserId(2);//customUser.getUserId()
+        quotationBoard.setUserId(userId);
         quotationBoardService.createQuotationBoard(quotationBoard);
 
         // --- 2-3. Quotation_Location 매핑 삽입 ---
@@ -166,7 +167,7 @@ public class QuotationBoardController {
     }
 
     @PostMapping("/delete")
-    public String deleteQuotationBoard(int postId) {
+    public String deleteQuotationBoard(long postId) {
         System.out.println(postId);
         quotationBoardService.deleteQuotationBoard(postId);
         return "redirect:/user/quotationBoard/list";
@@ -177,14 +178,15 @@ public class QuotationBoardController {
     public String quotationBoardList(Model model,
                                      @AuthenticationPrincipal CustomUser customUser,
                                      @RequestParam(defaultValue = "1") int page,
-                                     @RequestParam (required = false)Category category,
-                                     @RequestParam (required = false)location location) {
+                                     @RequestParam (required = false)Long categoryId,
+                                     @RequestParam (required = false)Integer locationId) {
         // 페이지당 항목 수
         int pageSize = 10;
 
         long userId = customUser.getUserId(); //로그인한 전문가 ID
         // 전체 견적 요청 목록 조회
-        List<QuotationBoard> allBoards = quotationBoardService.findAllQuotationBoards(2);
+        System.out.println("categoryID: "+categoryId+", LocationId: "+locationId);
+        List<QuotationBoard> allBoards = quotationBoardService.findAllQuotationBoards(userId,categoryId,locationId);
         //customUser.getUserId(); 2로 되어있는거 이걸로 나중에 대체 userid로 대체 아직 보드가 int타입임
         List<Category> categories= quotationBoardService.findCategoriesByUserId(userId);
         List<location> locations= quotationBoardService.findLocationsByUserId(userId);
@@ -223,7 +225,7 @@ public class QuotationBoardController {
 
 
     @GetMapping("/list/{postId}")
-    public String quotationBoardDetail(@PathVariable int postId, Model model) {
+    public String quotationBoardDetail(@PathVariable long postId, Model model) {
         QuotationBoard qb = quotationBoardService.findByPostIdWithLocations(postId);
         List<AttachedFile> attachedFiles = attachedFileService.findByPostId(postId);
         model.addAttribute("quotationBoard", qb);

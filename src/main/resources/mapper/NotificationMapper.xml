@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.kosa.chat.mapper.NotificationMapper">
+
+    <!-- 알림 DTO를 위한 resultMap -->
+    <resultMap id="notificationMap" type="kr.or.kosa.chat.dto.NotificationDto">
+        <id property="notificationId" column="notification_id"/>
+        <result property="receiverUserId" column="receiver_user_id"/>
+        <result property="isRead" column="is_read"/>
+        <result property="senderUserId" column="sender_user_id"/>
+        <result property="chatRoomId" column="chat_room_id"/>
+        <result property="content" column="content"/>
+        <result property="notificationType" column="notification_type"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 알림 저장 (Oracle용: 시퀀스 + selectKey 사용) -->
+    <insert id="insertNotification" parameterType="kr.or.kosa.chat.dto.NotificationDto">
+        <selectKey keyProperty="notificationId" resultType="long" order="BEFORE">
+            SELECT notification_seq.NEXTVAL FROM dual
+        </selectKey>
+        INSERT INTO notification (
+        notification_id,
+        receiver_user_id,
+        is_read,
+        sender_user_id,
+        chat_room_id,
+        content,
+        notification_type
+        ) VALUES (
+        #{notificationId},
+        #{receiverUserId},
+        #{isRead},
+        #{senderUserId},
+        #{chatRoomId},
+        #{content},
+        #{notificationType}
+        )
+    </insert>
+
+    <!-- 사용자의 모든 알림 조회 (최신순) -->
+    <select id="selectNotificationsByUserId" resultMap="notificationMap">
+        SELECT * FROM notification
+        WHERE receiver_user_id = #{receiverUserId}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 읽지 않은 알림 조회 -->
+    <select id="selectUnreadNotifications" resultMap="notificationMap">
+        SELECT * FROM notification
+        WHERE receiver_user_id = #{receiverUserId}
+          AND is_read = 'N'
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 읽지 않은 알림 개수 조회 -->
+    <select id="countUnreadNotifications" resultType="long">
+        SELECT COUNT(*)
+        FROM notification
+        WHERE receiver_user_id = #{receiverUserId}
+          AND is_read = 'N'
+    </select>
+
+    <!-- 특정 알림 읽음 처리 -->
+    <update id="updateNotificationReadStatus">
+        UPDATE notification
+        SET is_read = 'Y'
+        WHERE notification_id = #{notificationId}
+    </update>
+
+    <!-- 모든 알림 읽음 처리 -->
+    <update id="markAllAsRead">
+        UPDATE notification
+        SET is_read = 'Y'
+        WHERE receiver_user_id = #{userId}
+          AND is_read = 'N'
+    </update>
+
+    <!-- 특정 알림 조회 -->
+    <select id="selectNotificationById" resultMap="notificationMap">
+        SELECT * FROM notification
+        WHERE notification_id = #{notificationId}
+    </select>
+
+</mapper>

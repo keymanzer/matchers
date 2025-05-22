@@ -30,4 +30,8 @@ public interface UserMapper {
 	void updatePassword(Map<String, Object> params);
 
 	void withdrawUser(Long userId);
+
+	// 채팅 쪽에서 사용하기 위해서 2개 메서드 추가 -- 백승호
+	String findEmailByUserId(Long userId);
+	String findNameById(Long userId);
 }

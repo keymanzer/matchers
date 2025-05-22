@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.kosa.chat.mapper.ChatMapper">
+
+    <!-- resultMap for ChatMessage -->
+    <resultMap id="chatMessageMap" type="kr.or.kosa.chat.model.ChatMessage">
+        <id property="messageId" column="message_id"/>
+        <result property="chatRoomId" column="chat_room_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="content" column="content"/>
+        <result property="createdTime" column="created_time"/>
+    </resultMap>
+
+    <!-- resultMap for ChatParticipant -->
+    <resultMap id="chatParticipantMap" type="kr.or.kosa.chat.model.ChatParticipant">
+        <id property="participantId" column="participant_id"/>
+        <result property="chatRoomId" column="chat_room_id"/>
+        <result property="userId" column="user_id"/>
+    </resultMap>
+
+    <!-- resultMap for ChatRoom -->
+    <resultMap id="chatRoomMap" type="kr.or.kosa.chat.model.ChatRoom">
+        <id property="chatRoomId" column="chat_room_id"/>
+        <result property="name" column="name"/>
+        <result property="boardId" column="board_id"/>
+    </resultMap>
+
+    <!-- 시퀀스를 사용하여 채팅방 생성 (Oracle 방식) -->
+    <insert id="createChatRoom" parameterType="kr.or.kosa.chat.model.ChatRoom">
+        <selectKey keyProperty="chatRoomId" resultType="java.lang.Long" order="BEFORE">
+            SELECT chat_room_seq.NEXTVAL FROM dual
+        </selectKey>
+        INSERT INTO chat_room (chat_room_id, name, board_id)
+        VALUES (#{chatRoomId}, #{name}, #{boardId})
+    </insert>
+
+    <select id="findRoomById" resultMap="chatRoomMap">
+        SELECT * FROM chat_room WHERE chat_room_id = #{id}
+    </select>
+
+    <select id="findRoomsByBoardId" resultMap="chatRoomMap">
+        SELECT * FROM chat_room WHERE board_id = #{boardId}
+    </select>
+
+    <!-- 시퀀스를 사용하여 참여자 추가 (Oracle 방식) -->
+    <insert id="addParticipant" parameterType="kr.or.kosa.chat.model.ChatParticipant">
+        <selectKey keyProperty="participantId" resultType="java.lang.Long" order="BEFORE">
+            SELECT chat_participant_seq.NEXTVAL FROM dual
+        </selectKey>
+        INSERT INTO chat_participant (participant_id, chat_room_id, user_id)
+        VALUES (#{participantId}, #{chatRoomId}, #{userId})
+    </insert>
+
+    <select id="findParticipantsByRoomId" resultMap="chatParticipantMap">
+        SELECT * FROM chat_participant WHERE chat_room_id = #{roomId}
+    </select>
+
+    <select id="existsParticipant" resultType="boolean">
+        SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END
+        FROM chat_participant
+        WHERE chat_room_id = #{roomId} AND user_id = #{userId}
+    </select>
+
+    <select id="findRoomsByUserId" resultMap="chatRoomMap">
+        SELECT cr.*
+        FROM chat_room cr
+                 JOIN chat_participant cp ON cr.chat_room_id = cp.chat_room_id
+        WHERE cp.user_id = #{userId}
+    </select>
+
+    <select id="findRoomByUserIdsAndBoardId" resultType="java.lang.Long">
+        SELECT cr.chat_room_id
+        FROM chat_room cr
+                 JOIN chat_participant cp1 ON cr.chat_room_id = cp1.chat_room_id
+                 JOIN chat_participant cp2 ON cr.chat_room_id = cp2.chat_room_id
+        WHERE cp1.user_id = #{userId1}
+          AND cp2.user_id = #{userId2}
+          AND cr.board_id = #{boardId}
+    </select>
+
+    <!-- 시퀀스를 사용하여 채팅 메시지 삽입 (Oracle 방식) -->
+    <insert id="insertChatMessage" parameterType="kr.or.kosa.chat.model.ChatMessage">
+        <selectKey keyProperty="messageId" resultType="java.lang.Long" order="BEFORE">
+            SELECT chat_message_seq.NEXTVAL FROM dual
+        </selectKey>
+        INSERT INTO chat_message (message_id, chat_room_id, user_id, content, created_time)
+        VALUES (#{messageId}, #{chatRoomId}, #{userId}, #{content}, CURRENT_TIMESTAMP)
+    </insert>
+
+    <select id="findChatMessagesByRoomId" resultMap="chatMessageMap">
+        SELECT * FROM chat_message
+        WHERE chat_room_id = #{roomId}
+        ORDER BY created_time ASC
+    </select>
+
+    <!-- Oracle에서는 LIMIT 대신 ROWNUM 사용 -->
+    <select id="findLastMessageByRoomId" resultMap="chatMessageMap">
+        SELECT * FROM (
+                          SELECT *
+                          FROM chat_message
+                          WHERE chat_room_id = #{roomId}
+                          ORDER BY created_time DESC
+                      )
+        WHERE ROWNUM = 1
+    </select>
+
+</mapper>

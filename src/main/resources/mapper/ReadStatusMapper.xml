@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.kosa.chat.mapper.ReadStatusMapper">
+
+    <!-- resultMap for MessageReadStatus (필드명 수정) -->
+    <resultMap id="messageReadStatusMap" type="kr.or.kosa.chat.model.MessageReadStatus">
+        <id property="messageReadId" column="message_read_id"/>
+        <result property="messageId" column="message_id"/>
+        <result property="chatRoomId" column="chat_room_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="isRead" column="is_read"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <update id="markAllAsRead">
+        UPDATE message_read_status
+        SET is_read = 'Y', update_time = CURRENT_TIMESTAMP
+        WHERE chat_room_id = #{roomId} AND user_id = #{userId} AND is_read = 'N'
+    </update>
+
+    <select id="countUnreadMessages" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM message_read_status
+        WHERE chat_room_id = #{roomId} AND user_id = #{userId} AND is_read = 'N'
+    </select>
+
+    <!-- 시퀀스를 사용하여 읽지 않음 상태 생성 (Oracle 방식) -->
+    <insert id="createUnreadStatus">
+        <selectKey keyProperty="messageReadId" resultType="java.lang.Long" order="BEFORE">
+            SELECT message_read_status_seq.NEXTVAL FROM dual
+        </selectKey>
+        INSERT INTO message_read_status (message_read_id, chat_room_id, user_id, message_id, is_read, update_time)
+        VALUES (#{messageReadId}, #{roomId}, #{userId}, #{messageId}, 'N', CURRENT_TIMESTAMP)
+    </insert>
+</mapper>

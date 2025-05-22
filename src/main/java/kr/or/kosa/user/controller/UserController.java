@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpServletRequest;
+import kr.or.kosa.admin.service.AdminService;
 import kr.or.kosa.user.dto.CustomUser;
 import kr.or.kosa.user.dto.Users;
 import kr.or.kosa.user.service.PasswordResetService;
@@ -30,6 +31,8 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
 
 	private final UserService userService;
+
+	private final AdminService adminService;
 
 	private final PasswordResetService passwordResetService;
 
@@ -47,6 +50,18 @@ public class UserController {
 	public String myPage(Model model, @AuthenticationPrincipal CustomUser customUser) {
 		model.addAttribute("user", customUser);
 		return "user/mypage";
+	}
+
+	@GetMapping("/user/mypage/expert")
+	public String myPageExpert(Model model, @AuthenticationPrincipal CustomUser customUser) {
+		long userId = customUser.getUserId();
+
+		model.addAttribute("expertDetail", adminService.getExpertByUserId(userId));
+		model.addAttribute("licenseList", adminService.getLicenses(userId));
+		model.addAttribute("categoryList", adminService.getCategories(userId));
+		model.addAttribute("locationList", adminService.getLocations(userId));
+
+		return "user/myexpertpage";
 	}
 
 	@PostMapping("/user/mypage/profile")

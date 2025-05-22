@@ -1,5 +1,8 @@
 package kr.or.kosa.expert.controller;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -9,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.or.kosa.expert.dto.ExpertDto;
+import kr.or.kosa.expert.dto.Location;
 import kr.or.kosa.expert.service.ExpertService;
 import kr.or.kosa.user.dto.CustomUser;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +26,12 @@ public class ExpertController {
 
 	@GetMapping("/register")
 	public String expertReg(Model model) {
-		model.addAttribute("locationList", expertService.getLocationList());
+		List<Location> locations = expertService.getLocationList();
+		model.addAttribute("locations", locations);
+
+		List<String> cities = locations.stream().map(Location::getCity).distinct().collect(Collectors.toList());
+		model.addAttribute("cities", cities);
+
 		model.addAttribute("categoryList", expertService.getCategoryList());
 		return "expert/register";
 	}

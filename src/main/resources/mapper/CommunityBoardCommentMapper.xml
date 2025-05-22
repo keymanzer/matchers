@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.kosa.community.mapper.CommunityBoardCommentMapper">
+
+    <resultMap id="CommunityBoardCommentMap" type="kr.or.kosa.community.dto.CommunityBoardComment">
+        <id property="commentId" column="COMMENT_ID"/>
+        <result property="postId" column="POST_ID"/>
+        <result property="parentCommentId" column="PARENT_COMMENT_ID"/>
+        <result property="content" column="content"/>
+        <result property="createdAt" column="CREATED_AT"/>
+        <result property="userNickname" column="USER_NICKNAME"/>
+    </resultMap>
+
+    <!-- 게시글에 달린 전체 댓글 조회 -->
+    <select id="getCommentListByPostId" parameterType="Long" resultMap="CommunityBoardCommentMap">
+		SELECT cbc.COMMENT_ID, cbc.POST_ID, cbc.PARENT_COMMENT_ID, c.CONTENT, c.CREATED_AT, c.USER_NICKNAME
+		FROM COMMENTS c
+		JOIN COMMUNITY_BOARD_COMMENT cbc
+		  ON c.COMMENT_ID = cbc.COMMENT_ID
+		WHERE POST_ID = #{postId}
+		ORDER BY COMMENT_ID
+    </select>
+    
+    <!-- 단일 댓글 조회 -->
+	<select id="getCommentById" parameterType="Long" resultMap="CommunityBoardCommentMap">
+	    SELECT cbc.COMMENT_ID, cbc.POST_ID, cbc.PARENT_COMMENT_ID, c.CONTENT, c.CREATED_AT, c.USER_NICKNAME
+	    FROM COMMENTS c
+	    JOIN COMMUNITY_BOARD_COMMENT cbc
+	      ON c.COMMENT_ID = cbc.COMMENT_ID
+	    WHERE cbc.COMMENT_ID = #{commentId}
+	</select>
+
+    <!-- 댓글 삽입 -->
+	<insert id="insertComment" parameterType="kr.or.kosa.community.dto.CommunityBoardComment">
+	    <selectKey order="BEFORE" keyProperty="commentId" resultType="Long">
+	        SELECT COMMENTS_SEQ.NEXTVAL FROM DUAL
+	    </selectKey>
+	    INSERT ALL
+	        INTO COMMENTS (
+	            COMMENT_ID, CONTENT, CREATED_AT, USER_NICKNAME
+	        ) VALUES (
+	            #{commentId}, #{content}, SYSDATE, #{userNickname}
+	        )
+	
+	        INTO COMMUNITY_BOARD_COMMENT (
+	            COMMENT_ID, POST_ID, PARENT_COMMENT_ID
+	        ) VALUES (
+	            #{commentId}, #{postId}, #{parentCommentId, jdbcType=NUMERIC}
+	        )
+	    SELECT * FROM DUAL
+	</insert>
+
+    <!-- 댓글 삭제 -->
+    <delete id="deleteComment" parameterType="Long">
+        DELETE FROM COMMUNITY_BOARD_COMMENT
+        WHERE COMMENT_ID = #{commentId}
+    </delete>
+	
+    <!-- 특정 부모 댓글에 달린 대댓글 리스트 조회 -->
+    <select id="getRepliesByParentId" parameterType="Long" resultMap="CommunityBoardCommentMap">
+        SELECT cbc.COMMENT_ID, cbc.POST_ID, cbc.PARENT_COMMENT_ID,
+               c.CONTENT, c.CREATED_AT, c.USER_NICKNAME
+        FROM COMMENTS c
+        JOIN COMMUNITY_BOARD_COMMENT cbc
+          ON c.COMMENT_ID = cbc.COMMENT_ID
+        WHERE cbc.PARENT_COMMENT_ID = #{parentCommentId}
+        ORDER BY cbc.COMMENT_ID
+    </select>
+
+
+</mapper>

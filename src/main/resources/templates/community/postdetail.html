@@ -98,9 +98,37 @@
         .back-link:hover {
             text-decoration: underline;
         }
-		a:empty {
-		    display: none !important;
-		}
+
+        a:empty {
+            display: none !important;
+        }
+
+        .comment-title {
+            font-weight: bold;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .comment-meta {
+            font-size: 0.95rem;
+            color: #6c757d;
+        }
+
+        .comment-content {
+            font-size: 0.90rem;
+            margin-top: 12px;
+        }
+
+        .comment-write-button {
+            display: inline-block;
+            background-color: #e9ecef;
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: transparent;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
     </style>
 </head>
 <body>
@@ -112,38 +140,164 @@
             <div><strong>작성자:</strong> <span th:text="${post.users.nickname}"></span></div>
             <div><strong>날짜:</strong> <span th:text="${#temporals.format(post.lastUpdatedAt, 'yyyy-MM-dd HH:mm')}"></span></div>
         </div>
-		<br>
         <div class="post-title" th:text="${post.board.title}">제목</div>
         <div class="post-content" th:text="${post.board.content}">내용</div>
-		<br><br>
-		<hr>
-		<th:block th:if="${post.attachedFiles != null and !post.attachedFiles.isEmpty()}">
-		    <div class="file-section">
-		        <p class="post-meta"><strong>첨부파일</strong></p>
-		        <div>
-		            <a th:each="file : ${post.attachedFiles}"
-		               th:href="@{|/file/download/${file.name}|}"
-		               th:text="${file.name}"
-		               class="file-button"></a>
-		        </div>
-		    </div>
-		</th:block>
-		<br><br>
-        <div class="action-buttons">
+
+        <!-- 첨부파일 -->
+        <th:block th:if="${post.attachedFiles != null and !post.attachedFiles.isEmpty()}">
+            <div class="file-section">
+                <p class="post-meta"><strong>첨부파일</strong></p>
+                <div>
+                    <a th:each="file : ${post.attachedFiles}"
+                       th:href="@{|/file/download/${file.name}|}"
+                       th:text="${file.name}"
+                       class="file-button"></a>
+                </div>
+            </div>
+        </th:block>
+
+        <!-- 수정/삭제 버튼 -->
+        <div class="action-buttons" th:if="${loginUserId != null and loginUserId == post.board.userId}">
             <form style="display:inline;">
                 <button type="button" class="btn btn-custom"
                         th:onclick="|location.href='@{/user/community/{postId}/update(postId=${post.postId})}'|">
                     수정
                 </button>
             </form>
-            <form th:action="@{'/user/community/' + ${post.postId} + '/delete'}" method="post" style="display:inline;">
-                <button type="submit" class="btn btn-custom">삭제</button>
+            <form id="deletePostForm" th:action="@{'/user/community/' + ${post.postId} + '/delete'}"
+                  method="post" style="display:inline;">
+                <button type="button" class="btn btn-custom" onclick="confirmDelete()">삭제</button>
+            </form>
+        </div>
+
+        <hr>
+
+        <!-- 댓글 영역 -->
+        <div class="comment-section mt-4">
+            <div class="comment-title">댓글 목록</div>
+
+            <div th:if="${#lists.isEmpty(comments)}">
+                <p class="text-muted">댓글이 없습니다.</p>
+            </div>
+
+            <ul class="list-group mb-4" th:if="${not #lists.isEmpty(comments)}">
+                <li class="list-group-item" th:each="comment : ${comments}">
+                    <div class="comment-meta d-flex justify-content-between">
+                        <div>
+                            <strong th:text="${comment.userNickname}">작성자</strong>
+                            <span th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">작성일자</span>
+                        </div>
+                        <div th:if="${loginNickname != null and loginNickname == comment.userNickname}">
+                            <button type="button" class="btn btn-sm btn-outline-secondary"
+                                    th:onclick="'toggleEdit(' + ${comment.commentId} + ')'">수정</button>
+                            <form th:action="@{/user/community/comments/{commentId}/delete(commentId=${comment.commentId})}"
+                                  method="post" style="display:inline;">
+                                <input type="hidden" name="postId" th:value="${post.postId}" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="comment-content" th:text="${comment.content}">댓글 내용</div>
+
+                    <!-- 댓글 수정 폼 -->
+                    <form th:action="@{/user/community/comments/{commentId}/update(commentId=${comment.commentId})}"
+                          method="post"
+                          th:id="'editForm' + ${comment.commentId}" style="display: none;" class="mt-2">
+                        <input type="hidden" name="postId" th:value="${post.postId}" />
+                        <textarea class="form-control mb-2" name="content" rows="2" th:text="${comment.content}"></textarea>
+                        <button type="submit" class="btn btn-sm btn-primary">저장</button>
+                    </form>
+
+					<!-- 대댓글 출력 -->
+					<div th:each="reply : ${comment.replies}" class="ms-4 mt-2 border-start ps-3">
+					    <div class="comment-meta d-flex justify-content-between">
+					        <div>
+					            <strong th:text="${reply.userNickname}">작성자</strong>
+					            <span th:text="${#temporals.format(reply.createdAt, 'yyyy-MM-dd HH:mm')}">작성일자</span>
+					        </div>
+
+					        <div th:if="${loginNickname != null and loginNickname == reply.userNickname}">
+					            <button type="button" class="btn btn-sm btn-outline-secondary"
+					                    th:onclick="'toggleEdit(' + ${reply.commentId} + ')'">수정</button>
+
+					            <form th:action="@{/user/community/comments/{commentId}/delete(commentId=${reply.commentId})}"
+					                  method="post" style="display:inline;">
+					                <input type="hidden" name="postId" th:value="${post.postId}" />
+					                <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
+					            </form>
+					        </div>
+					    </div>
+
+					    <div class="comment-content" th:text="${reply.content}">대댓글 내용</div>
+
+					    <!-- 대댓글 수정 폼 -->
+					    <form th:action="@{/user/community/comments/{commentId}/update(commentId=${reply.commentId})}"
+					          method="post"
+					          th:id="'editForm' + ${reply.commentId}" style="display: none;" class="mt-2">
+					        <input type="hidden" name="postId" th:value="${post.postId}" />
+					        <textarea class="form-control mb-2" name="content" rows="2" th:text="${reply.content}"></textarea>
+					        <button type="submit" class="btn btn-sm btn-primary">저장</button>
+					    </form>
+					</div>
+
+                    <!-- 대댓글 작성 폼 -->
+                    <form th:action="@{/user/community/comments/insert}" method="post"
+                          th:id="'replyForm-' + ${comment.commentId}" style="display: none;" class="mt-2 ms-4">
+                        <input type="hidden" name="postId" th:value="${post.postId}" />
+                        <input type="hidden" name="parentCommentId" th:value="${comment.commentId}" />
+                        <textarea name="content" class="form-control mb-2" rows="2" placeholder="대댓글을 입력하세요"></textarea>
+                        <button type="submit" class="btn btn-sm btn-outline-primary">답글 등록</button>
+                    </form>
+
+                    <button type="button" class="btn btn-sm btn-outline-secondary mt-1 ms-4"
+                            th:onclick="'toggleReplyForm(' + ${comment.commentId} + ')'">답글</button>
+                </li>
+            </ul>
+
+            <!-- 댓글 작성 폼 -->
+            <form th:action="@{/user/community/comments/insert}" method="post">
+                <input type="hidden" name="postId" th:value="${post.postId}" />
+                <div class="mb-3">
+                    <label for="content" class="form-label"><strong>댓글 작성</strong></label>
+                    <textarea class="form-control" style="background: #F3F4F8;" name="content" id="content" rows="3" required></textarea>
+                </div>
+                <button type="submit" class="comment-write-button">댓글 등록</button>
             </form>
         </div>
 
         <a th:href="@{/user/community}" class="back-link">돌아가기 &#8656;</a>
     </div>
 </div>
+<script>
+    function toggleEdit(commentId) {
+        const form = document.getElementById("editForm" + commentId);
+        form.style.display = (form.style.display === "none" || form.style.display === "") ? "block" : "none";
+    }
+
+    function toggleReplyForm(commentId) {
+        const form = document.getElementById("replyForm-" + commentId);
+        form.style.display = (form.style.display === "none" || form.style.display === "") ? "block" : "none";
+    }
+
+    function confirmDelete() {
+        Swal.fire({
+            title: '게시글을 삭제하시겠습니까?',
+            text: "삭제된 게시글은 복구할 수 없습니다.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#aaa',
+            confirmButtonText: '삭제',
+            cancelButtonText: '취소'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('deletePostForm').submit();
+            }
+        });
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

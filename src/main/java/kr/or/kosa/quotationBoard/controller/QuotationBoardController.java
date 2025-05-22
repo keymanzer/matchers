@@ -190,6 +190,7 @@ public class QuotationBoardController {
         //customUser.getUserId(); 2로 되어있는거 이걸로 나중에 대체 userid로 대체 아직 보드가 int타입임
         List<Category> categories= quotationBoardService.findCategoriesByUserId(userId);
         List<location> locations= quotationBoardService.findLocationsByUserId(userId);
+
         // 전체 항목 수
         int totalItems = allBoards.size();
 
@@ -212,6 +213,7 @@ public class QuotationBoardController {
         }
 
 
+
         // 모델에 데이터 추가
         model.addAttribute("quotationBoards", currentPageBoards);
         model.addAttribute("currentPage", page);
@@ -219,6 +221,7 @@ public class QuotationBoardController {
         model.addAttribute("totalItems", totalItems);
         model.addAttribute("categories", categories);
         model.addAttribute("locations", locations);
+
 
         return "quotationBoard/list";
     }

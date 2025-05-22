@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 채팅방 목록</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/chat/notification-system.css}" />
+    <link rel="stylesheet" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" th:href="@{/css/chat/rooms.css}" />
+    <link rel="stylesheet" th:href="@{/css/footer.css}" />
+
+    <!-- Font Awesome 아이콘 (추가 - 알림 시스템에 필요) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<style>
+    body {
+        margin-top: 100px;
+    }
+
+    section {
+        height: 700px;
+    }
+</style>
+
+<body th:data-user-id="${#authentication.principal.userId}">
+<div th:replace="~{header :: header}"></div>
+<div class="container page-container">
+    <div class="page-header">
+        <h4 class="m-0">내 채팅방</h4>
+        <div>
+            <button id="refresh-btn" class="btn-refresh me-2" title="새로고침">
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
+            <a href="/chat/create" class="btn btn-new-chat">
+                <i class="bi bi-plus"></i> 새 채팅
+            </a>
+        </div>
+    </div>
+
+    <div class="chat-list-container">
+        <!-- 연결 상태 표시 -->
+        <div id="connection-status" class="connection-status">연결 확인 중...</div>
+
+        <!-- 빈 목록 표시 -->
+        <div id="empty-list" th:if="${chatRooms == null || chatRooms.isEmpty()}" class="empty-list">
+            <i class="bi bi-chat-left-dots" style="font-size: 48px; color: #ddd; margin-bottom: 15px;"></i>
+            <p>참여 중인 채팅방이 없습니다.</p>
+            <a href="/chat/create" class="btn btn-sm btn-outline-secondary">채팅방 만들기</a>
+        </div>
+
+        <!-- 채팅방 목록 -->
+        <div id="chat-rooms-list">
+            <div th:each="room : ${chatRooms}" class="chat-room-item" th:data-room-id="${room.roomId}">
+                <a th:href="@{/chat/room/{id}(id=${room.roomId})}">
+                    <div class="avatar">
+                        <span th:text="${room.otherUserName != null ? room.otherUserName.substring(0,1).toUpperCase() : '?'}">?</span>
+                    </div>
+                    <div class="chat-room-info">
+                        <!-- 수정된 부분: otherUserName을 우선 표시 -->
+                        <div class="chat-room-name" th:text="${room.otherUserName != null ? room.otherUserName : room.roomName}">채팅 상대방</div>
+                        <div class="chat-room-last-message" th:text="${room.lastMessage}">마지막 메시지 내용...</div>
+                    </div>
+                    <div class="chat-room-meta">
+                        <div class="chat-room-time" th:text="${room.lastMessageTime}">1시간 전</div>
+                        <div th:if="${room.unReadCount > 0}" class="unread-badge" th:text="${room.unReadCount}">2</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="last-updated" id="last-updated"></div>
+    </div>
+    <div th:replace="~{footer :: footer}"></div>
+</div>
+
+<!-- 필수 라이브러리 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+<script th:inline="javascript">
+    // 전역 변수
+    let stompClient = null;
+    let reconnectTimer = null;
+    let reconnectAttempts = 0;
+
+    // 사용자 ID
+    const userId = /*[[${#authentication.principal.userId}]]*/ '1';
+
+    // 방 ID - 상대방 정보 캐시 매핑
+    const otherUsersCache = {};
+
+    // 초기화 - 페이지 로드 시 실행
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOM 로드 완료, 사용자 ID:', userId);
+
+        // 페이지 로드 시 즉시 날짜 포맷팅 적용
+        formatInitialDates();
+
+        // 연결 상태 업데이트
+        updateConnectionStatus('WebSocket 연결 준비 중...');
+
+        // WebSocket 연결 시도
+        if (userId) {
+            setTimeout(() => {
+                connectWebSocket();
+            }, 1000);
+        } else {
+            updateConnectionStatus('사용자 ID 없음', true);
+        }
+
+        // 페이지 포커스 시 연결 확인
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                // 연결 끊어진 경우 재연결
+                if (!stompClient || !stompClient.connected) {
+                    console.log('웹소켓 연결 끊김, 재연결 시도...');
+                    connectWebSocket();
+                }
+            }
+        });
+
+        // 새로고침 버튼 이벤트
+        const refreshBtn = document.getElementById('refresh-btn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => {
+                const icon = refreshBtn.querySelector('i');
+                icon.classList.add('spin');
+
+                refreshChatRooms().finally(() => {
+                    setTimeout(() => {
+                        icon.classList.remove('spin');
+                    }, 1000);
+                });
+            });
+        }
+
+        // 초기 타임스탬프 업데이트
+        updateLastUpdatedTime();
+
+        // 즉시 채팅방 목록 갱신
+        refreshChatRooms();
+    });
+
+    // 페이지 초기 로드 시 날짜 포맷팅
+    function formatInitialDates() {
+        document.querySelectorAll('.chat-room-time').forEach(element => {
+            const originalDate = element.textContent;
+            if (originalDate && originalDate.includes('T')) {
+                console.log('원본 날짜:', originalDate);
+                const formattedDate = formatDate(originalDate);
+                console.log('변환된 날짜:', formattedDate);
+                element.textContent = formattedDate;
+            }
+        });
+    }
+
+    // 실시간 업데이트를 위한 WebSocket 연결
+    function connectWebSocket() {
+        try {
+            console.log('WebSocket 연결 시도 중...');
+            updateConnectionStatus('연결 중...');
+
+            // 기존 연결이 있으면 정리
+            if (stompClient && stompClient.connected) {
+                stompClient.disconnect();
+                stompClient = null;
+            }
+
+            const socket = new SockJS('/connect');
+            stompClient = Stomp.over(socket);
+
+            // 디버그 모드 설정
+            stompClient.debug = function(msg) {
+                console.log('STOMP: ' + msg);
+            };
+
+            // 연결 시도
+            stompClient.connect({}, function(frame) {
+                console.log('WebSocket 연결 성공:', frame);
+                updateConnectionStatus('실시간 업데이트 활성화됨', false, true);
+
+                // 재연결 관련 변수 초기화
+                reconnectAttempts = 0;
+                if (reconnectTimer) {
+                    clearTimeout(reconnectTimer);
+                    reconnectTimer = null;
+                }
+
+                // 채팅 알림 구독
+                console.log(`사용자 ${userId}의 채팅 업데이트 구독`);
+                stompClient.subscribe(`/topic/chat-update/${userId}`, function(message) {
+                    try {
+                        const notification = JSON.parse(message.body);
+                        console.log('새 채팅 알림 수신:', notification);
+
+                        // 알림을 받으면 채팅방 목록 갱신
+                        refreshChatRooms();
+                    } catch (error) {
+                        console.error('알림 처리 오류:', error);
+                    }
+                });
+            }, function(error) {
+                console.error('WebSocket 연결 실패:', error);
+                updateConnectionStatus('연결 실패 - 수동 새로고침 필요', true);
+
+                // 재연결 로직
+                handleReconnect();
+            });
+        } catch (e) {
+            console.error('WebSocket 초기화 오류:', e);
+            updateConnectionStatus('초기화 오류', true);
+            handleReconnect();
+        }
+    }
+
+    // 재연결 처리
+    function handleReconnect() {
+        const maxReconnectAttempts = 3;
+        if (reconnectAttempts < maxReconnectAttempts) {
+            reconnectAttempts++;
+
+            // 지수 백오프(1초, 2초, 4초)
+            const delay = Math.pow(2, reconnectAttempts) * 1000;
+            updateConnectionStatus(`${delay/1000}초 후 재연결 시도...`, true);
+
+            if (reconnectTimer) clearTimeout(reconnectTimer);
+            reconnectTimer = setTimeout(connectWebSocket, delay);
+        } else {
+            updateConnectionStatus('자동 재연결 실패. 새로고침 버튼을 눌러주세요.', true);
+        }
+    }
+
+    // 연결 상태 표시 업데이트
+    function updateConnectionStatus(message, isError = false, isConnected = false) {
+        const statusEl = document.getElementById('connection-status');
+        if (statusEl) {
+            statusEl.textContent = message;
+            statusEl.className = 'connection-status';
+            if (isConnected) {
+                statusEl.classList.add('connected');
+            } else if (isError) {
+                statusEl.classList.add('disconnected');
+            }
+        }
+    }
+
+    // LocalDateTime 형식을 "년 월 일 시 분" 형식으로 변환하는 함수
+    function formatDate(dateTimeString) {
+        // 입력값 체크
+        if (!dateTimeString) {
+            return '';
+        }
+
+        try {
+            // "2025-05-21T09:28:45.873" 형식 파싱
+            // T를 공백으로 변경하고 . 이후 밀리초 부분 제거
+            const cleanedString = dateTimeString.replace('T', ' ').split('.')[0];
+
+            // 날짜 부분 추출
+            const parts = cleanedString.split(/[- :]/);
+
+            // 충분한 부분이 있는지 확인
+            if (parts.length >= 5) {
+                const year = parts[0];
+                const month = parts[1];
+                const day = parts[2];
+                const hours = parts[3];
+                const minutes = parts[4];
+
+                return `${year}년 ${month}월 ${day}일 ${hours}시 ${minutes}분`;
+            }
+
+        } catch (e) {
+            console.error('날짜 변환 오류:', e, dateTimeString);
+        }
+
+        return dateTimeString;
+    }
+
+    // 채팅방 목록 새로고침 (API 호출) - 수정된 버전
+    async function refreshChatRooms() {
+        try {
+            // 현재 페이지의 boardId 가져오기
+            const boardId = window.location.pathname.split('/')[2];
+
+            const response = await axios.get(`/chat/${boardId}/rooms/api`);
+            const chatRooms = response.data;
+
+            // API 응답 로깅
+            console.log("채팅방 API 응답:", chatRooms);
+
+            // 빈 목록 처리
+            const emptyListEl = document.getElementById('empty-list');
+            const chatRoomsListEl = document.getElementById('chat-rooms-list');
+
+            if (chatRooms.length === 0) {
+                if (emptyListEl) emptyListEl.style.display = 'block';
+                if (chatRoomsListEl) chatRoomsListEl.innerHTML = '';
+                updateLastUpdatedTime();
+                return;
+            }
+
+            if (emptyListEl) emptyListEl.style.display = 'none';
+
+            // 기존 요소 참조 저장 (하이라이트용)
+            const existingItems = {};
+            if (chatRoomsListEl) {
+                document.querySelectorAll('.chat-room-item').forEach(item => {
+                    const roomId = item.getAttribute('data-room-id');
+                    existingItems[roomId] = {
+                        element: item,
+                        unreadCount: item.querySelector('.unread-badge')?.textContent || '0',
+                        lastMessage: item.querySelector('.chat-room-last-message')?.textContent || ''
+                    };
+                });
+            }
+
+            // 새로운 채팅방 목록 HTML 생성 준비
+            let chatRoomsHTML = '';
+
+            // 채팅방 정보로 HTML 생성
+            for (const room of chatRooms) {
+                // lastMessageTime 포맷팅
+                const formattedTime = formatDate(room.lastMessageTime);
+
+                // 첫 번째 글자 설정을 위한 변수
+                let initialLetter = '?';
+
+                // 백엔드 API가 otherUserName을 제공하는 경우 (권장 방식)
+                if (room.otherUserName) {
+                    initialLetter = room.otherUserName.charAt(0).toUpperCase();
+                    // 캐시에 저장
+                    otherUsersCache[room.roomId] = room.otherUserName;
+                }
+                // 아직 상대방 정보가 로드되지 않은 경우, 별도 API 호출
+                else if (!otherUsersCache[room.roomId]) {
+                    try {
+                        // 비동기로 상대방 정보 가져오기 (개별 요청)
+                        await loadOtherUserInfo(room.roomId);
+
+                        // 캐시에서 정보 가져오기
+                        if (otherUsersCache[room.roomId]) {
+                            initialLetter = otherUsersCache[room.roomId].charAt(0).toUpperCase();
+                        }
+                    } catch (error) {
+                        console.error(`방 ${room.roomId}의 상대방 정보 로드 실패:`, error);
+                    }
+                }
+                // 캐시에 이미 있는 경우
+                else if (otherUsersCache[room.roomId]) {
+                    initialLetter = otherUsersCache[room.roomId].charAt(0).toUpperCase();
+                }
+
+                // 중요: 상대방 이름을 우선 사용
+                const displayName = otherUsersCache[room.roomId] || room.roomName;
+
+                // 채팅방 HTML 생성 - displayName 사용!
+                chatRoomsHTML += `
+                    <div class="chat-room-item" data-room-id="${room.roomId}">
+                        <a href="/chat/room/${room.roomId}">
+                            <div class="avatar">
+                                <span>${initialLetter}</span>
+                            </div>
+                            <div class="chat-room-info">
+                                <div class="chat-room-name">${displayName}</div> <!-- 수정된 부분 -->
+                                <div class="chat-room-last-message">${room.lastMessage || '메시지 없음'}</div>
+                            </div>
+                            <div class="chat-room-meta">
+                                <div class="chat-room-time">${formattedTime}</div>
+                                ${room.unReadCount > 0 ? `<div class="unread-badge">${room.unReadCount}</div>` : ''}
+                            </div>
+                        </a>
+                    </div>
+                `;
+            }
+
+            if (chatRoomsListEl) {
+                chatRoomsListEl.innerHTML = chatRoomsHTML;
+
+                // 변경된 항목 하이라이트 처리
+                chatRooms.forEach(room => {
+                    const existingItem = existingItems[room.roomId];
+                    const newItem = chatRoomsListEl.querySelector(`.chat-room-item[data-room-id="${room.roomId}"]`);
+
+                    if (existingItem && newItem) {
+                        // 변경 사항이 있으면 하이라이트
+                        if (parseInt(existingItem.unreadCount) < room.unReadCount ||
+                            existingItem.lastMessage !== room.lastMessage) {
+                            newItem.classList.add('highlight');
+                            setTimeout(() => {
+                                newItem.classList.remove('highlight');
+                            }, 2000);
+                        }
+                    }
+                });
+            }
+
+            // 마지막 업데이트 시간 갱신
+            updateLastUpdatedTime();
+
+        } catch (error) {
+            console.error('채팅방 목록 새로고침 실패:', error);
+        }
+    }
+
+    // 채팅방별 상대방 정보 로드 함수
+    async function loadOtherUserInfo(roomId) {
+        try {
+            const response = await axios.get(`/chat/room/${roomId}/other-user`);
+            const otherUser = response.data;
+
+            // 상대방 정보 캐시에 저장
+            otherUsersCache[roomId] = otherUser.name || '알 수 없음';
+            console.log(`방 ${roomId}의 상대방 정보 로드 성공:`, otherUser.name);
+
+            return otherUser;
+        } catch (error) {
+            console.error(`방 ${roomId}의 상대방 정보 로드 실패:`, error);
+            throw error;
+        }
+    }
+
+    // 마지막 업데이트 시간 표시 - 년, 월, 일, 시, 분 형식으로 변경
+    function updateLastUpdatedTime() {
+        const lastUpdatedEl = document.getElementById('last-updated');
+        if (lastUpdatedEl) {
+            const now = new Date();
+
+            // 년, 월, 일, 시, 분 포맷팅
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const day = now.getDate().toString().padStart(2, '0');
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+
+            // 한국식 날짜 표현 - 년 월 일 시 분
+            const timeStr = `${year}년 ${month}월 ${day}일 ${hours}시 ${minutes}분`;
+            lastUpdatedEl.textContent = `마지막 업데이트: ${timeStr}`;
+        }
+    }
+
+    // 페이지 이탈 시 정리
+    window.addEventListener('beforeunload', () => {
+        if (reconnectTimer) {
+            clearTimeout(reconnectTimer);
+        }
+        if (stompClient && stompClient.connected) {
+            stompClient.disconnect();
+        }
+    });
+</script>
+</body>
+</html>

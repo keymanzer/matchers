@@ -24,7 +24,9 @@
         receiver_user_id,
         is_read,
         sender_user_id,
-        chat_room_id,
+        <trim prefixOverrides="," suffixOverrides=",">
+            <if test="chatRoomId != null">chat_room_id,</if>
+        </trim>,
         content,
         notification_type
         ) VALUES (
@@ -32,7 +34,9 @@
         #{receiverUserId},
         #{isRead},
         #{senderUserId},
-        #{chatRoomId},
+        <trim prefixOverrides="," suffixOverrides=",">
+            <if test="chatRoomId != null">#{chatRoomId},</if>
+        </trim>,
         #{content},
         #{notificationType}
         )

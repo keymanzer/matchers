@@ -19,5 +19,5 @@ public interface AdminService {
 
 	List<ExpertLocation> getLocations(Long userId);
 
-	void approveExpertByEmail(String email);
+	void approveExpertByEmail(String email, Long senderId);
 }

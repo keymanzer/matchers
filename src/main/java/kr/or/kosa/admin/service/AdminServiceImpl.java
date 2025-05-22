@@ -2,6 +2,9 @@ package kr.or.kosa.admin.service;
 
 import java.util.List;
 
+import kr.or.kosa.chat.controller.SseController;
+import kr.or.kosa.mapper.UserMapper;
+import kr.or.kosa.user.dto.Users;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +20,8 @@ import lombok.RequiredArgsConstructor;
 public class AdminServiceImpl implements AdminService {
 
 	private final AdminMapper adminMapper;
+	private final UserMapper userMapper;
+	private final SseController sseController;
 
 	@Override
 	public List<ExpertDetail> getExpertList() {
@@ -25,9 +30,14 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	@Transactional
-	public void approveExpertByEmail(String email) {
+	public void approveExpertByEmail(String email, Long senderId) {
 		adminMapper.approveExpertByEmail(email);
 		adminMapper.insertExpertAuth(email);
+
+		Users receivedUser = userMapper.findUserByEmail(email);
+		String message = receivedUser.getNickname() + "님, 전문가 인증이 완료되었습니다.";
+		sseController.sendNotification(receivedUser.getUserId(),senderId, message);
+
 	}
 
 	@Override

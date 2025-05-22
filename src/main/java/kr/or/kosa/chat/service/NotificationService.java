@@ -43,6 +43,19 @@ public class NotificationService {
         return saveNotification(notification);
     }
 
+    @Transactional
+    public NotificationDto createAdminNotification(Long receiverUserId, Long senderUserId, String content) {
+        NotificationDto notification = NotificationDto.builder()
+                .receiverUserId(receiverUserId)
+                .senderUserId(senderUserId)
+                .content(content)
+                .notificationType("ADMIN")
+                .isRead("N")
+                .build();
+
+        return saveNotification(notification);
+    }
+
     // 사용자의 모든 알림 조회
     public List<NotificationDto> getUserNotifications(Long userId) {
         return notificationMapper.selectNotificationsByUserId(userId);

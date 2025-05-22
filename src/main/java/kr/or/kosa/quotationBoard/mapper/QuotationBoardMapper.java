@@ -1,6 +1,8 @@
 package kr.or.kosa.quotationBoard.mapper;
 
+import kr.or.kosa.expert.dto.Category;
 import kr.or.kosa.quotationBoard.dto.QuotationBoard;
+import kr.or.kosa.quotationBoard.dto.location;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -25,5 +27,9 @@ public interface QuotationBoardMapper {
                                  @Param("locationId") int locationId);
 
     void deleteQuotationLocations(int postId);
+
+    List<location>findLocationsByUserId(long userId);
+
+    List<Category>findCategoriesByUserId(long userId);
 
 }

@@ -2,7 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="kr.or.kosa.quotationBoard.mapper.QuotationBoardMapper">
 
-    <!-- 1) resultMap: 그대로 유지 -->
     <resultMap id="QuotationBoardResultMap"
                type="kr.or.kosa.quotationBoard.dto.QuotationBoard">
         <!-- 기본 필드 매핑 -->
@@ -25,6 +24,20 @@
             <result property="district"   column="DISTRICT"/>
         </collection>
     </resultMap>
+
+    <resultMap id="LocationResultMap" type="kr.or.kosa.quotationBoard.dto.location">
+        <id     property="locationId" column="LOCATION_ID"/>
+        <result property="city"       column="CITY"/>
+        <result property="district"   column="DISTRICT"/>
+    </resultMap>
+
+    <resultMap id="CategoryResultMap"
+               type="kr.or.kosa.expert.dto.Category">
+        <id     property="categoryId" column="CATEGORY_ID"/>
+        <result property="name"       column="NAME"/>
+    </resultMap>
+
+
 
     <insert id="insertQuotationBoard" parameterType="kr.or.kosa.quotationBoard.dto.QuotationBoard">
         INSERT INTO quotation_board (post_id, expert_id, category_id, state)
@@ -129,5 +142,31 @@
                    #{locationId}
                )
     </insert>
+
+    <select id="findLocationsByUserId"
+            parameterType="long"
+            resultMap="LocationResultMap">
+    SELECT
+    l.location_id   AS LOCATION_ID,
+    l.city          AS CITY,
+    l.district      AS DISTRICT
+    FROM expert_location e
+    LEFT JOIN location l
+    ON e.location_id = l.location_id
+    WHERE e.user_id = #{userId}
+    </select>
+
+    <select id="findCategoriesByUserId"
+            parameterType="long"
+            resultMap="CategoryResultMap">
+        SELECT
+            c.category_id AS CATEGORY_ID,
+            c.name        AS NAME
+        FROM expert_category ec
+                 JOIN category c
+                      ON ec.category_id = c.category_id
+        WHERE ec.user_id = #{userId}
+        ORDER BY c.name
+    </select>
 
 </mapper>

@@ -1,12 +1,15 @@
 package kr.or.kosa.quotationBoard.controller;
 
+import kr.or.kosa.admin.service.AdminService;
 import kr.or.kosa.attachedFile.dto.AttachedFile;
 import kr.or.kosa.attachedFile.service.AttachedFileService;
 import kr.or.kosa.board.dto.Board;
 import kr.or.kosa.board.service.BoardService;
+import kr.or.kosa.expert.dto.Category;
 import kr.or.kosa.expert.dto.Location;
 import kr.or.kosa.expert.service.ExpertService;
 import kr.or.kosa.quotationBoard.dto.QuotationBoard;
+import kr.or.kosa.quotationBoard.dto.location;
 import kr.or.kosa.quotationBoard.service.QuotationBoardService;
 import kr.or.kosa.user.dto.CustomUser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +56,8 @@ public class QuotationBoardController {
 
     @Value("${spring.servlet.multipart.location}")
     private String uploadDirectory;
+    @Autowired
+    private AdminService adminService;
     // 게시판 생성 화면 요청
 
     @GetMapping("/create")
@@ -61,7 +66,6 @@ public class QuotationBoardController {
         // DB에서 실제 지역 목록 가져오기
         List<Location> locations = expertService.getLocationList();
         model.addAttribute("locations", locations);
-
         // city 만 뽑아서 중복 제거
         List<String> cities = locations.stream()
                 .map(Location::getCity)
@@ -172,14 +176,18 @@ public class QuotationBoardController {
     @GetMapping("/list")
     public String quotationBoardList(Model model,
                                      @AuthenticationPrincipal CustomUser customUser,
-                                     @RequestParam(defaultValue = "1") int page) {
+                                     @RequestParam(defaultValue = "1") int page,
+                                     @RequestParam (required = false)Category category,
+                                     @RequestParam (required = false)location location) {
         // 페이지당 항목 수
         int pageSize = 10;
 
+        long userId = customUser.getUserId(); //로그인한 전문가 ID
         // 전체 견적 요청 목록 조회
         List<QuotationBoard> allBoards = quotationBoardService.findAllQuotationBoards(2);
-        //customUser.getUserId(); 2로 되어있는거 이걸로 나중에 대체
-
+        //customUser.getUserId(); 2로 되어있는거 이걸로 나중에 대체 userid로 대체 아직 보드가 int타입임
+        List<Category> categories= quotationBoardService.findCategoriesByUserId(userId);
+        List<location> locations= quotationBoardService.findLocationsByUserId(userId);
         // 전체 항목 수
         int totalItems = allBoards.size();
 
@@ -201,11 +209,14 @@ public class QuotationBoardController {
             currentPageBoards = new ArrayList<>();
         }
 
+
         // 모델에 데이터 추가
         model.addAttribute("quotationBoards", currentPageBoards);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("totalItems", totalItems);
+        model.addAttribute("categories", categories);
+        model.addAttribute("locations", locations);
 
         return "quotationBoard/list";
     }

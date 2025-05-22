@@ -2,7 +2,9 @@ package kr.or.kosa.quotationBoard.service;
 
 import kr.or.kosa.attachedFile.service.AttachedFileService;
 import kr.or.kosa.board.service.BoardService;
+import kr.or.kosa.expert.dto.Category;
 import kr.or.kosa.quotationBoard.dto.QuotationBoard;
+import kr.or.kosa.quotationBoard.dto.location;
 import kr.or.kosa.quotationBoard.mapper.QuotationBoardMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -60,4 +62,13 @@ public class QuotationBoardService {
     public QuotationBoard findByPostIdWithLocations(int postId) {
         return quotationBoardMapper.findByPostIdWithLocations(postId);
     }
+
+    public List<location> findLocationsByUserId(long userId){
+        return quotationBoardMapper.findLocationsByUserId(userId);
+    }
+
+    public List<Category> findCategoriesByUserId(long userId){
+        return quotationBoardMapper.findCategoriesByUserId(userId);
+    }
+
 }

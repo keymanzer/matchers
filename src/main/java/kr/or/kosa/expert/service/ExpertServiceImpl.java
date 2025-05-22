@@ -53,10 +53,10 @@ public class ExpertServiceImpl implements ExpertService {
 
 		result += expertMapper.userInfoUpdate(userParams);
 
-		for (String location : expert.getLocations()) {
+		for (String location : expert.getLocationIds()) {
 			Map<String, Object> locationParams = new HashMap<>();
 			locationParams.put("userId", expert.getUserId());
-			locationParams.put("location", location.split(" ")[1]);
+			locationParams.put("locationId", location);
 			result += expertMapper.expertLocReg(locationParams);
 		}
 

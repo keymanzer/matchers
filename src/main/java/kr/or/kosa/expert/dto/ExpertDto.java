@@ -15,6 +15,6 @@ public class ExpertDto {
 	private MultipartFile profileImgFile;
 	private List<MultipartFile> certImages;
 	private List<String> categories;
-	private List<String> locations;
+	private List<String> locationIds;
 	private String career;
 }

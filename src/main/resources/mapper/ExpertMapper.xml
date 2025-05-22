@@ -27,9 +27,7 @@
 
 	<insert id="expertLocReg">
 		INSERT INTO EXPERT_LOCATION (USER_ID, LOCATION_ID)
-		SELECT #{userId}, LOCATION_ID
-		FROM LOCATION
-		WHERE DISTRICT = #{location}
+		VALUES (#{userId}, #{locationId})
 	</insert>
 
 	<insert id="expertCtgReg">

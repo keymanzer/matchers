@@ -1,5 +1,6 @@
 package kr.or.kosa.community.controller;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import kr.or.kosa.attachedFile.dto.AttachedFile;
 import kr.or.kosa.attachedFile.service.AttachedFileService;
+import kr.or.kosa.common.S3Service;
 import kr.or.kosa.community.dto.CommunityBoard;
 import kr.or.kosa.community.dto.CommunityBoardComment;
 import kr.or.kosa.community.service.CommunityBoardCommentService;
@@ -39,15 +41,23 @@ public class CommunityBoardController {
    @Autowired
    private CommunityBoardCommentService communityBoardCommentService;
    
-
+   @Autowired
+   private S3Service s3Service;
+   
+   
    public void setCommunityBoardService(CommunityBoardService communityBoardService) {
-      this.communityBoardService = communityBoardService;
+	this.communityBoardService = communityBoardService;
    }
 
-   public void setAttcheAttachedFileService(AttachedFileService attachedFileService) {
-      this.attachedFileService = attachedFileService;
-   }
-
+	public void setAttachedFileService(AttachedFileService attachedFileService) {
+		this.attachedFileService = attachedFileService;
+	}
+	
+	public void setCommunityBoardCommentService(CommunityBoardCommentService communityBoardCommentService) {
+		this.communityBoardCommentService = communityBoardCommentService;
+	}
+	
+   // 게시글 목록
    @GetMapping
    public String getPostList(Model model) {
 
@@ -57,6 +67,7 @@ public class CommunityBoardController {
       return "community/postlist";
    }
 
+   // 게시글 상세 보기
    @GetMapping("/{postId}")
    public String getPostbyId(@PathVariable("postId") Long postId, Model model, Principal principal) {
        CommunityBoard post = communityBoardService.getPostbyId(postId);
@@ -85,8 +96,6 @@ public class CommunityBoardController {
        
        model.addAttribute("post", post);
        model.addAttribute("comments", topLevelComments);
-       System.out.println(topLevelComments);
-       
        
        if (principal instanceof Authentication) {
            CustomUser user = (CustomUser) ((Authentication) principal).getPrincipal();
@@ -98,6 +107,7 @@ public class CommunityBoardController {
        return "community/postdetail";
    }
 
+   // 등록 폼 이동
    @GetMapping("/insert")
    public String insertPost(Model model, Principal principal) {
 
@@ -115,6 +125,7 @@ public class CommunityBoardController {
       return "community/postinsert";
    }
 
+   // 게시글 등록
    @PostMapping
    public String insertPost(@ModelAttribute CommunityBoard post,
          @RequestParam("attachedFile") MultipartFile[] attachedFiles) {
@@ -124,27 +135,37 @@ public class CommunityBoardController {
       post.setTitle(title);
       communityBoardService.insertPost(post);
 
-      // Board 객체 값에 있는 postId CommunityBoard 객체에 복사
-      post.setPostId(post.getPostId());
 
-      // 첨부파일 업로드
+     // 첨부파일 업로드
       if (attachedFiles != null) {
          for (MultipartFile file : attachedFiles) {
+             if (!file.isEmpty()) {
+                 // S3에 파일 업로드
+                 String fileUrl = null;
+                 try {
+                     // S3에 업로드
+                     fileUrl = s3Service.uploadFile(file, "community"); // "post"는 파일 폴더 구분용
+                 } catch (IOException e) {
+                     e.printStackTrace();
+                     continue; // 업로드 실패 시, 다음 파일로 넘어감
+                 }
+        	 
+				AttachedFile attachedFile = new AttachedFile();
+				attachedFile.setPostId(post.getPostId());
+				attachedFile.setName(file.getOriginalFilename()); // 파일 이름 저장
+				attachedFile.setPath(fileUrl); // S3 URL 저장
 
-            AttachedFile attachedFile = new AttachedFile();
-            attachedFile.setName(file.getOriginalFilename()); // 파일 이름
-            attachedFile.setPath("/upload/" + file.getOriginalFilename()); // 예시 경로 (파일 저장 위치)
-            attachedFile.setPostId(post.getPostId().intValue());
-
-            attachedFileService.saveAttachedFileMetadata(attachedFile);
-
+				attachedFileService.saveAttachedFileMetadata(attachedFile);
+             }
          }
       }
+      
       System.out.println("============게시글 등록 완료============");
 
       return "redirect:/user/community";
    }
-
+   
+   // 수정 폼 이동
    @GetMapping("/{postId}/update")
    public String updatePost(@PathVariable("postId") Long postId, Model model) {
 
@@ -156,10 +177,11 @@ public class CommunityBoardController {
       return "community/postupdate";
    }
 
+    // 게시글 수정
     @PostMapping("/{postId}/update")
     public String updatePost(@PathVariable("postId") Long postId,
                              @ModelAttribute CommunityBoard post,
-                             @RequestParam("attachedFile") MultipartFile[] attachedFiles,
+                             @RequestParam(value = "attachedFile", required = false) MultipartFile[] attachedFiles,
                              @RequestParam(value = "existingFiles", required = false) List<String> existingFiles,
                              Principal principal) {
 
@@ -172,46 +194,44 @@ public class CommunityBoardController {
         }
 
         System.out.println("사용자와 작성자 일치: 수정가능합니다");
-        
-        // 전체 파일 삭제 후 다시 저장
-        attachedFileService.deleteAttachedFilesByPostId(postId.intValue());
 
-        // 기존 유지 파일 다시 등록
-        if (existingFiles != null) {
-            for (String fileName : existingFiles) {
-                AttachedFile existingFile = new AttachedFile();
-                existingFile.setName(fileName);
-                existingFile.setPath("/upload/" + fileName);
-                existingFile.setPostId(postId.intValue());
-                attachedFileService.saveAttachedFileMetadata(existingFile);
-            }
-        }
-
-        // 새로 업로드된 파일 등록
+        // 새로 파일 업로드
         if (attachedFiles != null) {
             for (MultipartFile file : attachedFiles) {
                 if (!file.isEmpty()) {
-                    AttachedFile newFile = new AttachedFile();
-                    newFile.setName(file.getOriginalFilename());
-                    newFile.setPath("/upload/" + file.getOriginalFilename());
-                    newFile.setPostId(postId.intValue());
-                    attachedFileService.saveAttachedFileMetadata(newFile);
+                    // S3에 파일 업로드
+                    String fileUrl = null;
+                    try {
+                        // S3에 업로드
+                        fileUrl = s3Service.uploadFile(file, "community"); // "post"는 파일 폴더 구분용
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        continue; // 업로드 실패 시, 다음 파일로 넘어감
+                    }
+           	 
+   				AttachedFile attachedFile = new AttachedFile();
+   				attachedFile.setPostId(post.getPostId());
+   				attachedFile.setName(file.getOriginalFilename()); // 파일 이름 저장
+   				attachedFile.setPath(fileUrl); // S3 URL 저장
+
+   				attachedFileService.saveAttachedFileMetadata(attachedFile);
                 }
             }
-        }
-
+         }
+        
+        
         // 제목 비었을 경우 기본값 처리
         String title = (post.getTitle() == null || post.getTitle().trim().isEmpty()) ? "제목없음" : post.getTitle();
         post.setTitle(title);
-
         post.setPostId(postId);
-
         communityBoardService.updatePost(post);
+        
         System.out.println("============게시글 수정 완료============");
 
         return "redirect:/user/community";
     }
 
+    // 게시글 삭제
    @PostMapping("/{postId}/delete")
    public String deletePost(@PathVariable("postId") Long postId, Principal principal) {
 

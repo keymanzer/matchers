@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>게시글 등록</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .wrapper {
+            margin-top: 80px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .post-form-card {
+            width: 90%;
+            max-width: 600px;
+            border-radius: 16px;
+            background-color: white;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            font-weight: 600;
+        }
+
+        .form-control {
+            margin-bottom: 1rem;
+            border-radius: 10px;
+        }
+
+        .btn-submit {
+            background-color: #6b48ff;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            padding: 10px 20px;
+            width: 100%;
+        }
+
+        .btn-submit:hover {
+            background-color: #5838dd;
+        }
+
+        .note {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-bottom: 1rem;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #6b48ff;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="post-form-card">
+        <h1>게시글 등록</h1>
+        <form th:action="@{/user/qa}" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="userId" th:value="${post.userId}" />
+            <input type="hidden" name="userNickname" th:value="${post.userNickname}" />
+
+            <label for="title">제목</label>
+            <input type="text" class="form-control" id="title" name="title" th:value="${post.title}" />
+
+            <label for="content">내용</label>
+            <textarea class="form-control" id="content" name="content" rows="6" th:text="${post.content}"></textarea>
+
+            <label for="fileInput">첨부파일</label>
+            <input type="file" class="form-control" id="fileInput" name="attachedFile" multiple />
+            <p class="note">※ 여러 개의 파일을 선택하려면 Ctrl 키를 누른 상태로 선택하세요.</p>
+
+            <button type="submit" class="btn btn-submit">작성</button>
+        </form>
+
+        <a th:href="@{/user/qa}" class="back-link">돌아가기 &#8656;</a>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

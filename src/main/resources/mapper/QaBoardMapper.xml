@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.kosa.qa.mapper.QaBoardMapper">
+
+    <!-- Users 매핑 -->
+    <resultMap id="usersMap" type="kr.or.kosa.user.dto.Users">
+        <id property="userId" column="USER_ID"/>
+        <result property="email" column="EMAIL"/>
+        <result property="nickname" column="NICKNAME"/>
+    </resultMap>
+
+    <!-- Board 매핑 -->
+    <resultMap id="boardMap" type="kr.or.kosa.board.dto.Board">
+        <id property="postId" column="POST_ID"/>
+        <result property="title" column="TITLE"/>
+        <result property="content" column="CONTENT"/>
+        <result property="createdAt" column="CREATED_AT"/>
+        <result property="userNickname" column="USER_NICKNAME"/>
+        <result property="userId" column="USERID"/>
+    </resultMap>
+
+    <!-- AttachedFile 매핑 -->
+    <resultMap id="attachedFileMap" type="kr.or.kosa.attachedFile.dto.AttachedFile">
+        <id property="attachedFileId" column="ATTACHED_FILE_ID"/>
+        <result property="name" column="NAME"/>
+        <result property="path" column="PATH"/>
+        <result property="postId" column="ATTACHED_POST_ID"/>
+    </resultMap>
+
+    <!-- QaBoard 전체 매핑 -->
+    <resultMap id="qaBoardMap" type="kr.or.kosa.qa.dto.QaBoard">
+        <id property="postId" column="POST_ID"/>
+        <result property="lastUpdatedAt" column="LAST_UPDATED_AT"/>
+        <result property="views" column="VIEWS"/>
+        <result property="status" column="STATUS"/>
+        <result property="visible" column="VISIBLE"/>
+        <result property="userNickname" column="USER_NICKNAME"/>
+        <result property="userId" column="USERID"/>
+        <result property="attachedFileExists" column="ATTACHED_FILE_EXISTS"/>
+        <association property="board" resultMap="boardMap"/>
+        <association property="users" resultMap="usersMap"/>
+        <collection property="attachedFiles" ofType="kr.or.kosa.attachedFile.dto.AttachedFile" resultMap="attachedFileMap"/>
+    </resultMap>
+
+    <!-- 게시글 목록 조회 -->
+    <select id="getPostList" resultMap="qaBoardMap">
+        SELECT 
+            b.POST_ID,
+            b.TITLE,
+            b.CONTENT,
+            b.CREATED_AT,
+            b.USERID,
+            u.NICKNAME,
+            qb.LAST_UPDATED_AT,
+            qb.VIEWS,
+            qb.STATUS,
+            qb.VISIBLE,
+            (CASE WHEN a.NAME IS NOT NULL THEN 1 ELSE 0 END) AS ATTACHED_FILE_EXISTS,
+            a.ATTACHED_FILE_ID,
+            a.NAME,
+            a.PATH,
+            a.POST_ID AS ATTACHED_POST_ID
+        FROM BOARD b
+        LEFT JOIN QA_BOARD qb ON b.POST_ID = qb.POST_ID
+        LEFT JOIN USERS u ON b.USERID = u.USER_ID
+        LEFT JOIN ATTACHED_FILE a ON b.POST_ID = a.POST_ID
+        WHERE qb.POST_ID = b.POST_ID
+        ORDER BY b.POST_ID DESC
+    </select>
+
+    <!-- 게시글 상세 조회 -->
+    <select id="getPostbyId" parameterType="long" resultMap="qaBoardMap">
+        SELECT 
+            b.POST_ID,
+            b.TITLE,
+            b.CONTENT,
+            b.CREATED_AT,
+            b.USERID,
+            u.NICKNAME,
+            qb.LAST_UPDATED_AT,
+            qb.VIEWS,
+            qb.STATUS,
+            qb.VISIBLE,
+            a.ATTACHED_FILE_ID,
+            a.NAME,
+            a.PATH,
+            a.POST_ID AS ATTACHED_POST_ID
+        FROM BOARD b
+        LEFT JOIN QA_BOARD qb ON b.POST_ID = qb.POST_ID
+        LEFT JOIN USERS u ON b.USERID = u.USER_ID
+        LEFT JOIN ATTACHED_FILE a ON b.POST_ID = a.POST_ID
+        WHERE qb.POST_ID = b.POST_ID AND qb.POST_ID = #{postId}
+    </select>
+
+    <!-- 게시글 등록 -->
+    <insert id="insertPost" parameterType="kr.or.kosa.qa.dto.QaBoard">
+        <selectKey order="BEFORE" keyProperty="postId" resultType="Long">
+            SELECT BOARD_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT ALL
+        INTO BOARD (POST_ID, TITLE, CONTENT, CREATED_AT, USER_NICKNAME, USERID)
+        VALUES (#{postId}, #{title}, #{content}, SYSDATE, #{userNickname}, #{userId})
+        INTO QA_BOARD (POST_ID, LAST_UPDATED_AT, VIEWS, STATUS, VISIBLE)
+        VALUES (#{postId}, SYSDATE, 100, 'Y', 'Y')
+        SELECT * FROM DUAL
+    </insert>
+
+    <!-- 게시글 수정 -->
+    <update id="updatePost" parameterType="kr.or.kosa.qa.dto.QaBoard">
+        UPDATE QA_BOARD
+        SET 
+            LAST_UPDATED_AT = SYSDATE,
+            STATUS = 'Y',
+            VISIBLE = 'Y'
+        WHERE POST_ID = #{postId}
+    </update>
+
+    <!-- 게시글 삭제 -->
+    <delete id="deletePost" parameterType="long">
+        DELETE FROM QA_BOARD
+        WHERE POST_ID = #{postId}
+    </delete>
+
+</mapper>

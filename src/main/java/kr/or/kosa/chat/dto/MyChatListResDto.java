@@ -19,5 +19,6 @@ public class MyChatListResDto {
     private String lastMessage;    // 마지막 메시지 내용
     private LocalDateTime lastMessageTime; // 마지막 메시지 시간
     private String otherUserName; // 상대방 이름 --> 프론트에서 사용자별로 채팅방 이름이 달라야해서...
+    private String otherUserProfileImg; // 상대방 프로필 이미지
 
 }

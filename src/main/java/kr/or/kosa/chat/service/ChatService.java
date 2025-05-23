@@ -121,6 +121,9 @@ public class ChatService {
             // 읽지 않은 메시지 수 설정
             dto.setUnReadCount(getUnreadMessageCount(room.getChatRoomId(), userId));
 
+            // 상대방 프로필 이미지 설정
+            dto.setOtherUserProfileImg(otherUser.getProfileImg());
+
             dtos.add(dto);
         }
 
@@ -165,6 +168,9 @@ public class ChatService {
 
             // 읽지 않은 메시지 수 설정
             dto.setUnReadCount(getUnreadMessageCount(room.getChatRoomId(), userId));
+
+            // 상대방 프로필 이미지 설정
+            dto.setOtherUserProfileImg(otherUser.getProfileImg());
 
             dtos.add(dto);
 
@@ -227,7 +233,7 @@ public class ChatService {
 
         // 참여자 목록이 비어있으면 기본 정보 반환
         if (participants == null || participants.isEmpty()) {
-            return new OtherUserDto(0L, "알 수 없음", "unknown@example.com");
+            return new OtherUserDto(0L, "알 수 없음", "unknown@example.com", "");
         }
 
         // null이 아닌 참여자 필터링
@@ -241,15 +247,16 @@ public class ChatService {
                 .findFirst();
 
         if (otherParticipantOpt.isEmpty()) {
-            return new OtherUserDto(0L, "상대방 없음", "no-user@example.com");
+            return new OtherUserDto(0L, "상대방 없음", "no-user@example.com", "");
         }
 
         ChatParticipant otherParticipant = otherParticipantOpt.get();
         Long otherUserId = otherParticipant.getUserId();
         String name = userMapper.findNameById(otherUserId);
         String email = userMapper.findEmailByUserId(otherUserId);
+        String profileImg = userMapper.findUserByEmail(email).getProfileImg();
 
-        return new OtherUserDto(otherUserId, name != null ? name : "Unknown", email);
+        return new OtherUserDto(otherUserId, name != null ? name : "Unknown", email, "");
     }
 
     // 메시지 전송 시 호출 - 상대방에게 읽지 않음 상태 생성

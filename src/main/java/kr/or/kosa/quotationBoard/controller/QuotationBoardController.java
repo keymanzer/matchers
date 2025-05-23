@@ -30,7 +30,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -285,7 +287,7 @@ public class QuotationBoardController {
     @GetMapping("/download/{fileId}")
     public ResponseEntity<Resource> downloadFile(@PathVariable Long fileId) {
         try {
-            // 파일 정보 조회 (file.path에 S3 URL이 저장되어 있음)
+            // 파일 정보 조회
             AttachedFile file = attachedFileService.findByAttachedFileId(fileId);
             if (file == null) {
                 return ResponseEntity.notFound().build();
@@ -293,6 +295,10 @@ public class QuotationBoardController {
 
             String s3Url = file.getPath(); // S3 URL
             String originalFileName = file.getName(); // DB에 저장된 원본 파일명
+
+            // 파일 이름을 URL 인코딩 처리
+            String encodedFileName = URLEncoder.encode(originalFileName, "UTF-8")
+                    .replaceAll("\\+", "%20"); // '+'를 공백으로 변경
 
             // S3 URL에서 key 추출
             String s3Key = extractS3KeyFromUrl(s3Url);
@@ -302,10 +308,13 @@ public class QuotationBoardController {
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "attachment; filename=\"" + originalFileName + "\"")
+                            "attachment; filename=\"" + encodedFileName + "\"")
                     .header(HttpHeaders.CONTENT_TYPE, "application/octet-stream")
                     .body(resource);
 
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

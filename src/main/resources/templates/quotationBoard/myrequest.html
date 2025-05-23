@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>견적 관리</title>
+    <link th:href="@{/css/quotationBoard/quotation-myrequest.css}" rel="stylesheet" type="text/css">
+    <link th:href="@{/css/header.css}" rel="stylesheet" type="text/css">
+    <link th:href="@{/css/footer.css}" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" th:href="@{/css/chat/notification-system.css}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body {
+            margin-top: 100px;
+        }
+
+        section {
+            min-height: 600px; /* 최소 높이로 변경 */
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{header :: header}"></div>
+<div class="container">
+    <!-- 좌측 견적 목록 영역 -->
+    <div class="quote-section">
+        <!-- 상태 탭 -->
+        <div class="quote-tabs">
+            <button class="tab active" data-status="pending" onclick="loadQuotesByStatus('pending')">
+                진행전
+            </button>
+            <button class="tab" data-status="progress" onclick="loadQuotesByStatus('progress')">
+                진행중
+            </button>
+            <button class="tab" data-status="completed" onclick="loadQuotesByStatus('completed')">
+                완료
+            </button>
+        </div>
+
+        <!-- 견적 목록 -->
+        <div class="quote-list" id="quoteList">
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                견적 목록을 불러오는 중...
+            </div>
+        </div>
+    </div>
+
+    <!-- 우측 채팅 영역 -->
+    <div class="chat-section">
+        <div class="chat-header" id="chatHeader">
+            <div class="chat-title">비동기 채팅 내역</div>
+            <div class="chat-subtitle">견적을 선택하면 채팅 내역이 표시됩니다</div>
+        </div>
+
+        <div class="chat-content" id="chatContent">
+            <div class="empty-state">
+                <div class="empty-icon">💬</div>
+                <div class="empty-text">채팅 내역을 불러올 견적을 선택해주세요</div>
+                <div class="empty-subtext">좌측 견적 목록에서 항목을 클릭하시면 해당 채팅 내역이 표시됩니다</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 현재 선택된 상태와 견적
+    let currentStatus = 'pending';
+    let selectedPostId = null;
+
+    // 페이지 로드 시 초기화
+    document.addEventListener('DOMContentLoaded', function() {
+        // 초기 견적 목록 로드
+        loadQuotesByStatus('pending');
+    });
+
+    // 상태별 견적 목록 로드
+    function loadQuotesByStatus(status) {
+        currentStatus = status;
+
+        // 탭 활성화 상태 변경
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelector(`[data-status="${status}"]`).classList.add('active');
+
+        // 로딩 표시
+        const quoteList = document.getElementById('quoteList');
+        quoteList.innerHTML = '<div class="loading"><div class="spinner"></div>견적 목록을 불러오는 중...</div>';
+
+        // 서버에서 데이터 가져오기
+        fetch(`/user/quotationBoard/api/myrequest?status=${status}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Loaded quotes:', data);
+                renderQuoteList(data);
+            })
+            .catch(error => {
+                console.error('Error loading quotes:', error);
+                quoteList.innerHTML = `
+                    <div class="error">
+                        <div class="error-icon">❌</div>
+                        <div class="empty-text">견적 목록을 불러오는데 실패했습니다</div>
+                        <div class="empty-subtext">잠시 후 다시 시도해주세요</div>
+                    </div>
+                `;
+            });
+    }
+
+    // 견적 목록 렌더링
+    function renderQuoteList(quotes) {
+        const quoteList = document.getElementById('quoteList');
+
+        if (!quotes || quotes.length === 0) {
+            quoteList.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">📝</div>
+                    <div class="empty-text">해당 상태의 견적이 없습니다</div>
+                    <div class="empty-subtext">새로운 견적 요청을 작성해보세요</div>
+                </div>
+            `;
+            // 채팅 영역 초기화
+            resetChatArea();
+            return;
+        }
+
+        const statusClass = {
+            pending: 'status-pending',
+            progress: 'status-progress',
+            completed: 'status-completed'
+        };
+
+        const statusText = {
+            pending: '진행전',
+            progress: '진행중',
+            completed: '완료'
+        };
+
+        // 견적 목록 HTML 생성
+        quoteList.innerHTML = quotes.map((quote, index) => {
+            // 날짜 포맷팅 (서버에서 받은 날짜 형식에 따라 조정 필요)
+            const formattedDate = formatDate(quote.createdAt || quote.created_at);
+
+            return `
+                <div class="quote-item ${index === 0 ? 'active' : ''}"
+                     data-post-id="${quote.postId || quote.post_id || quote.id}"
+                     onclick="selectQuote(this, ${quote.postId || quote.post_id || quote.id})">
+                    <div class="quote-header">
+                        <div class="quote-title">${escapeHtml(quote.title)}</div>
+                        <div class="quote-status ${statusClass[currentStatus]}">${statusText[currentStatus]}</div>
+                    </div>
+                    <div class="quote-meta">
+                        <div class="quote-expert">${escapeHtml(quote.expertName || quote.expert_name || '전문가')}</div>
+                        <div class="quote-category">${escapeHtml(quote.categoryName || quote.category_name || '카테고리')}</div>
+                        <div class="quote-date">${formattedDate}</div>
+                    </div>
+                    <div class="quote-preview">${escapeHtml(truncateText(quote.content || quote.description || '', 100))}</div>
+                </div>
+            `;
+        }).join('');
+
+        // 첫 번째 견적 자동 선택
+        if (quotes.length > 0) {
+            const firstQuote = quotes[0];
+            selectQuote(quoteList.querySelector('.quote-item'), firstQuote.postId || firstQuote.post_id || firstQuote.id);
+        }
+    }
+
+    // 견적 선택
+    function selectQuote(element, postId) {
+        // 이전 선택 제거
+        document.querySelectorAll('.quote-item').forEach(item => {
+            item.classList.remove('active');
+        });
+
+        // 새로운 선택 추가
+        element.classList.add('active');
+        selectedPostId = postId;
+
+        // 채팅 내역 로드
+        loadChatHistory(postId);
+    }
+
+    // 채팅 내역 로드
+    function loadChatHistory(postId) {
+        const chatHeader = document.getElementById('chatHeader');
+        const chatContent = document.getElementById('chatContent');
+
+        // 헤더 업데이트
+        const selectedQuote = document.querySelector(`[data-post-id="${postId}"]`);
+        const quoteTitle = selectedQuote.querySelector('.quote-title').textContent;
+        const quoteExpert = selectedQuote.querySelector('.quote-expert').textContent;
+
+        chatHeader.innerHTML = `
+            <div class="chat-title">${quoteTitle}</div>
+            <div class="chat-subtitle">${quoteExpert}과의 채팅</div>
+        `;
+
+        // 로딩 표시
+        chatContent.innerHTML = '<div class="loading"><div class="spinner"></div>채팅 내역을 불러오는 중...</div>';
+
+        // 채팅 내역 API 호출 (구현 예정)
+        // 실제 채팅 API가 구현되면 아래 주석을 해제하고 사용
+        /*
+        fetch(`/user/quotationBoard/api/chat/${postId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                renderChatHistory(data);
+            })
+            .catch(error => {
+                console.error('Error loading chat:', error);
+                chatContent.innerHTML = `
+                    <div class="error">
+                        <div class="error-icon">❌</div>
+                        <div class="empty-text">채팅 내역을 불러오는데 실패했습니다</div>
+                        <div class="empty-subtext">잠시 후 다시 시도해주세요</div>
+                    </div>
+                `;
+            });
+        */
+
+        // 임시로 구현 예정 메시지 표시
+        setTimeout(() => {
+            chatContent.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">🚧</div>
+                    <div class="empty-text">채팅 기능 구현 예정</div>
+                    <div class="empty-subtext">Post ID: ${postId}로 채팅 내역을 불러올 예정입니다</div>
+                </div>
+            `;
+        }, 800);
+    }
+
+    // 채팅 영역 초기화
+    function resetChatArea() {
+        const chatHeader = document.getElementById('chatHeader');
+        const chatContent = document.getElementById('chatContent');
+
+        chatHeader.innerHTML = `
+            <div class="chat-title">비동기 채팅 내역</div>
+            <div class="chat-subtitle">견적을 선택하면 채팅 내역이 표시됩니다</div>
+        `;
+
+        chatContent.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">💬</div>
+                <div class="empty-text">채팅 내역을 불러올 견적을 선택해주세요</div>
+                <div class="empty-subtext">좌측 견적 목록에서 항목을 클릭하시면 해당 채팅 내역이 표시됩니다</div>
+            </div>
+        `;
+    }
+
+    // 유틸리티 함수들
+    function formatDate(dateString) {
+        if (!dateString) return '';
+
+        try {
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        } catch (error) {
+            console.error('Date formatting error:', error);
+            return dateString;
+        }
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function truncateText(text, maxLength) {
+        if (!text) return '';
+        if (text.length <= maxLength) return text;
+        return text.substring(0, maxLength) + '...';
+    }
+</script>
+<div th:replace="~{footer :: footer}"></div>
+</body>
+</html>

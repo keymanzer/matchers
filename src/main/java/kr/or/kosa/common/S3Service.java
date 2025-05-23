@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -11,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Service
@@ -45,5 +48,20 @@ public class S3Service {
 
 	public String getFileUrl(String key) {
 		return "https://" + bucket + ".s3.ap-northeast-2.amazonaws.com/" + key;
+	}
+
+	// 파일 다운로드 메서드 추가
+	public Resource downloadFile(String key) throws IOException {
+		try {
+			GetObjectRequest getRequest = GetObjectRequest.builder()
+					.bucket(bucket)
+					.key(key)
+					.build();
+
+			return new InputStreamResource(s3Client.getObject(getRequest));
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new IOException("S3에서 파일 다운로드 실패: " + key, e);
+		}
 	}
 }

@@ -17,9 +17,6 @@ public class AttachedFileService {
 
     private final AttachedFileMapper attachedFileMapper;
 
-    @Value("${spring.servlet.multipart.location}")
-    private String uploadDirectory;
-
     /** 첨부파일 저장(DB + 물리경로) */
     public void saveAttachedFileMetadata(AttachedFile af) {
         attachedFileMapper.insertAttachedFile(af);
@@ -28,6 +25,9 @@ public class AttachedFileService {
     public List<AttachedFile> findByPostId(long postId) {
         return attachedFileMapper.findAttachedFilesByPostId(postId);
     }
+    public AttachedFile findByAttachedFileId(long attachedFileId) {
+        return attachedFileMapper.findByAttachedFileId(attachedFileId);
+    }
 
     /** postId 기준으로 물리+DB 모두 삭제 */
     @Transactional
@@ -35,14 +35,8 @@ public class AttachedFileService {
         // 1) DB에서 메타만 조회
         List<AttachedFile> files = attachedFileMapper.findAttachedFilesByPostId(postId);
         System.out.println("files = " + files);
-        // 2) 물리 삭제
-        for (AttachedFile f : files) {
-            File diskFile = new File(uploadDirectory, f.getName());
-            if (diskFile.exists()) {
-                diskFile.delete();
-            }
-        }
         // 3) DB 메타 삭제
         attachedFileMapper.deleteAttachedFilesByPostId(postId);
+
     }
 }

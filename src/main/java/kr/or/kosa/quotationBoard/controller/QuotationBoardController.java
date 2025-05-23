@@ -5,6 +5,7 @@ import kr.or.kosa.attachedFile.dto.AttachedFile;
 import kr.or.kosa.attachedFile.service.AttachedFileService;
 import kr.or.kosa.board.dto.Board;
 import kr.or.kosa.board.service.BoardService;
+import kr.or.kosa.common.S3Service;
 import kr.or.kosa.expert.dto.Category;
 import kr.or.kosa.expert.dto.Location;
 import kr.or.kosa.expert.service.ExpertService;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -54,8 +56,9 @@ public class QuotationBoardController {
     @Autowired
     private ExpertService expertService;
 
-    @Value("${spring.servlet.multipart.location}")
-    private String uploadDirectory;
+    @Autowired
+    private S3Service s3Service;
+
     @Autowired
     private AdminService adminService;
     // 게시판 생성 화면 요청
@@ -94,6 +97,12 @@ public class QuotationBoardController {
             @RequestParam("locationIds") List<Integer> locationIds,
             @RequestParam(name = "attachedFiles", required = false) List<MultipartFile> attachedFiles
     ) {
+
+        // 수동으로 state 값 설정
+        if (quotationBoard.getState() == null || quotationBoard.getState().isEmpty()) {
+            quotationBoard.setState("진행전");
+        }
+        System.out.println("State: " + quotationBoard.getState());
         // --- 2-1. Board 테이블에 삽입 ---
         Board board = new Board();
         long userId = customUser.getUserId();
@@ -117,45 +126,34 @@ public class QuotationBoardController {
             quotationBoardService.addQuotationLocation(postId, locId);
         }
 
-        // 4) 첨부파일 저장 & 메타 삽입
+
         if (attachedFiles != null && !attachedFiles.isEmpty()) {
             System.out.println("attachedFiles.size() = " + attachedFiles.size());
             for (MultipartFile file : attachedFiles) {
                 if (!file.isEmpty()) {
-                    // 물리 저장
-                    String savedName = saveFile(file);
+                    // S3에 파일 업로드
+                    String fileUrl = null;
+                    try {
+                        // S3에 업로드
+                        fileUrl = s3Service.uploadFile(file, "quotation_Board"); // "post"는 파일 폴더 구분용
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        continue; // 업로드 실패 시, 다음 파일로 넘어감
+                    }
 
-                    // DB 메타 삽입
+                    // DB 메타 삽입 (S3 URL 저장)
                     AttachedFile af = new AttachedFile();
                     af.setPostId(postId);
-                    af.setName(savedName);
-                    af.setPath(uploadDirectory + "/" + savedName);
+                    af.setName(file.getOriginalFilename()); // 파일 이름 저장
+                    af.setPath(fileUrl); // S3 URL 저장
                     attachedFileService.saveAttachedFileMetadata(af);
                 }
             }
         }
 
+
+
         return "redirect:/user/quotationBoard/list";
-    }
-
-    // 파일 저장 헬퍼 (원본 파일명 그대로)
-    private String saveFile(MultipartFile file) {
-        try {
-            // 1) 원본 파일명 꺼내기
-            String originalName = file.getOriginalFilename();
-
-            // 2) 저장 경로 생성
-            Path target = Paths.get(uploadDirectory).resolve(originalName);
-            Files.createDirectories(target.getParent());
-
-            // 3) 실제 저장
-            file.transferTo(target.toFile());
-
-            // 4) 뷰에 전달할 파일명으로 원본명을 반환
-            return originalName;
-        } catch (IOException e) {
-            throw new RuntimeException("파일 업로드 실패", e);
-        }
     }
 
 
@@ -237,31 +235,103 @@ public class QuotationBoardController {
     }
 
 
-    @GetMapping("/download/{fileName:.+}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) throws MalformedURLException {
-        Path file = Paths.get(uploadDirectory).resolve(fileName);
-        Resource resource = new UrlResource(file.toUri());
-        if (!resource.exists() || !resource.isReadable()) {
-            return ResponseEntity.notFound().build();
-        }
-        // 파일의 MIME 타입을 추측 (실패 시 application/octet-stream)
-        String contentType = null;
+
+    @GetMapping("/myrequest")
+    public String myRequestList(Model model, @AuthenticationPrincipal CustomUser customUser) {
+
+        return "quotationBoard/myrequest";
+    }
+
+    // 2. 비동기 데이터 로드 (JSON 반환)
+    @GetMapping("/api/myrequest")
+    @ResponseBody
+    public ResponseEntity<List<QuotationBoard>> getMyRequestsByStatus(
+            @RequestParam String status, // 프론트에서 보낸 상태값 (pending, progress, completed)
+            @AuthenticationPrincipal CustomUser customUser) {
+
         try {
-            contentType = Files.probeContentType(file);
-        } catch (IOException e) {
-            // 무시
+            long userId = customUser.getUserId();
+
+            // 프론트의 상태값을 서비스에서 사용하는 상태값으로 변환
+            String serviceStatus = convertToServiceStatus(status);
+            System.out.println("serviceStatus = " + serviceStatus);
+
+            // 서비스 호출
+            List<QuotationBoard> quotes = quotationBoardService.findMyRequests(userId, serviceStatus);
+            System.out.println("quotes = " + quotes);
+
+            return ResponseEntity.ok(quotes);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        if (contentType == null) {
-            contentType = "application/octet-stream";
+    }
+
+    // 상태값 변환 메서드 (프론트 ↔ 서비스 간 상태값이 다를 경우)
+    private String convertToServiceStatus(String frontendStatus) {
+        switch (frontendStatus) {
+            case "pending":
+                return "진행전"; // 또는 서비스에서 사용하는 실제 상태값
+            case "progress":
+                return "진행중";
+            case "completed":
+                return "완료";
+            default:
+                return "진행전";
         }
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"" + fileName + "\"")
-                .body(resource);
+    }
+
+    // QuotationBoardController 클래스에 추가
+    @GetMapping("/download/{fileId}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable Long fileId) {
+        try {
+            // 파일 정보 조회 (file.path에 S3 URL이 저장되어 있음)
+            AttachedFile file = attachedFileService.findByAttachedFileId(fileId);
+            if (file == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            String s3Url = file.getPath(); // S3 URL
+            String originalFileName = file.getName(); // DB에 저장된 원본 파일명
+
+            // S3 URL에서 key 추출
+            String s3Key = extractS3KeyFromUrl(s3Url);
+
+            // S3에서 파일 스트림 가져오기
+            Resource resource = s3Service.downloadFile(s3Key);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + originalFileName + "\"")
+                    .header(HttpHeaders.CONTENT_TYPE, "application/octet-stream")
+                    .body(resource);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * S3 URL에서 key 부분을 추출
+     * 예: https://inswave-2th-project-bucket.s3.ap-northeast-2.amazonaws.com/quotation_Board/파일명
+     * -> quotation_Board/파일명
+     */
+    private String extractS3KeyFromUrl(String s3Url) {
+        try {
+            String[] parts = s3Url.split(".amazonaws.com/");
+            if (parts.length > 1) {
+                return parts[1];
+            }
+            throw new IllegalArgumentException("Invalid S3 URL format");
+        } catch (Exception e) {
+            throw new RuntimeException("S3 URL 파싱 실패: " + s3Url, e);
+        }
     }
 
 }
+
+
 
 
 

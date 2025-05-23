@@ -181,4 +181,29 @@
         ORDER BY c.name
     </select>
 
+    <select id="findMyRequests" parameterType="map" resultMap="QuotationBoardResultMap">
+        SELECT
+        qb.post_id        AS POST_ID,
+        b.title           AS TITLE,
+        b.content         AS CONTENT,
+        qb.expert_id      AS EXPERT_ID,
+        qb.state          AS STATE,
+        c.name            AS CATEGORY_NAME,
+        b.created_at      AS CREATED_AT,
+        -- expert_id가 null 또는 0이 아니면, expert_name을 가져옴
+        CASE
+        WHEN qb.expert_id IS NOT NULL AND qb.expert_id != 0 THEN u.nickname
+        ELSE NULL
+        END AS EXPERT_NAME
+        FROM quotation_board qb
+        JOIN board b        ON qb.post_id = b.post_id
+        JOIN category c     ON qb.category_id = c.category_id
+        LEFT JOIN users u    ON qb.expert_id = u.user_id  <!-- user 테이블과 조인 -->
+        <where>
+            AND b.userid = #{userId}
+            AND qb.state = #{state}
+        </where>
+        ORDER BY b.created_at DESC  <!-- 작성 날짜 기준 최신순 정렬 -->
+    </select>
+
 </mapper>

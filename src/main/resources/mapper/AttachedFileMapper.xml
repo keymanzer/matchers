@@ -41,6 +41,18 @@
         DELETE FROM attached_file WHERE post_id = #{postId}
     </delete>
 
+    <select id="findByAttachedFileId" parameterType="long"
+            resultType="kr.or.kosa.attachedFile.dto.AttachedFile">
+        SELECT
+            ATTACHED_FILE_ID,
+            NAME,
+            PATH,
+            POST_ID
+        FROM
+            ATTACHED_FILE
+        WHERE
+            ATTACHED_FILE_ID = #{attachedFileId}
+    </select>
 </mapper>
 
 

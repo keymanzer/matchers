@@ -17,4 +17,6 @@ public interface AttachedFileMapper {
 
     /** 게시글별 첨부파일 목록 조회 */
     List<AttachedFile> findAttachedFilesByPostId(@Param("postId") long postId);
+
+    AttachedFile findByAttachedFileId(@Param("attachedFileId") long attachedFileId);
 }

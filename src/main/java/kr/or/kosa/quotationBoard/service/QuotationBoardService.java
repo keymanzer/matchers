@@ -56,6 +56,10 @@ public class QuotationBoardService {
         return list;
     }
 
+    public List<QuotationBoard> findMyRequests(long userId,String state) {
+        return quotationBoardMapper.findMyRequests(userId,state);
+    }
+
 
 
 

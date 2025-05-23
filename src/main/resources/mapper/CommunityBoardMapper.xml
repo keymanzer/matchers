@@ -33,7 +33,12 @@
 	    <result property="attachedFileExists" column="ATTACHED_FILE_EXISTS"/>
         <association property="board" resultMap="boardMap"/>
         <association property="users" resultMap="usersMap"/>
-        <collection property="attachedFiles" ofType="kr.or.kosa.attachedFile.dto.AttachedFile" resultMap="attachedFileMap"/>
+        <collection property="attachedFiles" ofType="kr.or.kosa.attachedFile.dto.AttachedFile">
+	    <id property="attachedFileId" column="ATTACHED_FILE_ID"/>
+	    <result property="name" column="NAME"/>
+	    <result property="path" column="PATH"/>
+	    <result property="postId" column="ATTACHED_POST_ID"/>
+		</collection>
     </resultMap>
 
     <select id="getPostList" resultMap="communityBoardMap">
@@ -68,7 +73,8 @@
 		    cb.VIEWS,
 		    a.ATTACHED_FILE_ID,
 		    a.NAME,
-		    a.PATH
+		    a.PATH,
+		    a.POST_ID AS ATTACHED_POST_ID
 		FROM BOARD b
 		LEFT JOIN COMMUNITY_BOARD cb ON b.POST_ID = cb.POST_ID
 		LEFT JOIN USERS u ON b.USERID = u.USER_ID

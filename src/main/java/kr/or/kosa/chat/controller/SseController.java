@@ -56,7 +56,7 @@ public class SseController {
         emitters.put(userId, emitter);
 
         try {
-            // 초기 연결 확인을 위한 더미 이벤트 전송
+            // 초기 연결 확인을 위한 더미 이벤트 전송 >> 초기 연결시 확인용
             emitter.send(SseEmitter.event()
                     .name("connect")
                     .data("SSE 연결이 성공적으로 설정되었습니다.")

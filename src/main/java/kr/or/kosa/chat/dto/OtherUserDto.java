@@ -13,4 +13,5 @@ public class OtherUserDto {
     private Long userId;
     private String name; // 닉네임
     private String email;
+    private String profileImg; // 프로필 이미지
 }

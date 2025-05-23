@@ -111,6 +111,7 @@ public class ChatController {
         return chatService.getOtherUserInfo(roomId);
     }
 
+
     // 채팅방 입장 시 메시지 읽음 처리 API
     @PostMapping("/chat/room/{roomId}/enter")
     @ResponseBody

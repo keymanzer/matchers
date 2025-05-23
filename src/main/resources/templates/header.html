@@ -40,10 +40,9 @@
 						<span id="notification-badge" class="notification-badge" style="display: none;">0</span>
 					</button>
 					<div id="notification-dropdown" class="notification-dropdown">
-						<!-- 알림 내용은 그대로 유지 -->
+						<!-- "모두 읽음" 버튼 제거 -->
 						<div class="notification-header">
 							<span>알림</span>
-							<button id="clear-notifications" class="clear-all">모두 읽음</button>
 						</div>
 						<div class="notification-filter" id="notification-filter">
 							<button class="filter-btn active" data-filter="all">
@@ -114,7 +113,6 @@
 				const notificationBadge = document.getElementById('notification-badge');
 				const notificationDropdown = document.getElementById('notification-dropdown');
 				const notificationList = document.getElementById('notification-list');
-				const clearNotificationsBtn = document.getElementById('clear-notifications');
 				const notificationFilter = document.getElementById('notification-filter');
 				const logoutButton = document.getElementById('logout-button');
 
@@ -355,7 +353,7 @@
 								// 읽음 처리
 								markAsRead(notification.notificationId);
 								// 채팅방으로 이동
-								window.location.href = `/chat/room/${notification.chatRoomId}`;
+								window.location.href = `/chat/my/rooms`;
 							});
 						} else {
 							// 일반 알림은 클릭 시 읽음 처리만
@@ -407,11 +405,30 @@
 				}
 
 				/**
+				 * SSE 연결 상태를 확인하고 필요 시 재연결하는 함수
+				 */
+				function checkAndReconnectSSE() {
+					console.log('SSE 연결 상태 확인 중');
+
+					// eventSource가 없거나 readyState가 2(CLOSED)일 때 재연결
+					if (!eventSource || eventSource.readyState !== 1) {
+						console.log('SSE 연결 없음 또는 닫힘 - 새 연결 설정');
+						setupSSEConnection();
+					}
+				}
+
+				/**
 				 * SSE 연결을 설정하고 관리하는 함수
 				 */
 				function setupSSEConnection() {
-					// 이미 연결된 경우 닫기
-					if (eventSource) {
+					// 이미 연결된 경우 중복 생성 방지
+					if (eventSource && eventSource.readyState === 1) {
+						console.log('이미 활성화된 SSE 연결이 있습니다');
+						return;
+					}
+
+					// 기존 연결 정리
+					if(eventSource) {
 						eventSource.close();
 						eventSource = null;
 					}
@@ -527,6 +544,10 @@
 				if (notificationButton && notificationDropdown) {
 					notificationButton.addEventListener('click', (e) => {
 						e.stopPropagation(); // 이벤트 버블링 방지
+
+						// 모든 알림 읽음 처리 추가
+						markAllAsRead();
+
 						notificationDropdown.classList.toggle('show');
 
 						// 종 아이콘 애니메이션 효과
@@ -548,15 +569,7 @@
 					});
 				}
 
-				/**
-				 * '모두 읽음' 버튼 클릭 이벤트 설정
-				 */
-				if (clearNotificationsBtn) {
-					clearNotificationsBtn.addEventListener('click', (e) => {
-						e.stopPropagation(); // 이벤트 버블링 방지
-						markAllAsRead();
-					});
-				}
+				// 모두 읽음 버튼 이벤트 리스너 제거 (불필요)
 
 				/**
 				 * 로그아웃 버튼 클릭 이벤트 - SSE 연결 종료 처리
@@ -587,9 +600,11 @@
 					closeSSEConnection();
 				});
 
-				// 초기화 함수 - 페이지 로드 후 지연 실행
+				/**
+				 * 알림 시스템 초기화 함수
+				 */
 				function initNotificationSystem() {
-					console.log('알림 시스템 초기화 (지연됨)');
+					console.log('알림 시스템 초기화 시작');
 
 					// 초기 알림 개수 로드
 					loadUnreadCount();
@@ -601,8 +616,22 @@
 					loadNotifications();
 				}
 
-				// 지연 시작 - CSRF 오류 방지
-				setTimeout(initNotificationSystem, 500);
+				// 페이지 가시성 변경 감지 추가
+				document.addEventListener('visibilitychange', function() {
+					if (document.visibilityState === 'visible') {
+						console.log('페이지 가시성 변경: 보임 - SSE 연결 확인');
+						checkAndReconnectSSE();
+					}
+				});
+
+				// 페이지 로드 완료 시 즉시 실행
+				window.addEventListener('load', function() {
+					console.log('페이지 로드 완료 - SSE 연결 확인');
+					checkAndReconnectSSE();
+				});
+
+				// 초기화 함수 즉시 실행
+				initNotificationSystem();
 			});
 		</script>
 	</th:block>

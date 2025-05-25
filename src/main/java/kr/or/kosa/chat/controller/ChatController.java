@@ -139,16 +139,16 @@ public class ChatController {
     @PostMapping("/chat/room/{roomId}/accept")
     @ResponseBody
     public ResponseEntity<String> boardAccept(@PathVariable Long roomId) {
-        CustomUser user = (CustomUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        System.out.println("채팅방 수락 API 호출: roomId=" + roomId);
         boolean success = chatService.boardAccept(roomId);
         return success ? ResponseEntity.ok("success") : ResponseEntity.badRequest().body("fail");
     }
 
     // 채팅방 목록에서 해당 채팅방(견적)에 완료 API
-    @PostMapping("/chat/room/{roomId}/accept")
+    @PostMapping("/chat/room/{roomId}/complete")
     @ResponseBody
     public ResponseEntity<String> boardComplete(@PathVariable Long roomId) {
-        CustomUser user = (CustomUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        System.out.println("채팅방 완료 API 호출: roomId=" + roomId);
         boolean success = chatService.boardComplete(roomId);
         return success ? ResponseEntity.ok("success") : ResponseEntity.badRequest().body("fail");
     }

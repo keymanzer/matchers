@@ -1,0 +1,121 @@
+:root {
+  --primary-color: #5e60ce;
+  --primary-hover: #4e54c8;
+  --secondary-color: #7b2cbf;
+  --light-color: #f0f4ff;
+  --border-radius: 8px;
+}
+
+.container-wrapper {
+  overflow-x: auto;
+}
+
+.container {
+  background-color: #fff;
+  border-radius: var(--border-radius, 12px);
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
+  min-width: 1000px;
+  max-width: 1200px;
+}
+
+h2 {
+  color: var(--primary-color);
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--light-color);
+  text-align: center;
+}
+
+.section-card {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.04);
+  padding: 2rem;
+  min-width: 1000px;
+}
+
+/* 테이블 기본 + 좌우 border 제거 */
+table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.table-no-side-borders th,
+.table-no-side-borders td {
+  border-left: none;
+  border-right: none;
+  border-top: 1px solid #dee2e6;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.table-no-side-borders thead th {
+  border-top: 2px solid #dee2e6;
+}
+
+th {
+  background-color: #f1f3f5;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+
+td {
+  text-align: center;
+  vertical-align: middle;
+  word-wrap: break-word;
+}
+
+.post-title {
+  text-align: left;
+}
+
+.post-title a {
+  display: inline-block;
+  max-width: 500px;
+  white-space: normal;
+  word-break: break-word;
+  text-decoration: none;
+  color: var(--primary-color);
+  font-weight: 900;
+}
+
+.post-title a:hover {
+  text-decoration: underline;
+}
+
+.clip-icon {
+  color: #6c757d;
+  margin-left: 5px;
+}
+
+.btn-submit {
+  background-color: #7e57c2;
+  color: white;
+}
+
+.btn-submit:hover {
+  color: white;
+  background-color: #5335b1;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #e0d4fc;
+  border-color: #e0d4fc;
+  color: #333;
+  font-weight: 600;
+}
+
+.pagination .page-item .page-link {
+  color: lightslategray;
+  font-weight: normal;
+}
+
+@media (max-width: 1024px) {
+  .container {
+    max-width: 100%;
+    min-width: 1000px;
+  }
+}

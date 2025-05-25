@@ -43,14 +43,19 @@ public class CommunityBoardService {
 	@Transactional
 	public void updatePost(CommunityBoard communityBoard) {
 		communityBoardMapper.updatePost(communityBoard);
-		boardMapper.updateBoard(communityBoard.getPostId().intValue(), communityBoard.getTitle(), communityBoard.getContent());
+		boardMapper.updateBoard(communityBoard.getPostId(), communityBoard.getTitle(), communityBoard.getContent());
 	}
+	
+	public void increaseViewCount(Long postId) {
+	    communityBoardMapper.increaseViewCount(postId);
+	}
+	
 		
     @Transactional
     public void deletePost(Long postId) {
-    	attachedFileMapper.deleteAttachedFilesByPostId(postId.intValue());
+    	attachedFileMapper.deleteAttachedFilesByPostId(postId);
     	communityBoardMapper.deletePost(postId);
-        boardMapper.deleteBoard(postId.intValue());
+        boardMapper.deleteBoard(postId);
     }
 
 }

@@ -1,140 +1,137 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>게시글 수정</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
+  <meta charset="UTF-8">
+  <title>게시글 수정</title>
 
-        .wrapper {
-            margin-top: 80px;
-            display: flex;
-            justify-content: center;
-        }
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
-        .post-edit-card {
-            width: 90%;
-            max-width: 600px;
-            border-radius: 16px;
-            background-color: white;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-            padding: 2rem;
-        }
+  <!-- Summernote -->
+  <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
 
-        h1 {
-            text-align: center;
-            font-weight: bold;
-            margin-bottom: 2rem;
-        }
+  <!-- 공통 스타일 -->
+  <link rel="stylesheet" th:href="@{/css/header.css}">
+  <link rel="stylesheet" th:href="@{/css/footer.css}">
 
-        label {
-            font-weight: 600;
-        }
+  <!-- 게시글 수정 전용 스타일 -->
+  <link rel="stylesheet" th:href="@{/css/community/post-update.css}">
 
-        .form-control {
-            margin-bottom: 1rem;
-            border-radius: 10px;
-        }
-
-        .btn-submit {
-            background-color: #6b48ff;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            padding: 10px 20px;
-            width: 100%;
-        }
-
-        .btn-submit:hover {
-            background-color: #5838dd;
-        }
-
-        .file-list a {
-            display: inline-block;
-            background-color: #e9ecef;
-            padding: 6px 12px;
-            border-radius: 8px;
-            margin-right: 8px;
-            margin-bottom: 6px;
-            text-decoration: none;
-            color: #333;
-            font-weight: 500;
-        }
-
-        .file-list a:hover {
-            background-color: #ced4da;
-        }
-
-        .section-title {
-            font-weight: bold;
-            margin-top: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-		.back-link {
-		    display: block;
-		    text-align: center;
-		    margin-top: 1.5rem;
-		    color: #6b48ff;
-		    font-weight: 500;
-		    text-decoration: none;
-		}
-		a:empty {
-		    display: none !important;
-		}
-    </style>
+  <!-- 유지할 기존 스타일 -->
+  <style>
+    body {
+      margin-top: 100px;
+    }
+    section {
+      height: 700px;
+    }
+  </style>
 </head>
 <body>
-<div class="wrapper">
-    <div class="post-edit-card">
-        <h1>게시글 수정</h1>
 
-        <form th:action="@{'/user/community/' + ${post.postId} + '/update'}" method="post" enctype="multipart/form-data">
+<!-- Header -->
+<div th:replace="~{header :: header}"></div>
 
-            <label for="title">제목</label>
-            <input type="text" class="form-control" id="title" name="title" th:value="${post.title}" />
+<div class="container">
+  <h2>게시글 수정</h2>
 
-            <label for="content">내용</label>
-            <textarea class="form-control" id="content" name="content" rows="6" th:text="${post.content}"></textarea>
+  <form th:action="@{'/user/community/' + ${post.postId} + '/update'}" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="userId" th:value="${post.userId}" />
+    <input type="hidden" name="userNickname" th:value="${post.userNickname}" />
 
-			<div class="section-title">	📎 기존 파일 목록</div>
-			<th:block th:if="${post.attachedFiles != null and !post.attachedFiles.isEmpty()}">
-			    <div class="file-list">
-			        <th:block th:each="file : ${post.attachedFiles}">
-			            <th:block th:if="${file.name != null and !#strings.isEmpty(file.name)}">
-			                <div class="file-item" style="display:inline-block; margin:5px;">
-			                    <a th:href="@{|/file/download/${file.name}|}" th:text="${file.name}" style="margin-right:5px;"></a>
-			                    <input type="hidden" name="existingFiles" th:value="${file.name}" />
-			                </div>
-			            </th:block>
-			        </th:block>
-			    </div>
-			</th:block>
-            
-			<div class="section-title">첨부파일 업로드</div>
-            <input type="file" class="form-control" name="attachedFile" multiple />
-            <p class="note">※ 여러 개의 파일을 선택하려면 Ctrl 키를 누른 상태로 선택하세요.</p>
+    <!-- 게시글 정보 -->
+    <div class="section-card">
+      <div class="section-title">
+        <i class="bi bi-pencil-square"></i> 게시글 정보
+      </div>
 
-            <button type="submit" class="btn btn-submit">수정</button>
-        </form>
+      <div class="mb-3">
+        <label for="title" class="form-label">제목</label>
+        <input type="text" class="form-control" id="title" name="title" th:value="${post.title}" required>
+      </div>
 
-        <a th:href="@{/user/community}" class="back-link">돌아가기 &#8656;</a>
+      <div class="mb-3">
+        <label for="content" class="form-label">내용</label>
+        <textarea class="form-control" id="content" name="content" rows="8" th:text="${post.content}" required></textarea>
+      </div>
     </div>
+
+	<!-- 기존 첨부파일 -->
+	<div class="section-card">
+	  <div class="section-title">
+	    <i class="bi bi-paperclip"></i> 기존 파일 목록
+	  </div>
+	  <th:block th:if="${post.attachedFiles != null and !post.attachedFiles.isEmpty()}">
+	    <div class="file-list-wrapper">
+	      <th:block th:each="file, iterStat : ${post.attachedFiles}">
+	        <th:block th:if="${file.name != null and !#strings.isEmpty(file.name)}">
+	          <div class="file-item" th:style="${iterStat.index % 5 == 0 ? 'clear:both;' : ''}">
+	            <a th:href="@{|/file/download/${file.name}|}" th:text="${file.name}"></a>
+	            <input type="hidden" name="existingFiles" th:value="${file.name}" />
+	          </div>
+	        </th:block>
+	      </th:block>
+	    </div>
+	  </th:block>
+	</div>
+
+    <!-- 새 첨부파일 업로드 -->
+    <div class="section-card">
+      <label for="fileInput">첨부파일 업로드</label>
+      <input type="file" class="form-control" id="fileInput" name="attachedFile" multiple />
+      <p class="note"><small>※ 여러 개의 파일을 선택하려면 Ctrl 키를 누른 상태로 선택하세요.</small></p>
+    </div>
+
+    <!-- 버튼 -->
+    <div class="text-center mt-4 d-flex justify-content-center gap-3">
+      <button type="submit" class="btn btn-submit px-4">
+        <i class="bi bi-check2-circle me-1"></i> 수정
+      </button>
+      <a th:href="@{/user/community}" class="btn btn-cancel px-4">
+        <i class="bi bi-arrow-left-circle me-1"></i> 돌아가기
+      </a>
+    </div>
+  </form>
 </div>
-<script>
-	document.addEventListener('DOMContentLoaded', function () {
-	    document.querySelectorAll('.btn-delete').forEach(button => {
-	        button.addEventListener('click', function () {
-	            const fileItem = this.closest('.file-item');
-	            fileItem.remove();
-	        });
-	    });
-	});
-</script>
+
+<!-- Footer -->
+<div th:replace="~{footer :: footer}"></div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
+
+<!-- Summernote 설정 -->
+<script>
+  $(document).ready(function () {
+    $('#content').summernote({
+      placeholder: '내용을 입력하세요',
+      height: 300,
+      lang: 'ko-KR',
+      fontNames: ['Arial', '맑은 고딕', '궁서', '굴림체'],
+      toolbar: [
+        ['style', ['bold', 'italic', 'underline', 'clear']],
+        ['font', ['fontsize']],
+        ['color', ['color']],
+        ['para', ['ul', 'ol', 'paragraph']],
+        ['insert', ['link', 'picture', 'video']],
+        ['view', ['codeview']]
+      ],
+      callbacks: {
+        onInit: function () {
+          $(this).on("keydown", function (e) {
+            if (e.key === "Enter") {
+              document.execCommand("insertHTML", false, "<br><br>");
+              e.preventDefault();
+            }
+          });
+        }
+      }
+    });
+  });
+</script>
 </body>
 </html>

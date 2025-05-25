@@ -19,6 +19,8 @@ public interface CommunityBoardMapper {
 	
 	void updatePost(CommunityBoard communityBoard);
 	
+	void increaseViewCount(Long postId);
+	
 	void deletePost(Long postId);
 
 }

@@ -26,6 +26,7 @@
 
     <resultMap id="communityBoardMap" type="kr.or.kosa.community.dto.CommunityBoard">
         <id property="postId" column="POST_ID" />
+        <result property="createdAt" column="CREATED_AT"/>
         <result property="lastUpdatedAt" column="LAST_UPDATED_AT"/>
         <result property="views" column="VIEWS"/>
 	    <result property="userNickname" column="USER_NICKNAME"/>
@@ -90,7 +91,7 @@
 		INTO BOARD (POST_ID, TITLE, CONTENT, CREATED_AT, USER_NICKNAME, USERID)
 		VALUES (#{postId}, #{title}, #{content}, SYSDATE, #{userNickname}, #{userId})
 		INTO COMMUNITY_BOARD (POST_ID, LAST_UPDATED_AT, VIEWS)
-		VALUES(#{postId}, SYSDATE, 100)
+		VALUES(#{postId}, SYSDATE, 0)
 		SELECT * FROM DUAL		
 	</insert>
 
@@ -100,10 +101,19 @@
 		    LAST_UPDATED_AT = SYSDATE
 		WHERE POST_ID = #{postId}
 	</update>
+	
+	<update id="increaseViewCount" parameterType="Long">
+	    UPDATE COMMUNITY_BOARD
+	    SET 
+	    	VIEWS = VIEWS + 1
+	    WHERE POST_ID = #{postId}
+	</update>
 
 	<delete id="deletePost" parameterType="Long">
 	    DELETE FROM COMMUNITY_BOARD
 	    WHERE POST_ID = #{postId}
 	</delete>
+	
+
 	
 </mapper>

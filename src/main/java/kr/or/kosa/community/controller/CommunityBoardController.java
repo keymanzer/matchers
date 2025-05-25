@@ -57,19 +57,47 @@ public class CommunityBoardController {
 		this.communityBoardCommentService = communityBoardCommentService;
 	}
 	
-   // 게시글 목록
-   @GetMapping
-   public String getPostList(Model model) {
+    public void setS3Service(S3Service s3Service) {
+		this.s3Service = s3Service;
+	}
 
-      List<CommunityBoard> list = communityBoardService.getPostList();
-      model.addAttribute("list", list);
-      System.out.println("============전체목록조회 완료============");
-      return "community/postlist";
-   }
+    // 게시글 목록
+    @GetMapping
+    public String getPostList(Model model,
+    		@RequestParam(name = "page", defaultValue = "1") int page) {
+
+        int pageSize = 10;
+        List<CommunityBoard> allPosts = communityBoardService.getPostList();
+
+        int totalItems = allPosts.size();
+        int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+
+        if (page < 1) page = 1;
+        if (page > totalPages && totalPages > 0) page = totalPages;
+
+        int startIndex = (page - 1) * pageSize;
+        int endIndex = Math.min(startIndex + pageSize, totalItems);
+
+        List<CommunityBoard> currentPagePosts = new ArrayList<>();
+        if (startIndex < totalItems) {
+            currentPagePosts = allPosts.subList(startIndex, endIndex);
+        }
+
+        model.addAttribute("list", currentPagePosts);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalItems", totalItems);
+
+        return "community/postlist";
+    }
 
    // 게시글 상세 보기
-   @GetMapping("/{postId}")
+   @GetMapping("/{postId}/detail")
    public String getPostbyId(@PathVariable("postId") Long postId, Model model, Principal principal) {
+	   
+	    // 조회수 증가
+	    communityBoardService.increaseViewCount(postId);
+	   
        CommunityBoard post = communityBoardService.getPostbyId(postId);
        List<CommunityBoardComment> allComments = communityBoardCommentService.getCommentListByPostId(postId);
        
@@ -88,7 +116,6 @@ public class CommunityBoardController {
            } else {
                CommunityBoardComment parent = commentMap.get(comment.getParentCommentId());
                if (parent != null) {
-            	   System.out.println("=========대댓글 등록되었습니다==========");
                    parent.getReplies().add(comment);
                }
            }
@@ -103,7 +130,6 @@ public class CommunityBoardController {
            model.addAttribute("loginNickname", user.getNickname());
        }
 
-       System.out.println("============상세조회 완료============");
        return "community/postdetail";
    }
 
@@ -130,11 +156,7 @@ public class CommunityBoardController {
    public String insertPost(@ModelAttribute CommunityBoard post,
          @RequestParam("attachedFile") MultipartFile[] attachedFiles) {
 
-      // 제목이 Null이거나 빈값일 경우 default 제목은 "제목없음"
-      String title = (post.getTitle() == null || post.getTitle().trim().isEmpty()) ? "제목없음" : post.getTitle();
-      post.setTitle(title);
       communityBoardService.insertPost(post);
-
 
      // 첨부파일 업로드
       if (attachedFiles != null) {
@@ -159,8 +181,6 @@ public class CommunityBoardController {
              }
          }
       }
-      
-      System.out.println("============게시글 등록 완료============");
 
       return "redirect:/user/community";
    }
@@ -218,15 +238,9 @@ public class CommunityBoardController {
                 }
             }
          }
-        
-        
-        // 제목 비었을 경우 기본값 처리
-        String title = (post.getTitle() == null || post.getTitle().trim().isEmpty()) ? "제목없음" : post.getTitle();
-        post.setTitle(title);
+
         post.setPostId(postId);
         communityBoardService.updatePost(post);
-        
-        System.out.println("============게시글 수정 완료============");
 
         return "redirect:/user/community";
     }
@@ -249,7 +263,6 @@ public class CommunityBoardController {
       }
 
       communityBoardService.deletePost(postId);
-      System.out.println("============게시글 삭제 완료============");
 
       return "redirect:/user/community";
    }

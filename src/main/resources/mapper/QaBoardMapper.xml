@@ -33,6 +33,7 @@
     <!-- QaBoard 전체 매핑 -->
     <resultMap id="qaBoardMap" type="kr.or.kosa.qa.dto.QaBoard">
         <id property="postId" column="POST_ID"/>
+        <result property="createdAt" column="CREATED_AT"/>
         <result property="lastUpdatedAt" column="LAST_UPDATED_AT"/>
         <result property="views" column="VIEWS"/>
         <result property="status" column="STATUS"/>
@@ -72,7 +73,7 @@
     </select>
 
     <!-- 게시글 상세 조회 -->
-    <select id="getPostbyId" parameterType="long" resultMap="qaBoardMap">
+    <select id="getPostbyId" parameterType="Long" resultMap="qaBoardMap">
         SELECT 
             b.POST_ID,
             b.TITLE,
@@ -96,17 +97,17 @@
     </select>
 
     <!-- 게시글 등록 -->
-    <insert id="insertPost" parameterType="kr.or.kosa.qa.dto.QaBoard">
-        <selectKey order="BEFORE" keyProperty="postId" resultType="Long">
-            SELECT BOARD_SEQ.NEXTVAL FROM DUAL
-        </selectKey>
-        INSERT ALL
-        INTO BOARD (POST_ID, TITLE, CONTENT, CREATED_AT, USER_NICKNAME, USERID)
-        VALUES (#{postId}, #{title}, #{content}, SYSDATE, #{userNickname}, #{userId})
-        INTO QA_BOARD (POST_ID, LAST_UPDATED_AT, VIEWS, STATUS, VISIBLE)
-        VALUES (#{postId}, SYSDATE, 100, 'Y', 'Y')
-        SELECT * FROM DUAL
-    </insert>
+	<insert id="insertPost" parameterType="kr.or.kosa.qa.dto.QaBoard">
+	  <selectKey order="BEFORE" keyProperty="postId" resultType="Long">
+	    SELECT BOARD_SEQ.NEXTVAL FROM DUAL
+	  </selectKey>
+	  INSERT ALL
+	  INTO BOARD (POST_ID, TITLE, CONTENT, CREATED_AT, USER_NICKNAME, USERID)
+	  VALUES (#{postId}, #{title}, #{content}, SYSDATE, #{userNickname}, #{userId})
+	  INTO QA_BOARD (POST_ID, LAST_UPDATED_AT, VIEWS, STATUS, VISIBLE)
+	  VALUES (#{postId}, SYSDATE, 0, 'Y', 'Y')
+	  SELECT * FROM DUAL
+	</insert>
 
     <!-- 게시글 수정 -->
     <update id="updatePost" parameterType="kr.or.kosa.qa.dto.QaBoard">
@@ -117,9 +118,16 @@
             VISIBLE = 'Y'
         WHERE POST_ID = #{postId}
     </update>
+    
+	<update id="increaseViewCount" parameterType="Long">
+	    UPDATE QA_BOARD
+	    SET 
+	    	VIEWS = VIEWS + 1
+	    WHERE POST_ID = #{postId}
+	</update>
 
     <!-- 게시글 삭제 -->
-    <delete id="deletePost" parameterType="long">
+    <delete id="deletePost" parameterType="Long">
         DELETE FROM QA_BOARD
         WHERE POST_ID = #{postId}
     </delete>

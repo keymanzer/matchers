@@ -1,232 +1,165 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>QA 게시글 상세</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .wrapper {
-            margin-top: 80px;
-            display: flex;
-            justify-content: center;
-        }
-        .post-detail-card {
-            width: 90%;
-            max-width: 800px;
-            border-radius: 16px;
-            background-color: white;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-            padding: 2rem;
-        }
-        h1 {
-            text-align: center;
-            font-weight: bold;
-            margin-bottom: 2rem;
-        }
-        .post-meta {
-            font-size: 0.95rem;
-            color: #6c757d;
-            margin-bottom: 1rem;
-        }
-        .post-title {
-            font-weight: bold;
-            font-size: 1.4rem;
-            margin-bottom: 1rem;
-        }
-        .post-content {
-            white-space: pre-wrap;
-            margin-bottom: 2rem;
-        }
-        .file-button {
-            display: inline-block;
-            background-color: #e9ecef;
-            padding: 6px 10px;
-            border-radius: 8px;
-            margin-right: 8px;
-            margin-bottom: 8px;
-            text-decoration: none;
-            color: #333;
-            font-weight: 400;
-        }
-        .file-button:hover {
-            background-color: #ced4da;
-        }
-        .action-buttons {
-            margin-top: 1rem;
-        }
-        .btn-custom {
-            background-color: #6b48ff;
-            color: white;
-            font-weight: 600;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            margin-right: 8px;
-        }
-        .btn-custom:hover {
-            background-color: #5838dd;
-        }
-        .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 2rem;
-            color: #6b48ff;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        .back-link:hover {
-            text-decoration: underline;
-        }
-		a:empty {
-		    display: none !important;
-		}
-		.comment-title {
-		    font-weight: bold;
-		    font-size: 1.3rem;
-		    margin-bottom: 1rem;
-		}
-		.comment-meta {
-		    font-size: 0.95rem;
-		    color: #6c757d;
-		}
-		.comment-content {
-		    font-size: 0.90rem;
-		    margin-top: 12px;
-		}
-		.comment-write-button {
-		    display: inline-block;
-		    background-color: #e9ecef;
-		    padding: 6px 10px;
-		    border-radius: 8px;
-		    border: transparent;
-		    text-decoration: none;
-		    font-weight: 500;
-		    font-size: 0.85rem;
-		}
+  <meta charset="UTF-8">
+  <title>QA 게시글 상세화면</title>
 
-    </style>
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+  <!-- 공통 스타일 -->
+  <link rel="stylesheet" th:href="@{/css/header.css}">
+  <link rel="stylesheet" th:href="@{/css/footer.css}">
+
+  <!-- QA 게시글 상세 전용 스타일 -->
+  <link rel="stylesheet" th:href="@{/css/qa/post-detail.css}">
+
+  <style>
+    body {
+      margin-top: 100px;
+    }
+    section {
+      height: 700px;
+    }
+  </style>
 </head>
 <body>
+
+<!-- Header -->
+<div th:replace="~{header :: header}"></div>
+
 <div class="wrapper">
-    <div class="post-detail-card">
-        <h1>QA 게시글 상세</h1>
+  <div class="post-detail-card">
+    <h2>QA 게시글 상세화면</h2>
 
-        <div class="post-meta">
-            <div><strong>작성자:</strong> <span th:text="${post.users.nickname}"></span></div>
-            <div><strong>날짜:</strong> <span th:text="${#temporals.format(post.lastUpdatedAt, 'yyyy-MM-dd HH:mm')}"></span></div>
-        </div>
-        <div class="post-title" th:text="${post.board.title}">제목</div>
-        <div class="post-content" th:text="${post.board.content}">내용</div>
-
-        <!-- 첨부파일 -->
-		<th:block th:if="${post.attachedFiles != null and !post.attachedFiles.isEmpty()}">
-		    <div class="file-section">
-		        <p class="post-meta"><strong>첨부파일</strong></p>
-		        <div>
-					<a th:each="file : ${post.attachedFiles}"
-					   th:href="@{|/file/download/${file.name}|}"
-					   class="file-button">
-					   <span th:text="${file.name}">파일명</span>
-					</a>
-		        </div>
-		    </div>
-		</th:block>
-
-        <!-- 수정/삭제 버튼 -->
-        <div class="action-buttons" th:if="${loginUserId != null and loginUserId == post.board.userId}">
-            <form style="display:inline;">
-                <button type="button" class="btn btn-custom"
-                        th:onclick="|location.href='@{/user/qa/{postId}/update(postId=${post.postId})}'|">
-                    수정
-                </button>
-            </form>
-            <form id="deletePostForm" th:action="@{'/user/qa/' + ${post.postId} + '/delete'}"
-                  method="post" style="display:inline;">
-                <button type="button" class="btn btn-custom" onclick="confirmDelete()">삭제</button>
-            </form>
-        </div>
-		
-		<!-- 댓글 영역 -->
-		<div class="comment-section mt-4">
-		    <div class="comment-title">댓글 목록</div>
-
-		    <div th:if="${#lists.isEmpty(comments)}">
-		        <p class="text-muted">댓글이 없습니다.</p>
-		    </div>
-
-		    <ul class="list-group mb-4" th:if="${not #lists.isEmpty(comments)}">
-		        <li class="list-group-item" th:each="comment : ${comments}">
-		            <div class="comment-meta d-flex justify-content-between">
-		                <div>
-		                    <strong th:text="${comment.userNickname}">작성자</strong>
-		                    <span th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">작성일자</span>
-		                </div>
-		                <div th:if="${loginNickname != null and loginNickname == comment.userNickname}">
-		                    <button type="button" class="btn btn-sm btn-outline-secondary"
-		                            th:onclick="'toggleEdit(' + ${comment.commentId} + ')'">수정</button>
-		                    <form th:action="@{/user/qa/comments/{commentId}/delete(commentId=${comment.commentId})}"
-		                          method="post" style="display:inline;">
-		                        <input type="hidden" name="postId" th:value="${post.postId}" />
-		                        <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
-		                    </form>
-		                </div>
-		            </div>
-
-		            <div class="comment-content" th:text="${comment.content}">댓글 내용</div>
-
-		            <!-- 댓글 수정 폼 -->
-		            <form th:action="@{/user/qa/comments/{commentId}/update(commentId=${comment.commentId})}"
-		                  method="post"
-		                  th:id="'editForm' + ${comment.commentId}" style="display: none;" class="mt-2">
-		                <input type="hidden" name="postId" th:value="${post.postId}" />
-		                <textarea class="form-control mb-2" name="content" rows="2" th:text="${comment.content}"></textarea>
-		                <button type="submit" class="btn btn-sm btn-primary">저장</button>
-		            </form>
-		        </li>
-		    </ul>
-
-		    <!-- 댓글 작성 폼 -->
-		    <form th:action="@{/user/qa/comments/insert}" method="post">
-		        <input type="hidden" name="postId" th:value="${post.postId}" />
-		        <div class="mb-3">
-		            <label for="content" class="form-label"><strong>댓글 작성</strong></label>
-		            <textarea class="form-control" style="background: #F3F4F8;" name="content" id="content" rows="3" required></textarea>
-		        </div>
-		        <button type="submit" class="comment-write-button">댓글 등록</button>
-		    </form>
-		</div>
-
-        <a th:href="@{/user/qa}" class="back-link">돌아가기 &#8656;</a>
+    <div class="post-meta">
+      <div><strong>작성자:</strong> <span th:text="${post.users.nickname}"></span></div>
+      <div><strong>작성 날짜:</strong> <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}"></span></div>
+      <div><strong>최종 수정 날짜:</strong> <span th:text="${#temporals.format(post.lastUpdatedAt, 'yyyy-MM-dd HH:mm')}"></span></div>
     </div>
+
+    <div class="post-title" th:text="${post.board.title}"></div>
+    <div class="post-content" th:utext="${post.board.content}"></div>
+
+    <!-- 첨부파일 -->
+    <th:block th:if="${post.attachedFiles != null and !post.attachedFiles.isEmpty()}">
+      <div class="file-section">
+        <p class="post-meta"><strong>첨부파일</strong></p>
+        <div>
+          <a th:each="file : ${post.attachedFiles}"
+             th:href="@{|/file/download/${file.name}|}"
+             th:text="${file.name}"
+             class="file-button"></a>
+        </div>
+      </div>
+    </th:block>
+
+    <!-- 수정/삭제 버튼 -->
+    <div class="action-buttons" th:if="${loginUserId != null and loginUserId == post.board.userId}">
+      <form style="display:inline;">
+        <button type="button" class="btn btn-update px-4"
+                th:onclick="|location.href='@{/user/qa/{postId}/update(postId=${post.postId})}'|">
+          <i class="bi bi-pencil-square me-1"></i> 수정
+        </button>
+      </form>
+      <form id="deletePostForm" th:action="@{'/user/qa/' + ${post.postId} + '/delete'}"
+            method="post" style="display:inline;">
+        <button type="button" class="btn btn-delete px-4" onclick="confirmDelete()">
+          <i class="bi bi-trash3 me-1"></i> 삭제
+        </button>
+      </form>
+    </div>
+
+    <hr>
+
+    <!-- 댓글 영역 -->
+    <div class="comment-section mt-4">
+      <div class="comment-title">
+        <i class="bi bi-chat-dots me-2"></i>댓글 목록
+      </div>
+
+      <div th:if="${#lists.isEmpty(comments)}">
+        <p class="text-muted">댓글이 없습니다.</p>
+      </div>
+
+      <ul class="list-group mb-4" th:if="${not #lists.isEmpty(comments)}">
+        <li class="list-group-item" th:each="comment : ${comments}">
+          <div class="comment-meta d-flex justify-content-between">
+            <div>
+              <strong th:text="${comment.userNickname}"></strong>
+              <span th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
+            </div>
+            <div th:if="${loginNickname != null and loginNickname == comment.userNickname}">
+              <button type="button" class="btn btn-sm btn-outline-secondary"
+                      th:onclick="'toggleEdit(' + ${comment.commentId} + ')'">수정</button>
+              <form th:action="@{/user/qa/comments/{commentId}/delete(commentId=${comment.commentId})}"
+                    method="post" style="display:inline;">
+                <input type="hidden" name="postId" th:value="${post.postId}" />
+                <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
+              </form>
+            </div>
+          </div>
+          <div class="comment-content" th:text="${comment.content}"></div>
+
+          <!-- 수정 폼 -->
+          <form th:action="@{/user/qa/comments/{commentId}/update(commentId=${comment.commentId})}"
+                method="post"
+                th:id="'editForm' + ${comment.commentId}" style="display: none;" class="mt-2">
+            <input type="hidden" name="postId" th:value="${post.postId}" />
+            <textarea class="form-control mb-2" name="content" rows="2" th:text="${comment.content}"></textarea>
+            <button type="submit" class="btn btn-sm btn-primary">저장</button>
+          </form>
+        </li>
+      </ul>
+
+      <!-- 댓글 작성 -->
+      <form th:action="@{/user/qa/comments/insert}" method="post">
+        <input type="hidden" name="postId" th:value="${post.postId}" />
+        <div class="mb-3">
+          <label for="content" class="form-label"><strong>댓글 작성</strong></label>
+          <textarea class="form-control" style="background: #F3F4F8;" name="content" id="content" rows="3" required></textarea>
+        </div>
+        <button type="submit" class="comment-write-button">댓글 등록</button>
+      </form>
+    </div>
+
+    <div class="text-center mt-4 d-flex justify-content-center gap-3">
+      <a th:href="@{/user/qa}" class="btn btn-cancel px-4">
+        <i class="bi bi-arrow-left-circle me-1"></i> 돌아가기
+      </a>
+    </div>
+  </div>
 </div>
-<script>
-	function toggleEdit(commentId) {
-	    const form = document.getElementById("editForm" + commentId);
-	    form.style.display = (form.style.display === "none" || form.style.display === "") ? "block" : "none";
-	}
-	
-    function confirmDelete() {
-        Swal.fire({
-            title: '게시글을 삭제하시겠습니까?',
-            text: "삭제된 게시글은 복구할 수 없습니다.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#aaa',
-            confirmButtonText: '삭제',
-            cancelButtonText: '취소'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('deletePostForm').submit();
-            }
-        });
-    }
-</script>
+
+<!-- Footer -->
+<div th:replace="~{footer :: footer}"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function toggleEdit(commentId) {
+    const form = document.getElementById("editForm" + commentId);
+    form.style.display = (form.style.display === "none" || form.style.display === "") ? "block" : "none";
+  }
+
+  function confirmDelete() {
+    Swal.fire({
+      title: '게시글을 삭제하시겠습니까?',
+      text: "삭제된 게시글은 복구할 수 없습니다.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#aaa',
+      confirmButtonText: '삭제',
+      cancelButtonText: '취소'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        document.getElementById('deletePostForm').submit();
+      }
+    });
+  }
+</script>
 </body>
 </html>

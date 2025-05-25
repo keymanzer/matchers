@@ -12,15 +12,17 @@ import kr.or.kosa.user.dto.Users;
 public interface CommunityBoardMapper {
 	
 	List<CommunityBoard> getPostList();
+	
+	List<CommunityBoard> getPostListByViews();
 
-	CommunityBoard getPostbyId(Long postId);
+	CommunityBoard getPostbyId(@Param("postId") Long postId);
 	
 	void insertPost(CommunityBoard communityBoard);
 	
 	void updatePost(CommunityBoard communityBoard);
 	
-	void increaseViewCount(Long postId);
+	void increaseViewCount(@Param("postId") Long postId);
 	
-	void deletePost(Long postId);
+	void deletePost(@Param("postId") Long postId);
 
 }

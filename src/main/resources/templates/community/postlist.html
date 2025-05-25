@@ -16,7 +16,6 @@
   <!-- 게시글 목록 전용 스타일 -->
   <link rel="stylesheet" th:href="@{/css/community/post-list.css}">
 
-  <!-- 유지할 기존 스타일 -->
   <style>
     body {
       margin-top: 100px;
@@ -35,14 +34,14 @@
   <div class="container">
     <h2>커뮤니티 게시글 목록</h2>
 
-    <div class="section-card">
+    <div class="section-card" th:fragment="topPostList">
       <table class="table table-no-side-borders">
         <colgroup>
-          <col style="width: 100px;">        <!-- 번호 -->
-          <col>                              <!-- 제목 -->
-          <col style="width: 200px;">        <!-- 작성자 -->
-          <col style="width: 200px;">        <!-- 날짜 -->
-          <col style="width: 100px;">        <!-- 조회수 -->
+          <col style="width: 100px;">
+          <col>
+          <col style="width: 200px;">
+          <col style="width: 200px;">
+          <col style="width: 100px;">
         </colgroup>
         <thead>
           <tr>
@@ -68,37 +67,35 @@
         </tbody>
       </table>
 
-      <div class="text-center mt-4">
+      <!-- 작성 버튼은 전체 목록에서만 표시 -->
+      <div class="text-center mt-4" th:if="${totalPages != null}">
         <button type="button" class="btn btn-submit px-4"
                 th:onclick="|location.href='@{/user/community/insert}'|">
           <i class="bi bi-pencil-square me-1"></i> 작성하기
         </button>
       </div>
     </div>
-	<!-- 페이징 처리 -->
-	<nav aria-label="Page navigation" th:if="${totalPages > 0}">
-	  <ul class="pagination justify-content-center mt-4">
-	    <!-- 이전 페이지 -->
-	    <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
-	      <a class="page-link" th:href="@{/user/community(page=${currentPage - 1})}" aria-label="Previous">
-	        <span aria-hidden="true">&laquo;</span>
-	      </a>
-	    </li>
-	    <!-- 페이지 번호 -->
-	    <li class="page-item" th:each="pageNum : ${#numbers.sequence(1, totalPages)}"
-	        th:classappend="${pageNum == currentPage} ? 'active'">
-	      <a class="page-link" th:href="@{/user/community(page=${pageNum})}" th:text="${pageNum}"></a>
-	    </li>
 
-	    <!-- 다음 페이지 -->
-	    <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
-	      <a class="page-link" th:href="@{/user/community(page=${currentPage + 1})}" aria-label="Next">
-	        <span aria-hidden="true">&raquo;</span>
-	      </a>
-	    </li>
-	  </ul>
-	</nav>
-	
+    <!-- 페이징 처리 -->
+    <nav aria-label="Page navigation" th:if="${totalPages > 0}">
+      <ul class="pagination justify-content-center mt-4">
+        <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+          <a class="page-link" th:href="@{/user/community(page=${currentPage - 1})}" aria-label="Previous">
+            <span aria-hidden="true">&laquo;</span>
+          </a>
+        </li>
+        <li class="page-item" th:each="pageNum : ${#numbers.sequence(1, totalPages)}"
+            th:classappend="${pageNum == currentPage} ? 'active'">
+          <a class="page-link" th:href="@{/user/community(page=${pageNum})}" th:text="${pageNum}"></a>
+        </li>
+        <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+          <a class="page-link" th:href="@{/user/community(page=${currentPage + 1})}" aria-label="Next">
+            <span aria-hidden="true">&raquo;</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
   </div>
 </div>
 

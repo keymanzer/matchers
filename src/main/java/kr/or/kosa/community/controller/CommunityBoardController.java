@@ -32,239 +32,245 @@ import kr.or.kosa.user.dto.CustomUser;
 @RequestMapping("/user/community")
 public class CommunityBoardController {
 
-   @Autowired
-   private CommunityBoardService communityBoardService;
+	@Autowired
+	private CommunityBoardService communityBoardService;
 
-   @Autowired
-   private AttachedFileService attachedFileService;
-   
-   @Autowired
-   private CommunityBoardCommentService communityBoardCommentService;
-   
-   @Autowired
-   private S3Service s3Service;
-   
-   
-   public void setCommunityBoardService(CommunityBoardService communityBoardService) {
-	this.communityBoardService = communityBoardService;
-   }
+	@Autowired
+	private AttachedFileService attachedFileService;
+
+	@Autowired
+	private CommunityBoardCommentService communityBoardCommentService;
+
+	@Autowired
+	private S3Service s3Service;
+
+	public void setCommunityBoardService(CommunityBoardService communityBoardService) {
+		this.communityBoardService = communityBoardService;
+	}
 
 	public void setAttachedFileService(AttachedFileService attachedFileService) {
 		this.attachedFileService = attachedFileService;
 	}
-	
+
 	public void setCommunityBoardCommentService(CommunityBoardCommentService communityBoardCommentService) {
 		this.communityBoardCommentService = communityBoardCommentService;
 	}
-	
-    public void setS3Service(S3Service s3Service) {
+
+	public void setS3Service(S3Service s3Service) {
 		this.s3Service = s3Service;
 	}
 
-    // 게시글 목록
-    @GetMapping
-    public String getPostList(Model model,
-    		@RequestParam(name = "page", defaultValue = "1") int page) {
+	// 게시글 목록
+	@GetMapping
+	public String getPostList(Model model, @RequestParam(name = "page", defaultValue = "1") int page) {
 
-        int pageSize = 10;
-        List<CommunityBoard> allPosts = communityBoardService.getPostList();
+		int pageSize = 10;
+		List<CommunityBoard> allPosts = communityBoardService.getPostList();
 
-        int totalItems = allPosts.size();
-        int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+		int totalItems = allPosts.size();
+		int totalPages = (int) Math.ceil((double) totalItems / pageSize);
 
-        if (page < 1) page = 1;
-        if (page > totalPages && totalPages > 0) page = totalPages;
+		if (page < 1)
+			page = 1;
+		if (page > totalPages && totalPages > 0)
+			page = totalPages;
 
-        int startIndex = (page - 1) * pageSize;
-        int endIndex = Math.min(startIndex + pageSize, totalItems);
+		int startIndex = (page - 1) * pageSize;
+		int endIndex = Math.min(startIndex + pageSize, totalItems);
 
-        List<CommunityBoard> currentPagePosts = new ArrayList<>();
-        if (startIndex < totalItems) {
-            currentPagePosts = allPosts.subList(startIndex, endIndex);
-        }
+		List<CommunityBoard> currentPagePosts = new ArrayList<>();
+		if (startIndex < totalItems) {
+			currentPagePosts = allPosts.subList(startIndex, endIndex);
+		}
 
-        model.addAttribute("list", currentPagePosts);
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", totalPages);
-        model.addAttribute("totalItems", totalItems);
+		model.addAttribute("list", currentPagePosts);
+		model.addAttribute("currentPage", page);
+		model.addAttribute("totalPages", totalPages);
+		model.addAttribute("totalItems", totalItems);
 
-        return "community/postlist";
-    }
+		return "community/postlist";
+	}
 
-   // 게시글 상세 보기
-   @GetMapping("/{postId}/detail")
-   public String getPostbyId(@PathVariable("postId") Long postId, Model model, Principal principal) {
-	   
-	    // 조회수 증가
-	    communityBoardService.increaseViewCount(postId);
-	   
-       CommunityBoard post = communityBoardService.getPostbyId(postId);
-       List<CommunityBoardComment> allComments = communityBoardCommentService.getCommentListByPostId(postId);
-       
-       // 대댓글 그룹핑
-       Map<Long, CommunityBoardComment> commentMap = new HashMap<>();
-       List<CommunityBoardComment> topLevelComments = new ArrayList<>();
-       
-       for (CommunityBoardComment comment : allComments) {
-           comment.setReplies(new ArrayList<>());
-           commentMap.put(comment.getCommentId(), comment);
-       }
-       
-       for (CommunityBoardComment comment : allComments) {
-           if (comment.getParentCommentId() == null) {
-               topLevelComments.add(comment);
-           } else {
-               CommunityBoardComment parent = commentMap.get(comment.getParentCommentId());
-               if (parent != null) {
-                   parent.getReplies().add(comment);
-               }
-           }
-       }
-       
-       model.addAttribute("post", post);
-       model.addAttribute("comments", topLevelComments);
-       
-       if (principal instanceof Authentication) {
-           CustomUser user = (CustomUser) ((Authentication) principal).getPrincipal();
-           model.addAttribute("loginUserId", user.getUserId());
-           model.addAttribute("loginNickname", user.getNickname());
-       }
+	@GetMapping("/fragment/top5")
+	public String getTop5PostsByViews(Model model) {
+		List<CommunityBoard> allPosts = communityBoardService.getPostListByViews();
+		List<CommunityBoard> top5 = allPosts.size() > 5 ? allPosts.subList(0, 5) : allPosts;
+		model.addAttribute("list", top5);
+		return "community/postlist :: topPostList";
+	}
 
-       return "community/postdetail";
-   }
+	// 게시글 상세 보기
+	@GetMapping("/{postId}/detail")
+	public String getPostbyId(@PathVariable("postId") Long postId, Model model, Principal principal) {
 
-   // 등록 폼 이동
-   @GetMapping("/insert")
-   public String insertPost(Model model, Principal principal) {
+		// 조회수 증가
+		communityBoardService.increaseViewCount(postId);
 
-      if (principal instanceof CustomUser) {
-         CustomUser user = (CustomUser) principal;
-      }
-      CustomUser user = (CustomUser) ((Authentication) principal).getPrincipal();
+		CommunityBoard post = communityBoardService.getPostbyId(postId);
+		List<CommunityBoardComment> allComments = communityBoardCommentService.getCommentListByPostId(postId);
 
-      CommunityBoard post = new CommunityBoard();
-      post.setUserId(user.getUserId());
-      post.setUserNickname(user.getNickname());
+		// 대댓글 그룹핑
+		Map<Long, CommunityBoardComment> commentMap = new HashMap<>();
+		List<CommunityBoardComment> topLevelComments = new ArrayList<>();
 
-      model.addAttribute("post", post);
+		for (CommunityBoardComment comment : allComments) {
+			comment.setReplies(new ArrayList<>());
+			commentMap.put(comment.getCommentId(), comment);
+		}
 
-      return "community/postinsert";
-   }
+		for (CommunityBoardComment comment : allComments) {
+			if (comment.getParentCommentId() == null) {
+				topLevelComments.add(comment);
+			} else {
+				CommunityBoardComment parent = commentMap.get(comment.getParentCommentId());
+				if (parent != null) {
+					parent.getReplies().add(comment);
+				}
+			}
+		}
 
-   // 게시글 등록
-   @PostMapping
-   public String insertPost(@ModelAttribute CommunityBoard post,
-         @RequestParam("attachedFile") MultipartFile[] attachedFiles) {
+		model.addAttribute("post", post);
+		model.addAttribute("comments", topLevelComments);
 
-      communityBoardService.insertPost(post);
+		if (principal instanceof Authentication) {
+			CustomUser user = (CustomUser) ((Authentication) principal).getPrincipal();
+			model.addAttribute("loginUserId", user.getUserId());
+			model.addAttribute("loginNickname", user.getNickname());
+		}
 
-     // 첨부파일 업로드
-      if (attachedFiles != null) {
-         for (MultipartFile file : attachedFiles) {
-             if (!file.isEmpty()) {
-                 // S3에 파일 업로드
-                 String fileUrl = null;
-                 try {
-                     // S3에 업로드
-                     fileUrl = s3Service.uploadFile(file, "community"); // "post"는 파일 폴더 구분용
-                 } catch (IOException e) {
-                     e.printStackTrace();
-                     continue; // 업로드 실패 시, 다음 파일로 넘어감
-                 }
-        	 
-				AttachedFile attachedFile = new AttachedFile();
-				attachedFile.setPostId(post.getPostId());
-				attachedFile.setName(file.getOriginalFilename()); // 파일 이름 저장
-				attachedFile.setPath(fileUrl); // S3 URL 저장
+		return "community/postdetail";
+	}
 
-				attachedFileService.saveAttachedFileMetadata(attachedFile);
-             }
-         }
-      }
+	// 등록 폼 이동
+	@GetMapping("/insert")
+	public String insertPost(Model model, Principal principal) {
 
-      return "redirect:/user/community";
-   }
-   
-   // 수정 폼 이동
-   @GetMapping("/{postId}/update")
-   public String updatePost(@PathVariable("postId") Long postId, Model model) {
+		if (principal instanceof CustomUser) {
+			CustomUser user = (CustomUser) principal;
+		}
+		CustomUser user = (CustomUser) ((Authentication) principal).getPrincipal();
 
-      CommunityBoard post = communityBoardService.getPostbyId(postId);
+		CommunityBoard post = new CommunityBoard();
+		post.setUserId(user.getUserId());
+		post.setUserNickname(user.getNickname());
 
-      model.addAttribute("post", post);
-      post.setTitle(post.getBoard().getTitle());
-      post.setContent(post.getBoard().getContent());
-      return "community/postupdate";
-   }
+		model.addAttribute("post", post);
 
-    // 게시글 수정
-    @PostMapping("/{postId}/update")
-    public String updatePost(@PathVariable("postId") Long postId,
-                             @ModelAttribute CommunityBoard post,
-                             @RequestParam(value = "attachedFile", required = false) MultipartFile[] attachedFiles,
-                             @RequestParam(value = "existingFiles", required = false) List<String> existingFiles,
-                             Principal principal) {
+		return "community/postinsert";
+	}
 
-        CustomUser user = (CustomUser) ((Authentication) principal).getPrincipal();
-        CommunityBoard postCheck = communityBoardService.getPostbyId(postId);
+	// 게시글 등록
+	@PostMapping
+	public String insertPost(@ModelAttribute CommunityBoard post,
+			@RequestParam("attachedFile") MultipartFile[] attachedFiles) {
 
-        if (postCheck.getBoard().getUserId() != user.getUserId()) {
-            System.out.println("사용자와 작성자 불일치: 수정불가");
-            return "redirect:/user/community";
-        }
+		communityBoardService.insertPost(post);
 
-        System.out.println("사용자와 작성자 일치: 수정가능합니다");
+		// 첨부파일 업로드
+		if (attachedFiles != null) {
+			for (MultipartFile file : attachedFiles) {
+				if (!file.isEmpty()) {
+					// S3에 파일 업로드
+					String fileUrl = null;
+					try {
+						// S3에 업로드
+						fileUrl = s3Service.uploadFile(file, "community"); // "post"는 파일 폴더 구분용
+					} catch (IOException e) {
+						e.printStackTrace();
+						continue; // 업로드 실패 시, 다음 파일로 넘어감
+					}
 
-        // 새로 파일 업로드
-        if (attachedFiles != null) {
-            for (MultipartFile file : attachedFiles) {
-                if (!file.isEmpty()) {
-                    // S3에 파일 업로드
-                    String fileUrl = null;
-                    try {
-                        // S3에 업로드
-                        fileUrl = s3Service.uploadFile(file, "community"); // "post"는 파일 폴더 구분용
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        continue; // 업로드 실패 시, 다음 파일로 넘어감
-                    }
-           	 
-   				AttachedFile attachedFile = new AttachedFile();
-   				attachedFile.setPostId(post.getPostId());
-   				attachedFile.setName(file.getOriginalFilename()); // 파일 이름 저장
-   				attachedFile.setPath(fileUrl); // S3 URL 저장
+					AttachedFile attachedFile = new AttachedFile();
+					attachedFile.setPostId(post.getPostId());
+					attachedFile.setName(file.getOriginalFilename()); // 파일 이름 저장
+					attachedFile.setPath(fileUrl); // S3 URL 저장
 
-   				attachedFileService.saveAttachedFileMetadata(attachedFile);
-                }
-            }
-         }
+					attachedFileService.saveAttachedFileMetadata(attachedFile);
+				}
+			}
+		}
 
-        post.setPostId(postId);
-        communityBoardService.updatePost(post);
+		return "redirect:/user/community";
+	}
 
-        return "redirect:/user/community";
-    }
+	// 수정 폼 이동
+	@GetMapping("/{postId}/update")
+	public String updatePost(@PathVariable("postId") Long postId, Model model) {
 
-    // 게시글 삭제
-   @PostMapping("/{postId}/delete")
-   public String deletePost(@PathVariable("postId") Long postId, Principal principal) {
+		CommunityBoard post = communityBoardService.getPostbyId(postId);
 
-      if (principal instanceof CustomUser) {
-         CustomUser user = (CustomUser) principal;
-      }
-      CustomUser user = (CustomUser) ((Authentication) principal).getPrincipal();
-      CommunityBoard postCheck = communityBoardService.getPostbyId(postId);
+		model.addAttribute("post", post);
+		post.setTitle(post.getBoard().getTitle());
+		post.setContent(post.getBoard().getContent());
+		return "community/postupdate";
+	}
 
-      if (postCheck.getBoard().getUserId() == user.getUserId()) {
-         System.out.println("사용자와 작성자 일치: 삭제가능합니다");
-      } else {
-         System.out.println("사용자와 작성자 불일치: 삭제불가");
-         return "redirect:/user/community";
-      }
+	// 게시글 수정
+	@PostMapping("/{postId}/update")
+	public String updatePost(@PathVariable("postId") Long postId, @ModelAttribute CommunityBoard post,
+			@RequestParam(value = "attachedFile", required = false) MultipartFile[] attachedFiles,
+			@RequestParam(value = "existingFiles", required = false) List<String> existingFiles, Principal principal) {
 
-      communityBoardService.deletePost(postId);
+		CustomUser user = (CustomUser) ((Authentication) principal).getPrincipal();
+		CommunityBoard postCheck = communityBoardService.getPostbyId(postId);
 
-      return "redirect:/user/community";
-   }
+		if (postCheck.getBoard().getUserId() != user.getUserId()) {
+			System.out.println("사용자와 작성자 불일치: 수정불가");
+			return "redirect:/user/community";
+		}
+
+		System.out.println("사용자와 작성자 일치: 수정가능합니다");
+
+		// 새로 파일 업로드
+		if (attachedFiles != null) {
+			for (MultipartFile file : attachedFiles) {
+				if (!file.isEmpty()) {
+					// S3에 파일 업로드
+					String fileUrl = null;
+					try {
+						// S3에 업로드
+						fileUrl = s3Service.uploadFile(file, "community"); // "post"는 파일 폴더 구분용
+					} catch (IOException e) {
+						e.printStackTrace();
+						continue; // 업로드 실패 시, 다음 파일로 넘어감
+					}
+
+					AttachedFile attachedFile = new AttachedFile();
+					attachedFile.setPostId(post.getPostId());
+					attachedFile.setName(file.getOriginalFilename()); // 파일 이름 저장
+					attachedFile.setPath(fileUrl); // S3 URL 저장
+
+					attachedFileService.saveAttachedFileMetadata(attachedFile);
+				}
+			}
+		}
+
+		post.setPostId(postId);
+		communityBoardService.updatePost(post);
+
+		return "redirect:/user/community";
+	}
+
+	// 게시글 삭제
+	@PostMapping("/{postId}/delete")
+	public String deletePost(@PathVariable("postId") Long postId, Principal principal) {
+
+		if (principal instanceof CustomUser) {
+			CustomUser user = (CustomUser) principal;
+		}
+		CustomUser user = (CustomUser) ((Authentication) principal).getPrincipal();
+		CommunityBoard postCheck = communityBoardService.getPostbyId(postId);
+
+		if (postCheck.getBoard().getUserId() == user.getUserId()) {
+			System.out.println("사용자와 작성자 일치: 삭제가능합니다");
+		} else {
+			System.out.println("사용자와 작성자 불일치: 삭제불가");
+			return "redirect:/user/community";
+		}
+
+		communityBoardService.deletePost(postId);
+
+		return "redirect:/user/community";
+	}
 
 }

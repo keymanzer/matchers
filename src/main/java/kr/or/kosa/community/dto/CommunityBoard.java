@@ -12,6 +12,7 @@ import lombok.Data;
 public class CommunityBoard {
 
 	private Long postId;
+	private LocalDateTime createdAt;
 	private LocalDateTime lastUpdatedAt;
 	private Long views;
     private Long userId;

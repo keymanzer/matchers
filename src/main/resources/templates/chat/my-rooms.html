@@ -214,14 +214,23 @@
 
                 // 연결 성공 후 구독 설정
                 stompClient.subscribe(`/topic/chat-update/${userId}`, message => {
-                    console.log('새 메시지 수신:', message.body);
+                    console.log('채팅 알림 수신:', message.body);
                     const notification = JSON.parse(message.body);
-
-                    // 메시지가 현재 보고 있는 채팅방 관련이면 해당 채팅방 하이라이트
-                    highlightChatRoom(notification.roomId);
-
-                    // 채팅방 목록 새로고침
-                    refreshChatRooms();
+                    
+                    // 알림 타입에 따른 처리
+                    if (notification.type === 'NEW_MESSAGE') {
+                        console.log('새 메시지 수신:', notification);
+                        // 메시지가 현재 보고 있는 채팅방 관련이면 해당 채팅방 하이라이트
+                        highlightChatRoom(notification.roomId);
+                        
+                        // 채팅방 목록 새로고침
+                        refreshChatRooms();
+                    } 
+                    else if (notification.type === 'READ_STATUS_UPDATED') {
+                        console.log('읽음 상태 업데이트 수신:', notification);
+                        // 읽음 상태가 업데이트된 채팅방의 안 읽은 메시지 카운트 초기화
+                        resetUnreadCount(notification.roomId);
+                    }
                 });
 
                 // 재연결 시도 초기화
@@ -411,6 +420,23 @@
             setTimeout(() => {
                 chatRoomItem.classList.remove('highlight');
             }, 2000);
+        }
+    }
+    
+    // 읽음 처리된 채팅방의 안 읽은 메시지 카운트 초기화
+    function resetUnreadCount(roomId) {
+        const chatRoomItem = document.querySelector(`.chat-room-item[data-room-id="${roomId}"]`);
+        if (chatRoomItem) {
+            const unreadBadge = chatRoomItem.querySelector('.unread-badge');
+            if (unreadBadge) {
+                unreadBadge.style.display = 'none';
+                unreadBadge.textContent = '0';
+            }
+            
+            // 하이라이트 효과 제거
+            chatRoomItem.classList.remove('highlight');
+            
+            console.log(`채팅방 ${roomId}의 읽음 상태가 업데이트되었습니다.`);
         }
     }
 

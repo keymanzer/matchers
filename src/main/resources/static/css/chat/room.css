@@ -1,4 +1,4 @@
-/* 개선된 채팅 인터페이스 CSS - 보라/파랑 테마 */
+/* 채팅 인터페이스 CSS - 보라/파랑 테마 */
 :root {
     --primary: #5c6bc0;       /* 인디고 블루 - 주 색상 */
     --primary-dark: #3f51b5;  /* 더 진한 인디고 - 강조 */
@@ -264,7 +264,13 @@ body {
     background-color: white;
     border-top: 1px solid var(--border-color);
     display: flex;
+    flex-direction: column;
+}
+
+.chat-footer .input-group {
+    display: flex;
     align-items: center;
+    width: 100%;
 }
 
 .chat-input {
@@ -308,12 +314,6 @@ body {
     transform: scale(0.95);
 }
 
-.send-btn:disabled {
-    background: #e0e0e0;
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
 .send-btn i {
     color: white;
     font-size: 20px;
@@ -353,43 +353,79 @@ body {
     box-shadow: 0 1px 5px rgba(94, 92, 177, 0.15);
 }
 
-/* 드롭다운 메뉴 */
-.dropdown-menu {
-    min-width: 140px;
-    border-radius: 10px;
-    box-shadow: 0 5px 20px rgba(94, 92, 177, 0.15);
-    border: 1px solid var(--border-color);
-    padding: 6px 0;
-    animation: fadeInDown 0.2s ease;
-}
-
-@keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.dropdown-item {
-    padding: 10px 16px;
-    font-size: 14px;
-    color: var(--text-primary);
-    transition: all 0.2s;
-}
-
-.dropdown-item:hover {
-    background-color: var(--chat-bg);
-    color: var(--primary-dark);
-}
-
-.dropdown-item:active {
-    background-color: var(--primary-light);
-    color: white;
-}
-
 /* 헤더 메타 정보 */
 .chat-header-meta {
     font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.85);
     margin-top: 4px;
+}
+
+/* 이미지 메시지 스타일 */
+.image-container {
+    max-width: 250px;
+    margin: 5px 0;
+    overflow: hidden;
+}
+
+.chat-image {
+    max-width: 100%;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.chat-image:hover {
+    opacity: 0.9;
+}
+
+/* 이미지 첨부 관련 스타일 */
+.image-btn {
+    background: none;
+    border: none;
+    color: #6c757d;
+    font-size: 1.2rem;
+    padding: 8px;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.image-btn:hover {
+    color: var(--primary);
+}
+
+.image-preview-container {
+    position: relative;
+    margin-top: 10px;
+    max-width: 200px;
+    max-height: 150px;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.image-preview {
+    width: 100%;
+    height: auto;
+}
+
+.remove-image-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+}
+
+.remove-image-btn:hover {
+    background: rgba(0, 0, 0, 0.7);
 }
 
 /* 반응형 디자인 */

@@ -16,5 +16,6 @@ public class ChatMessage {
     private Long chatRoomId;
     private Long userId;
     private String content;
+    private String imageUrl; // S3에 저장된 이미지 URL
     private LocalDateTime createdTime; // DB : TiMESTAMP 타입과 자동 매핑
 }

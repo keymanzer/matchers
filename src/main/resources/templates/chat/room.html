@@ -14,15 +14,15 @@
     <!-- Font Awesome 아이콘 (추가 - 알림 시스템에 필요) -->
 <!--    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">-->
 </head>
-<!--<style>-->
-<!--    body {-->
-<!--        margin-top: 100px;-->
-<!--    }-->
+<style>
+    body {
+        margin-top: 100px;
+    }
 
-<!--    section {-->
-<!--        height: 700px;-->
-<!--    }-->
-<!--</style>-->
+    section {
+        height: 700px;
+    }
+</style>
 <body>
 <!--<div th:replace="~{header :: header}"></div>-->
 <div class="container mt-3 mb-3">
@@ -64,10 +64,22 @@
         <div id="status-indicator">읽음 상태 업데이트 중...</div>
 
         <div class="chat-footer">
-            <input type="text" id="message" class="chat-input" placeholder="메시지를 입력하세요" />
-            <button id="send-btn" class="send-btn">
-                <i class="bi bi-arrow-up"></i>
-            </button>
+            <div class="input-group">
+                <button id="image-btn" class="image-btn" title="이미지 첨부">
+                    <i class="bi bi-image"></i>
+                </button>
+                <input type="text" id="message" class="chat-input" placeholder="메시지를 입력하세요" />
+                <button id="send-btn" class="send-btn">
+                    <i class="bi bi-arrow-up"></i>
+                </button>
+            </div>
+            <input type="file" id="image-input" accept="image/*" style="display: none" />
+            <div id="image-preview-container" class="image-preview-container" style="display: none;">
+                <img id="image-preview" class="image-preview" alt="이미지 미리보기" />
+                <button id="remove-image-btn" class="remove-image-btn">
+                    <i class="bi bi-x-circle-fill"></i>
+                </button>
+            </div>
         </div>
     </div>
 <!--    <div th:replace="~{footer :: footer}"></div>-->
@@ -82,7 +94,7 @@
     const roomId = /*[[${roomId}]]*/ 'defaultRoomId';
     const userId = /*[[${#authentication.principal.userId}]]*/ 1;
 
-    // 채팅방 상태 관리
+    // 전역 변수
     let otherUserId = null;
     let otherUserName = null;
     let otherUserEmail = null;
@@ -94,6 +106,7 @@
     let reconnectAttempts = 0;
     let reconnectTimer = null;
     let readStatusUpdateTimer = null; // 읽음 상태 업데이트 디바운싱 타이머
+    let selectedImage = null; // 선택된 이미지 데이터
 
     // 초기화
     window.onload = function() {
@@ -121,6 +134,7 @@
             stompClient.subscribe(`/topic/${roomId}`, function(message) {
                 try {
                     const msg = JSON.parse(message.body);
+                    console.log(msg.imageUrl);
                     displayMessage(msg);
                     scrollToBottom();
 
@@ -415,10 +429,30 @@
         const messageBubbleGroup = document.createElement('div');
         messageBubbleGroup.className = 'message-bubble-group';
 
-        const messageBubble = document.createElement('div');
-        messageBubble.className = 'message-bubble clearfix';
-        messageBubble.textContent = msg.content;
-        messageBubbleGroup.appendChild(messageBubble);
+        // 텍스트 메시지 버블
+        if (msg.content) {
+            const messageBubble = document.createElement('div');
+            messageBubble.className = 'message-bubble clearfix';
+            messageBubble.textContent = msg.content;
+            messageBubbleGroup.appendChild(messageBubble);
+        }
+        
+        // 이미지가 있는 경우 이미지 표시
+        if (msg.imageUrl) {
+            const imageContainer = document.createElement('div');
+            imageContainer.className = 'image-container';
+            
+            const image = document.createElement('img');
+            image.src = msg.imageUrl;
+            image.alt = '첨부 이미지';
+            image.className = 'chat-image';
+            image.addEventListener('click', function() {
+                window.open(msg.imageUrl, '_blank');
+            });
+            
+            imageContainer.appendChild(image);
+            messageBubbleGroup.appendChild(imageContainer);
+        }
 
         messageRow.appendChild(messageBubbleGroup);
 
@@ -478,13 +512,15 @@
         const message = messageInput.value.trim();
         const errorAlert = document.getElementById('error-alert');
 
-        if (message) {
+        // 메시지나 이미지 중 하나는 있어야 함
+        if (message || selectedImage) {
             // 현재 시간 추가
             const now = new Date();
 
             const messageData = {
                 content: message,
                 senderId: userId,           // 명확하게 ID 설정
+                imageUrl: selectedImage,    // 선택된 이미지가 있으면 Base64 데이터, 없으면 null
                 createdTime: now.toISOString() // LocalDateTime 호환을 위해 ISO 형식으로 전송
             };
 
@@ -495,10 +531,12 @@
 
                     // 입력 필드 초기화
                     messageInput.value = '';
+                    clearImagePreview(); // 이미지 미리보기 초기화
                     errorAlert.style.display = 'none';
                 } else {
                     throw new Error('WebSocket 연결이 끊어졌습니다.');
                 }
+
             } catch (e) {
                 console.error('메시지 전송 실패:', e);
                 errorAlert.textContent = '메시지 전송에 실패했습니다. 연결 재시도 중...';
@@ -508,9 +546,66 @@
                 initializeChat();
             }
         } else {
-            errorAlert.textContent = '메시지를 입력하세요.';
+            errorAlert.textContent = '메시지를 입력하거나 이미지를 첨부하세요.';
             errorAlert.style.display = 'block';
         }
+    }
+    
+    // 이미지 파일을 Base64로 변환
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    }
+    
+    // 이미지 선택 처리
+    async function handleImageSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        // 파일 크기 체크 (5MB 제한)
+        if (file.size > 5 * 1024 * 1024) {
+            document.getElementById('error-alert').textContent = '이미지 크기는 5MB 이하여야 합니다.';
+            document.getElementById('error-alert').style.display = 'block';
+            return;
+        }
+        
+        // 이미지 타입 체크
+        if (!file.type.startsWith('image/')) {
+            document.getElementById('error-alert').textContent = '이미지 파일만 첨부할 수 있습니다.';
+            document.getElementById('error-alert').style.display = 'block';
+            return;
+        }
+        
+        try {
+            // 파일을 Base64로 변환
+            selectedImage = await fileToBase64(file);
+            
+            // 이미지 미리보기 표시
+            const imagePreview = document.getElementById('image-preview');
+            imagePreview.src = selectedImage;
+            
+            // 미리보기 컨테이너 표시
+            document.getElementById('image-preview-container').style.display = 'block';
+            
+            // 오류 메시지 숨기기
+            document.getElementById('error-alert').style.display = 'none';
+        } catch (error) {
+            console.error('이미지 처리 오류:', error);
+            document.getElementById('error-alert').textContent = '이미지 처리 중 오류가 발생했습니다.';
+            document.getElementById('error-alert').style.display = 'block';
+        }
+    }
+    
+    // 이미지 미리보기 초기화
+    function clearImagePreview() {
+        selectedImage = null;
+        document.getElementById('image-preview').src = '';
+        document.getElementById('image-preview-container').style.display = 'none';
+        document.getElementById('image-input').value = ''; // 파일 입력 초기화
     }
 
     // 이벤트 리스너 등록
@@ -521,6 +616,17 @@
             sendMessage();
         }
     });
+    
+    // 이미지 버튼 클릭 시 파일 선택 다이얼로그 열기
+    document.getElementById('image-btn').addEventListener('click', function() {
+        document.getElementById('image-input').click();
+    });
+    
+    // 파일 선택 시 이미지 처리
+    document.getElementById('image-input').addEventListener('change', handleImageSelect);
+    
+    // 이미지 제거 버튼
+    document.getElementById('remove-image-btn').addEventListener('click', clearImagePreview);
 
     document.getElementById('refresh-btn').addEventListener('click', function(e) {
         e.preventDefault();

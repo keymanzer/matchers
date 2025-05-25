@@ -23,6 +23,12 @@ body {
 	justify-content: space-between;
 	align-items: center;
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	transition: all 0.3s ease;
+}
+
+.header.scrolled {
+    height: 70px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .header .logo-link {
@@ -34,6 +40,11 @@ body {
 	font-weight: bold;
 	color: #5c6bc0;
 	flex-shrink: 0;
+	transition: all 0.3s ease;
+}
+
+.header.scrolled .logo {
+    font-size: 22px;
 }
 
 .header .nav-login-wrapper {
@@ -61,7 +72,7 @@ body {
 	font-size: 16px;
 	padding: 8px 15px;
 	border-radius: 5px;
-	transition: background-color 0.3s;
+	transition: all 0.3s ease;
 	display: inline-block;
 	box-sizing: border-box;
 }
@@ -104,14 +115,190 @@ body {
 	border-radius: 5px;
 	text-decoration: none;
 	display: inline-block;
+	transition: all 0.3s ease;
 }
 
 .header .auth-buttons a:hover {
 	color: white;
 	background-color: #5e35b1;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 8px rgba(94, 53, 177, 0.2);
 }
 
 .header .nav li form {
 	list-style: none;
 	margin: 0;
+}
+
+/* 프로필 이미지 및 드롭다운 메뉴 스타일 */
+.profile-container {
+	position: relative;
+	margin-left: 10px;
+}
+
+.profile-button {
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all 0.3s ease;
+}
+
+.profile-image {
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	object-fit: cover;
+	border: 2px solid #fff;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+	transition: all 0.3s ease;
+}
+
+.profile-image:hover {
+	transform: scale(1.05);
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+	border-color: #7e57c2;
+}
+
+.profile-dropdown {
+	position: absolute;
+	right: 0;
+	top: 50px;
+	width: 240px;
+	background-color: white;
+	border-radius: 12px;
+	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+	z-index: 1000;
+	display: none;
+	overflow: hidden;
+	opacity: 0;
+	transform: translateY(-10px);
+	transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+	border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* 드롭다운 화살표 */
+.profile-dropdown:before {
+	content: '';
+	position: absolute;
+	top: -10px;
+	right: 15px;
+	width: 20px;
+	height: 10px;
+	border-bottom: 10px solid white;
+	border-left: 10px solid transparent;
+	border-right: 10px solid transparent;
+	filter: drop-shadow(0 -2px 2px rgba(0, 0, 0, 0.05));
+}
+
+.profile-dropdown.show {
+	display: block;
+	opacity: 1;
+	transform: translateY(0);
+}
+
+.profile-header {
+	padding: 16px;
+	border-bottom: 1px solid #eee;
+	background-color: #f9f9f9;
+}
+
+.profile-info {
+	display: flex;
+	flex-direction: column;
+}
+
+.profile-name {
+	font-weight: bold;
+	font-size: 16px;
+	margin-bottom: 4px;
+	color: #333;
+}
+
+.profile-email {
+	font-size: 13px;
+	color: #666;
+}
+
+.profile-menu {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.profile-menu li {
+	padding: 0;
+	margin: 0;
+}
+
+.profile-menu a, .profile-menu button {
+	display: flex;
+	align-items: center;
+	padding: 12px 16px;
+	color: #333;
+	text-decoration: none;
+	transition: all 0.2s;
+	width: 100%;
+	text-align: left;
+	font: inherit;
+	border: none;
+	background: none;
+	cursor: pointer;
+}
+
+.profile-menu a:hover, .profile-menu button:hover {
+	background-color: #f5f5f5;
+}
+
+.profile-menu i {
+	margin-right: 10px;
+	width: 16px;
+	text-align: center;
+	color: #7e57c2;
+}
+
+.logout-button {
+	color: #333;
+	font-weight: normal;
+}
+
+.logout-button:hover {
+	color: #e53935;
+}
+
+.logout-button i {
+	color: #e53935;
+}
+
+/* 반응형 스타일 */
+@media (max-width: 768px) {
+	.header {
+		padding: 10px 15px;
+	}
+	
+	.header .nav {
+		gap: 10px;
+		margin-left: 10px;
+	}
+	
+	.header .nav a {
+		padding: 6px 10px;
+		font-size: 15px;
+	}
+	
+	.profile-image {
+		width: 32px;
+		height: 32px;
+	}
+}
+
+@media (max-width: 576px) {
+	.header .logo {
+		font-size: 20px;
+	}
+	
+	.header .nav a {
+		padding: 5px 8px;
+		font-size: 14px;
+	}
 }

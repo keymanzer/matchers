@@ -4,6 +4,7 @@
 <head>
 	<meta charset="UTF-8">
 	<title>헤더</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 
 <body>
@@ -16,13 +17,9 @@
 
 	<div class="nav-login-wrapper">
 		<ul class="nav">
-			<li><a href="/">홈</a></li>
 			<li><a href="/user/quotationBoard/create">견적요청</a></li>
-			<li><a href="/">전문가 찾기</a></li>
+			<li><a href="/findedExpert">전문가 찾기</a></li>
 			<li><a href="/user/community">커뮤니티</a></li>
-			<th:block sec:authorize="hasRole('ROLE_USER')">
-				<li><a href="/user/mypage">마이페이지</a></li>
-			</th:block>
 		</ul>
 
 		<th:block sec:authorize="isAnonymous()">
@@ -70,17 +67,34 @@
 						</div>
 					</div>
 				</li>
-				<li>
-					<form action="/logout" method="post">
-						<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-						<button type="submit" class="btn">로그아웃</button>
-					</form>
+				
+				<!-- 프로필 이미지와 드롭다운 메뉴 -->
+				<li id="profile-container" class="profile-container">
+					<div class="profile-button" aria-label="프로필 메뉴">
+						<img th:if="${#authentication.principal.profileImg}" th:src="${#authentication.principal.profileImg}" alt="프로필 이미지" class="profile-image">
+						<img th:unless="${#authentication.principal.profileImg}" th:src="@{/images/profileImg.png}" alt="기본 프로필 이미지" class="profile-image">
+					</div>
+					<div id="profile-dropdown" class="profile-dropdown">
+						<div class="profile-header">
+							<div class="profile-info">
+								<div class="profile-name" th:text="${#authentication.principal.nickname}">사용자</div>
+								<div class="profile-email" th:text="${#authentication.principal.username}">이메일</div>
+							</div>
+						</div>
+						<ul class="profile-menu">
+							<li><a href="/user/mypage"><i class="fas fa-user"></i> 마이페이지</a></li>
+							<th:block sec:authorize="!hasAnyRole('ROLE_EXPERT', 'ROLE_ADMIN')">
+								<li><a href="/user/expert/register"><i class="fas fa-id-card"></i> 전문가 등록</a></li>
+							</th:block>
+							<li>
+								<form action="/logout" method="post" id="logout-form">
+									<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+									<button type="submit" class="logout-button"><i class="fas fa-sign-out-alt"></i> 로그아웃</button>
+								</form>
+							</li>
+						</ul>
+					</div>
 				</li>
-				<th:block sec:authorize="!hasAnyRole('ROLE_EXPERT', 'ROLE_ADMIN')">
-					<li>
-						<button class="btn" onclick="location.href='/user/expert/register'">전문가 등록</button>
-					</li>
-				</th:block>
 			</ul>
 		</th:block>
 	</div>
@@ -90,6 +104,30 @@
 		<input type="hidden" id="current-user-id" th:value="${#authentication.principal.userId}" />
 
 		<script th:inline="javascript">
+			// 프로필 드롭다운 메뉴 관련 스크립트
+			document.addEventListener('DOMContentLoaded', function() {
+				// 프로필 버튼과 드롭다운 요소 참조
+				const profileButton = document.querySelector('.profile-button');
+				const profileDropdown = document.getElementById('profile-dropdown');
+				
+				if (profileButton && profileDropdown) {
+					// 프로필 버튼 클릭 이벤트
+					profileButton.addEventListener('click', (e) => {
+						e.stopPropagation(); // 이벤트 버블링 방지
+						profileDropdown.classList.toggle('show');
+					});
+					
+					// 드롭다운 외부 클릭 시 닫기
+					document.addEventListener('click', (e) => {
+						if (profileDropdown &&
+								!profileButton.contains(e.target) &&
+								!profileDropdown.contains(e.target)) {
+							profileDropdown.classList.remove('show');
+						}
+					});
+				}
+			});
+
 			document.addEventListener('DOMContentLoaded', () => {
 				// 사용자 ID를 hidden input에서 가져옴
 				const userIdElement = document.getElementById('current-user-id');

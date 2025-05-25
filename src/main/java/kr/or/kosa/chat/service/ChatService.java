@@ -184,6 +184,7 @@ public class ChatService {
             // 상대방 프로필 이미지 설정
             dto.setOtherUserProfileImg(otherUser.getProfileImg());
 
+            dto.setBoardState(chatMapper.getBoardStateByBoardId(room.getBoardId()));
             dtos.add(dto);
 
         }
@@ -296,28 +297,40 @@ public class ChatService {
         return chatMapper.findParticipantsByRoomId(roomId);
     }
 
+    @Transactional
     public boolean boardAccept(Long roomId) {
-        // 채팅방이 존재하는지 확인
-        ChatRoom chatRoom = chatMapper.findRoomById(roomId);
-        if (chatRoom == null) {
-            return false; // 채팅방이 존재하지 않음
+        try {
+            ChatRoom chatRoom = chatMapper.findRoomById(roomId);
+            if (chatRoom == null) {
+                System.out.println("채팅방을 찾을 수 없음: roomId=" + roomId);
+                return false;
+            }
+            Long BoardId = chatRoom.getBoardId();
+            int result = chatMapper.updateBoardAccept(BoardId);
+            return result > 0;
+        } catch (Exception e) {
+            System.err.println("boardAccept 메서드 예외 발생: " + e.getMessage());
+            e.printStackTrace();
+            return false;
         }
-        Long BoardId = chatRoom.getBoardId();
-        chatMapper.updateBoardAccept(BoardId);
-
-        return true;
     }
 
+    @Transactional
     public boolean boardComplete(Long roomId) {
-        // 채팅방이 존재하는지 확인
-        ChatRoom chatRoom = chatMapper.findRoomById(roomId);
-        if (chatRoom == null) {
-            return false; // 채팅방이 존재하지 않음
+        try {
+            ChatRoom chatRoom = chatMapper.findRoomById(roomId);
+            if (chatRoom == null) {
+                System.out.println("채팅방을 찾을 수 없음: roomId=" + roomId);
+                return false;
+            }
+            Long BoardId = chatRoom.getBoardId();
+            int result = chatMapper.updateBoardComplete(BoardId);
+            return result > 0;
+        } catch (Exception e) {
+            System.err.println("boardComplete 메서드 예외 발생: " + e.getMessage());
+            e.printStackTrace();
+            return false;
         }
-        Long BoardId = chatRoom.getBoardId();
-        chatMapper.updateBoardComplete(BoardId);
-
-        return true;
     }
 
 

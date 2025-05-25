@@ -35,7 +35,9 @@ public interface ChatMapper {
 
     ChatMessage findLastMessageByRoomId(Long roomId);
 
-    void updateBoardAccept(Long boardId);
+    int updateBoardAccept(Long boardId);
 
-    void updateBoardComplete(Long boardId);
+    int updateBoardComplete(Long boardId);
+
+    String getBoardStateByBoardId(Long boardId);
 }

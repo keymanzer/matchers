@@ -39,6 +39,10 @@ public class QaBoardService {
 	public List<QaBoard> getPostList() {
         return qaBoardMapper.getPostList();
     }
+	
+	public List<QaBoard> getPostListByViews() {
+        return qaBoardMapper.getPostListByViews();
+    }
 
     public QaBoard getPostbyId(Long postId) {
         QaBoard post = qaBoardMapper.getPostbyId(postId);
@@ -58,6 +62,10 @@ public class QaBoardService {
         qaBoardMapper.updatePost(qaBoard);
         boardMapper.updateBoard(qaBoard.getPostId().intValue(), qaBoard.getTitle(), qaBoard.getContent());
     }
+    
+	public void increaseViewCount(Long postId) {
+		qaBoardMapper.increaseViewCount(postId);
+	}
     
     @Transactional
     public void deletePost(Long postId) {

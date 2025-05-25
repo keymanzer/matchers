@@ -63,17 +63,47 @@ public class QaBoardController {
 	}
 
 	// 게시글 목록
-    @GetMapping
-    public String getPostList(Model model) {
-    	
-        List<QaBoard> list = qaBoardService.getPostList();
-        model.addAttribute("list", list);
-        System.out.println("============전체목록조회 완료============");
-        return "qa/postlist";
-    }
+	@GetMapping
+	public String getPostList(Model model, @RequestParam(name = "page", defaultValue = "1") int page) {
 
+		int pageSize = 10;
+		List<QaBoard> allPosts = qaBoardService.getPostList();
+
+		int totalItems = allPosts.size();
+		int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+
+		if (page < 1)
+			page = 1;
+		if (page > totalPages && totalPages > 0)
+			page = totalPages;
+
+		int startIndex = (page - 1) * pageSize;
+		int endIndex = Math.min(startIndex + pageSize, totalItems);
+
+		List<QaBoard> currentPagePosts = new ArrayList<>();
+		if (startIndex < totalItems) {
+			currentPagePosts = allPosts.subList(startIndex, endIndex);
+		}
+
+		model.addAttribute("list", currentPagePosts);
+		model.addAttribute("currentPage", page);
+		model.addAttribute("totalPages", totalPages);
+		model.addAttribute("totalItems", totalItems);
+
+		return "qa/postlist";
+	}
+	
+	@GetMapping("/fragment/top5")
+	public String getTop5PostsByViews(Model model) {
+		List<QaBoard> allPosts = qaBoardService.getPostListByViews();
+		List<QaBoard> top5 = allPosts.size() > 5 ? allPosts.subList(0, 5) : allPosts;
+		model.addAttribute("list", top5);
+		return "community/postlist :: topPostList";
+	}
+	
+	
     // 게시글 상세 보기
-    @GetMapping("/{postId}")
+    @GetMapping("/{postId}/detail")
     public String getPostbyId(@PathVariable("postId") Long postId, Model model, Principal principal) {
         QaBoard post = qaBoardService.getPostbyId(postId);
         List<QaBoardComment> comments = qaBoardCommentService.getCommentListByPostId(postId);

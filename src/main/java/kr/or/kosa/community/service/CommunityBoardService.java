@@ -32,6 +32,10 @@ public class CommunityBoardService {
 		return communityBoardMapper.getPostList();
 	}
 	
+	public List<CommunityBoard> getPostListByViews(){
+		return communityBoardMapper.getPostListByViews();
+	}
+	
 	public CommunityBoard getPostbyId(Long postId){
 		return communityBoardMapper.getPostbyId(postId);
 	}

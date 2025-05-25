@@ -60,7 +60,26 @@
 		WHERE cb.POST_ID = b.POST_ID
 		ORDER BY b.POST_ID DESC
     </select>
-  
+    
+    <select id="getPostListByViews" resultMap="communityBoardMap">
+		SELECT 
+		    b.POST_ID, 
+		    b.TITLE, 
+		    b.CONTENT, 
+		    b.CREATED_AT, 
+		    b.USERID,
+		    u.NICKNAME,
+		    cb.LAST_UPDATED_AT, 
+		    cb.VIEWS,
+		    (CASE WHEN a.NAME IS NOT NULL THEN 1 ELSE 0 END) AS ATTACHED_FILE_EXISTS
+		FROM BOARD b
+		LEFT JOIN COMMUNITY_BOARD cb ON b.POST_ID = cb.POST_ID
+		LEFT JOIN USERS u ON b.USERID = u.USER_ID
+		LEFT JOIN ATTACHED_FILE a ON b.POST_ID = a.POST_ID
+		WHERE cb.POST_ID = b.POST_ID
+		ORDER BY cb.VIEWS DESC
+	</select>
+
     <select id="getPostbyId" parameterType="Long" resultMap="communityBoardMap">
 		SELECT 
 		    b.POST_ID, 

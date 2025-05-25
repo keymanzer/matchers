@@ -33,7 +33,7 @@ public class QaBoardCommentController {
         qaBoardCommentService.insertComment(comment);
         System.out.println("=========댓글 또는 대댓글 등록했습니다========");
 
-        return "redirect:/user/qa/" + comment.getPostId();
+        return "redirect:/user/qa/" + comment.getPostId() + "/detail";
     }
     
     @PostMapping("/{commentId}/update")
@@ -56,7 +56,7 @@ public class QaBoardCommentController {
         
         qaBoardCommentService.updateComment(existingComment);
 
-        return "redirect:/user/qa/" + updatedComment.getPostId();
+        return "redirect:/user/qa/" + updatedComment.getPostId() + "/detail";
     }
     
     @PostMapping("/{commentId}/delete")
@@ -78,7 +78,7 @@ public class QaBoardCommentController {
         qaBoardCommentService.deleteComment(commentId);
         System.out.println("=========댓글 삭제했습니다========");
 
-        return "redirect:/user/qa/" + postId;
+        return "redirect:/user/qa/" + postId + "/detail";
     }
 	
 }

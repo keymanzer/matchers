@@ -36,7 +36,6 @@ h2 {
   min-width: 1000px;
 }
 
-/* 테이블 기본 + 좌우 border 제거 */
 table {
   width: 100%;
   table-layout: fixed;

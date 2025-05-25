@@ -12,6 +12,7 @@ import lombok.Data;
 public class QaBoard {
  
 	private Long postId;
+	private LocalDateTime createdAt;
 	private LocalDateTime lastUpdatedAt;
 	private Long views;
     private String status;

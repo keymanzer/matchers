@@ -10,17 +10,17 @@ import kr.or.kosa.community.dto.CommunityBoardComment;
 @Mapper
 public interface CommunityBoardCommentMapper {
 
-    List<CommunityBoardComment> getCommentListByPostId(Long postId);
+    List<CommunityBoardComment> getCommentListByPostId(@Param("postId") Long postId);
 
-    CommunityBoardComment getCommentById(Long commentId);
+    CommunityBoardComment getCommentById(@Param("commentId") Long commentId);
     
     void insertComment(CommunityBoardComment comment);
 
     void updateComment(CommunityBoardComment comment);
 
-    void deleteComment(Long commentId);
+    void deleteComment(@Param("commentId") Long commentId);
 
     // 부모 댓글에 달린 대댓글(자식 댓글) 리스트 조회
-    List<CommunityBoardComment> getRepliesByParentId(Long parentCommentId);
+    List<CommunityBoardComment> getRepliesByParentId(@Param("parentCommentId") Long parentCommentId);
 }
 

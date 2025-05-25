@@ -34,4 +34,8 @@ public interface ChatMapper {
     List<ChatMessage> findChatMessagesByRoomId(Long roomId);
 
     ChatMessage findLastMessageByRoomId(Long roomId);
+
+    void updateBoardAccept(Long boardId);
+
+    void updateBoardComplete(Long boardId);
 }

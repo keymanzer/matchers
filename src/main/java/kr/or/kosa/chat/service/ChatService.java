@@ -9,6 +9,7 @@ import kr.or.kosa.chat.model.ChatMessage;
 import kr.or.kosa.chat.model.ChatParticipant;
 import kr.or.kosa.chat.model.ChatRoom;
 import kr.or.kosa.mapper.UserMapper;
+import kr.or.kosa.quotationBoard.dto.QuotationBoard;
 import kr.or.kosa.user.dto.CustomUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -112,7 +113,13 @@ public class ChatService {
             // 마지막 메시지 정보 설정
             ChatMessage lastMessage = chatMapper.findLastMessageByRoomId(room.getChatRoomId());
             if (lastMessage != null) {
-                dto.setLastMessage(lastMessage.getContent());
+                if (lastMessage.getContent() != null && !lastMessage.getContent().isEmpty()) {
+                    dto.setLastMessage(lastMessage.getContent());
+                } else if (lastMessage.getImageUrl() != null && !lastMessage.getImageUrl().isEmpty()) {
+                    dto.setLastMessage("이미지를 보냈습니다");
+                } else {
+                    dto.setLastMessage("메시지 없음");
+                }
                 dto.setLastMessageTime(lastMessage.getCreatedTime());
             } else {
                 dto.setLastMessage("메시지 없음");
@@ -157,10 +164,15 @@ public class ChatService {
             dto.setRoomName(room.getName());
             dto.setOtherUserName(otherUser.getName());
 
-            // 마지막 메시지 정보 설정
             ChatMessage lastMessage = chatMapper.findLastMessageByRoomId(room.getChatRoomId());
             if (lastMessage != null) {
-                dto.setLastMessage(lastMessage.getContent());
+                if (lastMessage.getContent() != null && !lastMessage.getContent().isEmpty()) {
+                    dto.setLastMessage(lastMessage.getContent());
+                } else if (lastMessage.getImageUrl() != null && !lastMessage.getImageUrl().isEmpty()) {
+                    dto.setLastMessage("이미지를 보냈습니다");
+                } else {
+                    dto.setLastMessage("메시지 없음");
+                }
                 dto.setLastMessageTime(lastMessage.getCreatedTime());
             } else {
                 dto.setLastMessage("메시지 없음");
@@ -215,7 +227,8 @@ public class ChatService {
                     .messageId(msg.getMessageId())
                     .content(msg.getContent())
                     .nickname(displayName)
-                    .senderId(msg.getUserId())   // 이 필드도 추가 (일관성을 위해)
+                    .imageUrl(msg.getImageUrl())
+                    .senderId(msg.getUserId())
                     .createdTime(msg.getCreatedTime())
                     .build();
 
@@ -282,4 +295,31 @@ public class ChatService {
     public List<ChatParticipant> getChatRoomParticipants(Long roomId) {
         return chatMapper.findParticipantsByRoomId(roomId);
     }
+
+    public boolean boardAccept(Long roomId) {
+        // 채팅방이 존재하는지 확인
+        ChatRoom chatRoom = chatMapper.findRoomById(roomId);
+        if (chatRoom == null) {
+            return false; // 채팅방이 존재하지 않음
+        }
+        Long BoardId = chatRoom.getBoardId();
+        chatMapper.updateBoardAccept(BoardId);
+
+        return true;
+    }
+
+    public boolean boardComplete(Long roomId) {
+        // 채팅방이 존재하는지 확인
+        ChatRoom chatRoom = chatMapper.findRoomById(roomId);
+        if (chatRoom == null) {
+            return false; // 채팅방이 존재하지 않음
+        }
+        Long BoardId = chatRoom.getBoardId();
+        chatMapper.updateBoardComplete(BoardId);
+
+        return true;
+    }
+
+
+
 }

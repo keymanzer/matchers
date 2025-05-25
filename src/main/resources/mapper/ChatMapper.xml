@@ -8,6 +8,7 @@
         <result property="chatRoomId" column="chat_room_id"/>
         <result property="userId" column="user_id"/>
         <result property="content" column="content"/>
+        <result property="imageUrl" column="image_url"/>
         <result property="createdTime" column="created_time"/>
     </resultMap>
 
@@ -83,8 +84,8 @@
         <selectKey keyProperty="messageId" resultType="java.lang.Long" order="BEFORE">
             SELECT chat_message_seq.NEXTVAL FROM dual
         </selectKey>
-        INSERT INTO chat_message (message_id, chat_room_id, user_id, content, created_time)
-        VALUES (#{messageId}, #{chatRoomId}, #{userId}, #{content}, CURRENT_TIMESTAMP)
+        INSERT INTO chat_message (message_id, chat_room_id, user_id, content, image_url, created_time)
+        VALUES (#{messageId}, #{chatRoomId}, #{userId}, #{content,jdbcType=VARCHAR}, #{imageUrl,jdbcType=VARCHAR}, CURRENT_TIMESTAMP)
     </insert>
 
     <select id="findChatMessagesByRoomId" resultMap="chatMessageMap">
@@ -104,4 +105,11 @@
         WHERE ROWNUM = 1
     </select>
 
+    <update id="updateBoardAccept" parameterType="long">
+        update quotation_board set state='Y' where post_id=#{boardId};
+    </update>
+
+    <update id="updateBoardComplete" parameterType="long">
+        update quotation_board set state='C' where post_id=#{boardId};
+    </update>
 </mapper>

@@ -134,4 +134,22 @@ public class ChatController {
             return ResponseEntity.ok(0L); // 오류 발생 시 0으로 반환
         }
     }
+
+    // 채팅방 목록에서 해당 채팅방(견적)에 대한 수락 API
+    @PostMapping("/chat/room/{roomId}/accept")
+    @ResponseBody
+    public ResponseEntity<String> boardAccept(@PathVariable Long roomId) {
+        CustomUser user = (CustomUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        boolean success = chatService.boardAccept(roomId);
+        return success ? ResponseEntity.ok("success") : ResponseEntity.badRequest().body("fail");
+    }
+
+    // 채팅방 목록에서 해당 채팅방(견적)에 완료 API
+    @PostMapping("/chat/room/{roomId}/accept")
+    @ResponseBody
+    public ResponseEntity<String> boardComplete(@PathVariable Long roomId) {
+        CustomUser user = (CustomUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        boolean success = chatService.boardComplete(roomId);
+        return success ? ResponseEntity.ok("success") : ResponseEntity.badRequest().body("fail");
+    }
 }

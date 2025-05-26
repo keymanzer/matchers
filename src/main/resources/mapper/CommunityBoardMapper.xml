@@ -32,6 +32,7 @@
 	    <result property="userNickname" column="USER_NICKNAME"/>
 	    <result property="userId" column="USERID"/>
 	    <result property="attachedFileExists" column="ATTACHED_FILE_EXISTS"/>
+	    <result property="filePath" column="FILE_PATH"/>
         <association property="board" resultMap="boardMap"/>
         <association property="users" resultMap="usersMap"/>
         <collection property="attachedFiles" ofType="kr.or.kosa.attachedFile.dto.AttachedFile">
@@ -71,7 +72,8 @@
 		    u.NICKNAME,
 		    cb.LAST_UPDATED_AT, 
 		    cb.VIEWS,
-		    (CASE WHEN a.NAME IS NOT NULL THEN 1 ELSE 0 END) AS ATTACHED_FILE_EXISTS
+		    (CASE WHEN a.NAME IS NOT NULL THEN 1 ELSE 0 END) AS ATTACHED_FILE_EXISTS,
+		    a.PATH AS FILE_PATH
 		FROM BOARD b
 		LEFT JOIN COMMUNITY_BOARD cb ON b.POST_ID = cb.POST_ID
 		LEFT JOIN USERS u ON b.USERID = u.USER_ID

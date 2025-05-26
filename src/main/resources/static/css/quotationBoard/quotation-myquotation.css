@@ -23,15 +23,18 @@ body {
     background-color: var(--light-color);
     color: var(--text-primary);
     margin-top: 100px;
-    min-height: 100vh;
+    /* height: 100vh; */ /* 제거 */
+    /* overflow: hidden; */ /* 제거 - 이게 스크롤을 막고 있었음 */
+    min-height: 100vh; /* 최소 높이로 변경 */
 }
 
 .container {
     display: flex;
-    min-height: 70vh;
+    /* height: 100vh; */ /* 제거 */
+    min-height: 70vh; /* 최소 높이로 변경 */
     gap: 1px;
     background-color: var(--border-color);
-    margin-bottom: 20px;
+    margin-bottom: 20px; /* 푸터와의 여백 */
 }
 
 /* 좌측 견적 목록 영역 */
@@ -71,7 +74,9 @@ body {
 .tab.active::after {
     content: '';
     position: absolute;
-    bottom: 0; left: 0; right: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
     height: 2px;
     background-color: var(--primary-color);
 }
@@ -87,7 +92,6 @@ body {
     padding: 0;
 }
 
-/* 견적 아이템 */
 .quote-item {
     padding: 20px;
     border-bottom: 1px solid var(--border-color);
@@ -108,7 +112,9 @@ body {
 .quote-item.active::before {
     content: '';
     position: absolute;
-    left: 0; top: 0; bottom: 0;
+    left: 0;
+    top: 0;
+    bottom: 0;
     width: 3px;
     background-color: var(--primary-color);
 }
@@ -226,42 +232,39 @@ body {
     background: linear-gradient(135deg, rgba(94, 96, 206, 0.02) 0%, rgba(123, 44, 191, 0.02) 100%);
 }
 
-/* 빈 상태, 에러 상태, 로딩 등 공통 */
-.empty-state, .error {
+.empty-state {
     text-align: center;
     padding: 40px 20px;
 }
 
-.empty-icon, .error-icon {
-    width: 64px; height: 64px;
+.empty-icon {
+    width: 64px;
+    height: 64px;
     margin: 0 auto 16px;
+    opacity: 0.3;
+    background: var(--primary-color);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 24px;
-    opacity: 0.3;
+    color: white;
 }
 
-.empty-text, .error-text {
+.empty-text {
     font-size: 16px;
     color: var(--text-muted);
     margin-bottom: 8px;
 }
 
-.empty-subtext, .error-subtext {
+.empty-subtext {
     font-size: 14px;
     color: var(--text-muted);
     opacity: 0.7;
 }
 
-.error-icon {
-    background: #dc2626;
-    color: white;
-}
-
-/* 로딩 스피너 */
-.loading, .spinner-container {
+/* 로딩 상태 */
+.loading {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -270,7 +273,8 @@ body {
 }
 
 .spinner {
-    width: 20px; height: 20px;
+    width: 20px;
+    height: 20px;
     border: 2px solid var(--border-color);
     border-top: 2px solid var(--primary-color);
     border-radius: 50%;
@@ -283,6 +287,43 @@ body {
     100% { transform: rotate(360deg); }
 }
 
+/* 에러 상태 */
+.error {
+    text-align: center;
+    padding: 40px 20px;
+    color: #dc2626;
+}
+
+.error-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    background: #dc2626;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+}
+
+/* 스크롤바 스타일링 */
+.quote-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.quote-list::-webkit-scrollbar-track {
+    background: var(--light-color);
+}
+
+.quote-list::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+.quote-list::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
 /* 액션 버튼들 */
 .action-buttons {
     position: absolute;
@@ -317,95 +358,18 @@ body {
     background: #2980b9;
 }
 
-.delete-button {
-    background: #ff4757;
-    color: white;
-}
-
-.delete-button:hover {
-    background: #ff3742;
-}
-
 /* 반응형 */
 @media (max-width: 768px) {
-    .container { flex-direction: column; }
-    .quote-section { width: 100%; height: 50%; }
-    .chat-section { height: 50%; }
-}
+    .container {
+        flex-direction: column;
+    }
 
-/* 스크롤바 스타일 */
-.quote-list::-webkit-scrollbar { width: 6px; }
-.quote-list::-webkit-scrollbar-track { background: var(--light-color); }
-.quote-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
-.quote-list::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+    .quote-section {
+        width: 100%;
+        height: 50%;
+    }
 
-/* 삭제 확인 모달 스타일 */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.4);
-}
-
-.modal-content {
-    background-color: #fefefe;
-    margin: 15% auto;
-    padding: 20px;
-    border: none;
-    border-radius: 8px;
-    width: 400px;
-    max-width: 90%;
-    text-align: center;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-}
-
-.modal-header {
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 15px;
-    color: #333;
-}
-
-.modal-body {
-    margin-bottom: 20px;
-    color: #666;
-    line-height: 1.5;
-}
-
-.modal-buttons {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-}
-
-.modal-button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.2s ease;
-}
-
-.modal-button.confirm {
-    background: #ff4757;
-    color: white;
-}
-
-.modal-button.confirm:hover {
-    background: #ff3742;
-}
-
-.modal-button.cancel {
-    background: #ddd;
-    color: #333;
-}
-
-.modal-button.cancel:hover {
-    background: #ccc;
+    .chat-section {
+        height: 50%;
+    }
 }

@@ -49,7 +49,6 @@
         UPDATE quotation_board
         SET
             expert_id = #{expertId},
-            category_id = #{categoryId},
             state = #{state}
         WHERE post_id = #{postId}
     </update>
@@ -204,6 +203,30 @@
             AND qb.state = #{state}
         </where>
         ORDER BY b.created_at DESC  <!-- 작성 날짜 기준 최신순 정렬 -->
+    </select>
+
+    <select id="findMyQuotations" parameterType="map" resultMap="QuotationBoardResultMap">
+        SELECT
+        qb.POST_ID,
+        qb.EXPERT_ID,
+        qb.CATEGORY_ID,
+        qb.STATE,
+        b.TITLE,
+        b.CONTENT,
+        b.CREATED_AT,
+        b.USER_NICKNAME,
+        b.USERID
+        FROM QUOTATION_BOARD qb
+        JOIN BOARD b
+        ON qb.POST_ID = b.POST_ID
+        JOIN CHAT_ROOM cr
+        ON cr.BOARD_ID = b.POST_ID
+        JOIN CHAT_PARTICIPANT cp
+        ON cp.CHAT_ROOM_ID = cr.CHAT_ROOM_ID
+        WHERE qb.STATE     = #{state}
+        AND cp.USER_ID   = #{userId}
+        AND b.USERID    != #{userId}
+
     </select>
 
 </mapper>

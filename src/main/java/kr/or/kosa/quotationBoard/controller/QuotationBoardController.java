@@ -36,10 +36,10 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.sql.Types.NULL;
 
 @Controller
 @RequestMapping("/user/quotationBoard")
@@ -158,12 +158,51 @@ public class QuotationBoardController {
         return "redirect:/user/quotationBoard/list";
     }
 
+    @GetMapping("/api/delete/{postId}") // PUT에서 DELETE로 변경
+    @ResponseBody
+    public ResponseEntity<?> deleteQuotation(@PathVariable Long postId) {
+        System.out.println("deleteQuotation 호출됨 - postId: " + postId);
+
+        try {
+            // 견적 삭제를 위한 QuotationBoard 객체 생성
+            QuotationBoard quotationBoard = new QuotationBoard();
+            quotationBoard.setPostId(postId);
+            System.out.println("업데이트 전 quotationBoard: " + quotationBoard);
+            quotationBoard.setState("삭제");
+            quotationBoard.setExpertId(0); // null로 설정
+
+            quotationBoardService.updateQuotationBoard(quotationBoard);
+
+            System.out.println("삭제 완료 - postId: " + postId);
+
+            // JSON 응답 반환
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "견적이 삭제되었습니다.");
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(response);
+
+        } catch (Exception e) {
+            System.err.println("삭제 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
+
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "삭제 중 오류가 발생했습니다: " + e.getMessage());
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(errorResponse);
+        }
+    }
 
     @PostMapping("/update")
     public String updateQuotationBoard(QuotationBoard quotationBoard) {
         System.out.println(quotationBoard);
         quotationBoardService.updateQuotationBoard(quotationBoard);
-        return "redirect:/user/quotationBoard/list"; // 수정 후 목록 페이지 이동
+        return "redirect:/user/quotationBoard/myquotation"; // 수정 후 목록 페이지 이동
     }
 
     @PostMapping("/delete")
@@ -260,6 +299,36 @@ public class QuotationBoardController {
 
             // 서비스 호출
             List<QuotationBoard> quotes = quotationBoardService.findMyRequests(userId, serviceStatus);
+            System.out.println("quotes = " + quotes);
+
+            return ResponseEntity.ok(quotes);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/myquotation")
+    public String myquotationList(Model model, @AuthenticationPrincipal CustomUser customUser) {
+
+        return "quotationBoard/myquotation";
+    }
+    // 2. 비동기 데이터 로드 (JSON 반환)
+    @GetMapping("/api/myquotation")
+    @ResponseBody
+    public ResponseEntity<List<QuotationBoard>> getMyQuotationsByStatus(
+            @RequestParam String status, // 프론트에서 보낸 상태값 (pending, progress, completed)
+            @AuthenticationPrincipal CustomUser customUser) {
+
+        try {
+            long userId = customUser.getUserId();
+
+            // 프론트의 상태값을 서비스에서 사용하는 상태값으로 변환
+            String serviceStatus = convertToServiceStatus(status);
+            System.out.println("serviceStatus = " + serviceStatus);
+
+            // 서비스 호출
+            List<QuotationBoard> quotes = quotationBoardService.findMyQuotations(userId, serviceStatus);
             System.out.println("quotes = " + quotes);
 
             return ResponseEntity.ok(quotes);

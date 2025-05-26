@@ -35,9 +35,12 @@ public interface ChatMapper {
 
     ChatMessage findLastMessageByRoomId(Long roomId);
 
-    int updateBoardAccept(Long boardId);
+    int updateBoardAccept(@Param("boardId") Long boardId, @Param("expertId") Long expertId);
 
-    int updateBoardComplete(Long boardId);
+    int updateBoardComplete(@Param("boardId") Long boardId, @Param("expertId") Long expertId);
 
     String getBoardStateByBoardId(Long boardId);
+    
+    // 게시글에 할당된 전문가 ID 조회
+    Long getAssignedExpertIdByBoardId(Long boardId);
 }

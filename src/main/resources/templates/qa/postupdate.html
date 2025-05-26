@@ -58,7 +58,20 @@
         <textarea class="form-control" id="content" name="content" rows="8" th:text="${post.content}" required></textarea>
       </div>
     </div>
-
+	<!-- 공개 여부 설정 -->
+	<div class="section-card">
+	  <label class="form-label d-block mb-2">공개 설정</label>
+	  <div class="form-check form-check-inline">
+	    <input class="form-check-input" type="radio" name="visible" id="visiblePublic" value="Y"
+	           th:checked="${post.visible == 'Y' or post.visible == null}">
+	    <label class="form-check-label" for="visiblePublic">공개</label>
+	  </div>
+	  <div class="form-check form-check-inline">
+	    <input class="form-check-input" type="radio" name="visible" id="visiblePrivate" value="N"
+	           th:checked="${post.visible == 'N'}">
+	    <label class="form-check-label" for="visiblePrivate">비공개</label>
+	  </div>
+	</div>
     <!-- 기존 첨부파일 -->
     <div class="section-card">
       <div class="section-title">
@@ -69,7 +82,7 @@
           <th:block th:each="file, iterStat : ${post.attachedFiles}">
             <th:block th:if="${file.name != null and !#strings.isEmpty(file.name)}">
               <div class="file-item" th:style="${iterStat.index % 5 == 0 ? 'clear:both;' : ''}">
-                <a th:href="@{|/file/download/${file.name}|}" th:text="${file.name}"></a>
+                <a th:href="@{|/user/qa/download/${file.attachedFileId}|}" th:text="${file.name}"></a>
                 <input type="hidden" name="existingFiles" th:value="${file.name}" />
               </div>
             </th:block>

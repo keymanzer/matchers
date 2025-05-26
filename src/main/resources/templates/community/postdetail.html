@@ -55,18 +55,18 @@
     <div class="post-title" th:text="${post.board.title}">제목</div>
     <div class="post-content" th:utext="${post.board.content}">내용</div>
 
-    <!-- 첨부파일 -->
-    <th:block th:if="${post.attachedFiles != null and !post.attachedFiles.isEmpty()}">
-      <div class="file-section">
-        <p class="post-meta"><strong>첨부파일</strong></p>
-        <div>
-          <a th:each="file : ${post.attachedFiles}"
-             th:href="@{|/file/download/${file.name}|}"
-             th:text="${file.name}"
-             class="file-button"></a>
-        </div>
-      </div>
-    </th:block>
+	<!-- 첨부파일 -->
+	<th:block th:if="${post.attachedFiles != null and !post.attachedFiles.isEmpty()}">
+	  <div class="file-section">
+	    <p class="post-meta"><strong>첨부파일</strong></p>
+	    <div>
+			<a th:each="file : ${post.attachedFiles}"
+			   th:href="@{|/user/community/download/${file.attachedFileId}|}"
+			   th:text="${file.name}"
+			   class="file-button"></a>
+	    </div>
+	  </div>
+	</th:block>
 	<br>
 	<!-- 수정/삭제 버튼 -->
 	<div class="action-buttons" th:if="${loginUserId != null and loginUserId == post.board.userId}">

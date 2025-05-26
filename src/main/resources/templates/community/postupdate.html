@@ -74,7 +74,7 @@
 	      <th:block th:each="file, iterStat : ${post.attachedFiles}">
 	        <th:block th:if="${file.name != null and !#strings.isEmpty(file.name)}">
 	          <div class="file-item" th:style="${iterStat.index % 5 == 0 ? 'clear:both;' : ''}">
-	            <a th:href="@{|/file/download/${file.name}|}" th:text="${file.name}"></a>
+	            <a th:href="@{|/user/community/download/${file.attachedFileId}|}" th:text="${file.name}"></a>
 	            <input type="hidden" name="existingFiles" th:value="${file.name}" />
 	          </div>
 	        </th:block>

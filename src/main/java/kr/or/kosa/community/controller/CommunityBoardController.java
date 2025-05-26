@@ -1,6 +1,8 @@
 package kr.or.kosa.community.controller;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,6 +10,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -264,5 +270,60 @@ public class CommunityBoardController {
 
 		return "redirect:/user/community";
 	}
+	
+	// 업로드 파일 다운로드
+    @GetMapping("/download/{fileId}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable("fileId") Long fileId) {
+        try {
+            // 파일 정보 조회
+            AttachedFile file = attachedFileService.findByAttachedFileId(fileId);
+            if (file == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            String s3Url = file.getPath(); // S3 URL
+            String originalFileName = file.getName(); // DB에 저장된 원본 파일명
+
+            // 파일 이름을 URL 인코딩 처리
+            String encodedFileName = URLEncoder.encode(originalFileName, "UTF-8")
+                    .replaceAll("\\+", "%20"); // '+'를 공백으로 변경
+
+            // S3 URL에서 key 추출
+            String s3Key = extractS3KeyFromUrl(s3Url);
+
+            // S3에서 파일 스트림 가져오기
+            Resource resource = s3Service.downloadFile(s3Key);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + encodedFileName + "\"")
+                    .header(HttpHeaders.CONTENT_TYPE, "application/octet-stream")
+                    .body(resource);
+
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    /**
+     * S3 URL에서 key 부분을 추출
+     * 예: https://inswave-2th-project-bucket.s3.ap-northeast-2.amazonaws.com/quotation_Board/파일명
+     * -> quotation_Board/파일명
+     */
+    private String extractS3KeyFromUrl(String s3Url) {
+        try {
+            String[] parts = s3Url.split(".amazonaws.com/");
+            if (parts.length > 1) {
+                return parts[1];
+            }
+            throw new IllegalArgumentException("Invalid S3 URL format");
+        } catch (Exception e) {
+            throw new RuntimeException("S3 URL 파싱 실패: " + s3Url, e);
+        }
+    }
 
 }

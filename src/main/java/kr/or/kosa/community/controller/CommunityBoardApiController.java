@@ -11,7 +11,7 @@ import kr.or.kosa.community.dto.CommunityBoard;
 import kr.or.kosa.community.service.CommunityBoardService;
 
 @RestController
-@RequestMapping("/user/community/api")
+@RequestMapping("/uploads")
 public class CommunityBoardApiController {
 
     @Autowired

@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<!-- 채팅 목록 Fragment -->
+<div th:fragment="chatList">
+    <!-- CSS 스타일 -->
+    <style>
+        .chat-list-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .connection-status {
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            font-size: 0.85rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .connection-status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .connection-status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .empty-list {
+            padding: 60px 20px;
+            text-align: center;
+            color: #6c757d;
+        }
+
+        .chat-room-item {
+            border-bottom: 1px solid #f1f3f4;
+            transition: background-color 0.2s ease;
+            position: relative;
+        }
+
+        .chat-room-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .chat-room-item.highlight {
+            background-color: #e3f2fd;
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        .chat-room-item a {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 12px;
+            flex-shrink: 0;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .chat-room-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chat-room-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+            color: #212529;
+        }
+
+        .chat-room-last-message {
+            color: #6c757d;
+            font-size: 0.85rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .chat-room-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            margin-left: 12px;
+        }
+
+        .chat-room-time {
+            font-size: 0.75rem;
+            color: #adb5bd;
+            margin-bottom: 4px;
+        }
+
+        .unread-badge {
+            background: #dc3545;
+            color: white;
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .last-updated {
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            font-size: 0.75rem;
+            color: #6c757d;
+            text-align: center;
+        }
+
+        .btn-refresh {
+            background: none;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #6c757d;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-refresh:hover {
+            background: #f8f9fa;
+            border-color: #adb5bd;
+        }
+
+        .btn-refresh i.spin {
+            animation: spin 0.5s linear;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+    </style>
+
+    <div class="chat-list-container">
+        <!-- 연결 상태 표시 -->
+        <div id="connection-status" class="connection-status">연결 확인 중...</div>
+
+        <!-- 빈 목록 표시 -->
+        <div id="empty-list" class="empty-list" style="display: none;">
+            <i class="bi bi-chat-left-dots" style="font-size: 48px; color: #ddd; margin-bottom: 15px;"></i>
+            <p>참여 중인 채팅방이 없습니다.</p>
+        </div>
+
+        <!-- 채팅방 목록 -->
+        <div id="chat-rooms-list">
+            <!-- 동적으로 생성될 채팅방 목록 -->
+        </div>
+
+        <div class="last-updated" id="last-updated"></div>
+    </div>
+</div>
+
+<!-- 채팅 목록 스크립트 Fragment -->
+<div th:fragment="chatListScript">
+    <script th:inline="javascript">
+        // 채팅 목록 관리 클래스
+        class ChatListManager {
+            constructor(userId, boardId = null) {
+                this.userId = userId;
+                this.boardId = boardId;
+                this.stompClient = null;
+                this.reconnectTimer = null;
+                this.reconnectAttempts = 0;
+                this.maxReconnectAttempts = 3;
+
+                this.init();
+            }
+
+            // 초기화
+            init() {
+                console.log('ChatListManager 초기화, 사용자 ID:', this.userId);
+
+                // 즉시 채팅방 목록 로드
+                this.refreshChatRooms();
+
+                // WebSocket 연결
+                if (this.userId) {
+                    setTimeout(() => {
+                        this.connectWebSocket();
+                    }, 500);
+                } else {
+                    this.updateConnectionStatus('로그인이 필요합니다', true);
+                }
+
+                // 페이지 포커스 이벤트
+                document.addEventListener('visibilitychange', () => {
+                    if (document.visibilityState === 'visible') {
+                        if (!this.stompClient || !this.stompClient.connected) {
+                            this.connectWebSocket();
+                        }
+                        this.refreshChatRooms();
+                    }
+                });
+
+                // 초기 타임스탬프 업데이트
+                this.updateLastUpdatedTime();
+            }
+
+            // WebSocket 연결
+            connectWebSocket() {
+                try {
+                    const socket = new SockJS('/connect');
+                    this.stompClient = Stomp.over(socket);
+                    this.stompClient.debug = null;
+
+                    this.stompClient.connect({}, frame => {
+                        this.updateConnectionStatus('실시간 알림 수신 중', false, true);
+                        console.log('WebSocket 연결됨:', frame);
+
+                        // 구독 설정
+                        this.stompClient.subscribe(`/topic/chat-update/${this.userId}`, message => {
+                            console.log('새 메시지 수신:', message.body);
+                            const notification = JSON.parse(message.body);
+                            this.highlightChatRoom(notification.roomId);
+                            this.refreshChatRooms();
+                        });
+
+                        // 재연결 시도 초기화
+                        clearTimeout(this.reconnectTimer);
+                        this.reconnectAttempts = 0;
+                    }, error => {
+                        console.error('WebSocket 연결 실패:', error);
+                        this.updateConnectionStatus('실시간 알림 연결 실패', true);
+                        this.handleReconnect();
+                    });
+                } catch (e) {
+                    console.error('WebSocket 초기화 오류:', e);
+                    this.updateConnectionStatus('알림 시스템 오류', true);
+                }
+            }
+
+            // 재연결 처리
+            handleReconnect() {
+                if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                    this.reconnectAttempts++;
+                    this.updateConnectionStatus(`재연결 시도 중 (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
+
+                    this.reconnectTimer = setTimeout(() => {
+                        this.connectWebSocket();
+                    }, 3000);
+                } else {
+                    this.updateConnectionStatus('연결 실패, 페이지 새로고침 필요', true);
+                }
+            }
+
+            // 연결 상태 업데이트
+            updateConnectionStatus(message, isError = false, isConnected = false) {
+                const statusEl = document.getElementById('connection-status');
+                if (statusEl) {
+                    statusEl.textContent = message;
+                    statusEl.className = 'connection-status';
+                    if (isConnected) {
+                        statusEl.classList.add('connected');
+                    } else if (isError) {
+                        statusEl.classList.add('disconnected');
+                    }
+                }
+            }
+
+            // 채팅방 목록 새로고침
+            async refreshChatRooms() {
+                try {
+                    // API 엔드포인트 결정
+                    let apiUrl;
+                    if (this.boardId) {
+                        apiUrl = `/chat/${this.boardId}/rooms/api`;
+                    } else {
+                        apiUrl = '/chat/rooms/api';
+                    }
+
+                    const response = await axios.get(apiUrl);
+                    const chatRooms = response.data;
+
+                    console.log("채팅방 API 응답:", chatRooms);
+
+                    const emptyListEl = document.getElementById('empty-list');
+                    const chatRoomsListEl = document.getElementById('chat-rooms-list');
+
+                    if (chatRooms.length === 0) {
+                        if (emptyListEl) emptyListEl.style.display = 'block';
+                        if (chatRoomsListEl) chatRoomsListEl.innerHTML = '';
+                        this.updateLastUpdatedTime();
+                        return;
+                    }
+
+                    if (emptyListEl) emptyListEl.style.display = 'none';
+
+                    // 기존 요소 참조 저장
+                    const existingItems = {};
+                    if (chatRoomsListEl) {
+                        document.querySelectorAll('.chat-room-item').forEach(item => {
+                            const roomId = item.getAttribute('data-room-id');
+                            if (roomId) {
+                                existingItems[roomId] = true;
+                            }
+                        });
+                    }
+
+                    // 새로운 채팅방 목록 HTML 생성
+                    let chatRoomsHTML = '';
+                    for (const room of chatRooms) {
+                        const formattedTime = this.formatDate(room.lastMessageTime);
+                        const otherUserName = room.otherUserName || '알 수 없음';
+                        const profileImg = room.otherUserProfileImg;
+
+                        const avatarContent = profileImg
+                            ? `<img src="${profileImg}" alt="프로필 이미지">`
+                            : `<img src="/images/profileImg.png" alt="기본 프로필 이미지">`;
+
+                        chatRoomsHTML += `
+                            <div class="chat-room-item" data-room-id="${room.roomId}">
+                                <a href="/chat/room/${room.roomId}">
+                                    <div class="avatar">
+                                        ${avatarContent}
+                                    </div>
+                                    <div class="chat-room-info">
+                                        <div class="chat-room-name">${otherUserName}</div>
+                                        <div class="chat-room-last-message">${room.lastMessage || '아직 대화가 없습니다.'}</div>
+                                    </div>
+                                    <div class="chat-room-meta">
+                                        <div class="chat-room-time">${formattedTime}</div>
+                                        ${room.unReadCount > 0 ? `<div class="unread-badge">${room.unReadCount}</div>` : ''}
+                                    </div>
+                                </a>
+                            </div>
+                        `;
+                    }
+
+                    if (chatRoomsListEl) {
+                        chatRoomsListEl.innerHTML = chatRoomsHTML;
+                    }
+
+                    // 새 메시지가 있는 채팅방 강조
+                    chatRooms.forEach(room => {
+                        if (room.unReadCount > 0 && !existingItems[room.roomId]) {
+                            this.highlightChatRoom(room.roomId);
+                        }
+                    });
+
+                    this.updateLastUpdatedTime();
+                } catch (error) {
+                    console.error('채팅방 목록 로드 실패:', error);
+                    this.updateConnectionStatus('채팅방 목록 로드 실패', true);
+                }
+            }
+
+            // 날짜 포맷팅
+            formatDate(dateTimeString) {
+                if (!dateTimeString) return '';
+
+                try {
+                    const cleanedString = dateTimeString.replace('T', ' ').split('.')[0];
+                    const parts = cleanedString.split(/[- :]/);
+
+                    if (parts.length >= 5) {
+                        const year = parseInt(parts[0]);
+                        const month = parseInt(parts[1]);
+                        const day = parseInt(parts[2]);
+                        const hour = parseInt(parts[3]);
+                        const minute = parseInt(parts[4]);
+
+                        const now = new Date();
+                        const messageDate = new Date(year, month - 1, day);
+                        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+                        // 오늘이면 시간만 표시
+                        if (messageDate.getTime() === today.getTime()) {
+                            return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                        }
+
+                        // 올해면 월, 일만 표시
+                        if (messageDate.getFullYear() === today.getFullYear()) {
+                            return `${month}월 ${day}일`;
+                        }
+
+                        // 그 외에는 년도까지 표시
+                        return `${year}년 ${month}월 ${day}일`;
+                    }
+                } catch (e) {
+                    console.error('날짜 변환 오류:', e, dateTimeString);
+                }
+
+                return dateTimeString;
+            }
+
+            // 채팅방 하이라이트
+            highlightChatRoom(roomId) {
+                const chatRoomItem = document.querySelector(`.chat-room-item[data-room-id="${roomId}"]`);
+                if (chatRoomItem) {
+                    chatRoomItem.classList.add('highlight');
+                    setTimeout(() => {
+                        chatRoomItem.classList.remove('highlight');
+                    }, 2000);
+                }
+            }
+
+            // 마지막 업데이트 시간 표시
+            updateLastUpdatedTime() {
+                const lastUpdatedEl = document.getElementById('last-updated');
+                if (lastUpdatedEl) {
+                    const now = new Date();
+                    const hours = now.getHours().toString().padStart(2, '0');
+                    const minutes = now.getMinutes().toString().padStart(2, '0');
+                    const seconds = now.getSeconds().toString().padStart(2, '0');
+                    lastUpdatedEl.textContent = `마지막 업데이트: ${hours}:${minutes}:${seconds}`;
+                }
+            }
+
+            // 수동 새로고침
+            async manualRefresh() {
+                const refreshBtn = document.getElementById('refresh-btn');
+                if (refreshBtn) {
+                    refreshBtn.querySelector('i').classList.add('spin');
+                }
+
+                try {
+                    await this.refreshChatRooms();
+                } finally {
+                    if (refreshBtn) {
+                        setTimeout(() => {
+                            refreshBtn.querySelector('i').classList.remove('spin');
+                        }, 500);
+                    }
+                }
+            }
+
+            // 연결 해제
+            disconnect() {
+                if (this.stompClient && this.stompClient.connected) {
+                    this.stompClient.disconnect();
+                }
+                clearTimeout(this.reconnectTimer);
+            }
+        }
+
+        // 전역 채팅 매니저 변수
+        window.chatListManager = null;
+
+        // 채팅 목록 초기화 함수
+        window.initChatList = function(userId, boardId = null) {
+            if (window.chatListManager) {
+                window.chatListManager.disconnect();
+            }
+            window.chatListManager = new ChatListManager(userId, boardId);
+        };
+
+        // 새로고침 함수
+        window.refreshChatList = function() {
+            if (window.chatListManager) {
+                return window.chatListManager.manualRefresh();
+            }
+        };
+    </script>
+</div>
+
+</body>
+</html>

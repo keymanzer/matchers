@@ -14,9 +14,7 @@ import kr.or.kosa.quotationBoard.dto.location;
 import kr.or.kosa.quotationBoard.service.QuotationBoardService;
 import kr.or.kosa.user.dto.CustomUser;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,15 +29,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
+
 import java.net.URLEncoder;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static java.sql.Types.NULL;
 
 @Controller
 @RequestMapping("/user/quotationBoard")
@@ -88,6 +82,30 @@ public class QuotationBoardController {
         return "quotationBoard/create";  // 게시판 생성 폼을 표시하는 뷰
     }
 
+    @GetMapping("/create/{expertId}")
+    public String showCreateQuotationBoardFormExpert(Model model,@PathVariable Long expertId) {
+        model.addAttribute("quotationBoard", new QuotationBoard());
+        // DB에서 실제 지역 목록 가져오기
+        List<Location> locations = expertService.getLocationList();
+        model.addAttribute("locations", locations);
+        // city 만 뽑아서 중복 제거
+        List<String> cities = locations.stream()
+                .map(Location::getCity)
+                .distinct()
+                .collect(Collectors.toList());
+        model.addAttribute("cities", cities);
+        model.addAttribute("expertId",expertId);
+        System.out.println("expertId = " + expertId);
+
+        // DB에서 실제 카테고리 목록 가져오기
+        model.addAttribute("categories", expertService.getCategoryList());
+
+
+        System.out.println("model = " + model);
+        System.out.println("크리에이트 폼요청");
+        return "quotationBoard/create";  // 게시판 생성 폼을 표시하는 뷰
+    }
+
 
     // 게시판 생성 처리
     // 2) 게시글 + 지역 + 첨부파일 생성 처리
@@ -97,7 +115,8 @@ public class QuotationBoardController {
             @ModelAttribute QuotationBoard quotationBoard,
             @AuthenticationPrincipal CustomUser customUser,
             @RequestParam("locationIds") List<Integer> locationIds,
-            @RequestParam(name = "attachedFiles", required = false) List<MultipartFile> attachedFiles
+            @RequestParam(name = "attachedFiles", required = false) List<MultipartFile> attachedFiles,
+            @RequestParam(name="expertId", defaultValue = "0") long expertId
     ) {
 
         // 수동으로 state 값 설정
@@ -121,6 +140,7 @@ public class QuotationBoardController {
         quotationBoard.setPostId(postId);
         quotationBoard.setUserNickname(customUser.getNickname());
         quotationBoard.setUserId(userId);
+        quotationBoard.setExpertId(expertId);
         quotationBoardService.createQuotationBoard(quotationBoard);
 
         // --- 2-3. Quotation_Location 매핑 삽입 ---
@@ -274,6 +294,23 @@ public class QuotationBoardController {
         model.addAttribute("attachedFiles", attachedFiles);
         return "quotationBoard/detail";
     }
+    // ★ 여기에 JSON 데이터만 반환하는 API 추가 ★
+    @GetMapping(
+            value = "/api/detail/{postId}",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @ResponseBody
+    public QuotationBoard getQuotationBoardDetailApi(Model model ,@PathVariable long postId) {
+        // postId에 맞는 QuotationBoard 객체를 JSON으로 직렬화해서 리턴
+        QuotationBoard qb = quotationBoardService.findByPostIdWithLocations(postId);
+        List<AttachedFile> files = attachedFileService.findByPostId(postId);
+
+        // 4) DTO에 세팅
+        qb.setAttachedFiles(files);
+
+        return qb;
+    }
+
 
 
 

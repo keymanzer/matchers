@@ -105,7 +105,7 @@
 	  INTO BOARD (POST_ID, TITLE, CONTENT, CREATED_AT, USER_NICKNAME, USERID)
 	  VALUES (#{postId}, #{title}, #{content}, SYSDATE, #{userNickname}, #{userId})
 	  INTO QA_BOARD (POST_ID, LAST_UPDATED_AT, VIEWS, STATUS, VISIBLE)
-	  VALUES (#{postId}, SYSDATE, 0, 'Y', 'Y')
+	  VALUES (#{postId}, SYSDATE, 0, 'Y', #{visible})
 	  SELECT * FROM DUAL
 	</insert>
 
@@ -115,7 +115,7 @@
         SET 
             LAST_UPDATED_AT = SYSDATE,
             STATUS = 'Y',
-            VISIBLE = 'Y'
+            VISIBLE = #{visible}
         WHERE POST_ID = #{postId}
     </update>
     

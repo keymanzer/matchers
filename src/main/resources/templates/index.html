@@ -17,7 +17,7 @@
   <div th:replace="~{header :: header}"></div>
 
   <section class="section-title text-center">
-    <h2>요즘 인기 있는 서비스</h2>
+    <h1><strong>요즘 인기 있는 서비스</strong></h1>
   </section>
 
   <!-- 캐러셀 -->
@@ -54,15 +54,15 @@
   <!-- 게시판, 리뷰 자리 -->
   <section class="content-area">
     <div class="review-summary">
-      <h2>견적 후기</h2>
+      <h2>✅ 견적 후기</h2>
       <blockquote class="blockquote">
         "3일 만에 전문가를 찾았어요! 원하는 결과에 너무 만족합니다." - 김**
       </blockquote>
-      <a href="#" class="review-link">견적 후기 더보기 →</a>
+      <a href="/user/quotationBoard/create" class="review-link">견적 요청 →</a>
     </div>
 	<br>
     <!-- 비동기 커뮤니티 게시글 조회순 Top5 자리 -->
-    <h2>MATCHERS 커뮤니티에 물어보세요</h2>
+    <h2>📢 MATCHERS 커뮤니티에 물어보세요</h2>
     <div class="section-card">
       <table class="table table-bordered">
         <tbody id="top5CommunityPosts">
@@ -93,7 +93,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      axios.get("/user/community/api/top5")
+      axios.get("/uploads/top5")
         .then(response => {
           const posts = response.data;
           const container = document.getElementById("top5CommunityPosts");

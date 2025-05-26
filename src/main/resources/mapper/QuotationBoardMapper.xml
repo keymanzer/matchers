@@ -210,6 +210,7 @@
         qb.POST_ID,
         qb.EXPERT_ID,
         qb.CATEGORY_ID,
+        c.name,
         qb.STATE,
         b.TITLE,
         b.CONTENT,
@@ -219,14 +220,16 @@
         FROM QUOTATION_BOARD qb
         JOIN BOARD b
         ON qb.POST_ID = b.POST_ID
+        JOIN CATEGORY c     <!-- category 테이블 조인 -->
+        ON qb.CATEGORY_ID = c.CATEGORY_ID
         JOIN CHAT_ROOM cr
         ON cr.BOARD_ID = b.POST_ID
         JOIN CHAT_PARTICIPANT cp
         ON cp.CHAT_ROOM_ID = cr.CHAT_ROOM_ID
-        WHERE qb.STATE     = #{state}
-        AND cp.USER_ID   = #{userId}
-        AND b.USERID    != #{userId}
-
+        WHERE qb.STATE   = #{state}
+        AND cp.USER_ID = #{userId}
+        AND b.USERID  != #{userId}
     </select>
+
 
 </mapper>

@@ -373,3 +373,101 @@ body {
         height: 50%;
     }
 }
+
+/* 1. html, body를 100% 높이로 */
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+/* 2. .container 높이를 뷰포트 기준으로 지정 (상단 100px 빼기) */
+.container {
+    display: flex;
+    height: calc(100vh - 100px);
+}
+
+/* 3. 우측 패널 flex 레이아웃, shrink/grow 허용 */
+.chat-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;    /* 중요 */
+    padding: 0;
+}
+
+/* 4. chat-content도 flex로, 높이 100% 차지 */
+.chat-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;    /* 중요 */
+    padding: 0 24px;  /* 필요에 따라 조정 */
+}
+
+/* 5. detail-view에 flex 속성 부여 */
+.detail-view {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* 상단에 붙이기 */
+    align-items: stretch;        /* 좌우 꽉 채우기 */
+    min-height: 0;               /* 중요 */
+}
+
+/* 6. 카드도 세로로 꽉 채우기 */
+.quotation-card {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;   /* 중요 */
+    margin: 0;
+}
+
+/* 7. 카드 본문만 스크롤 */
+.card-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+}
+
+.chat-section {
+    flex: 1;
+    padding: 0;
+}
+.detail-view {
+    width: 100%;
+    padding: 0;
+    box-sizing: border-box;
+}
+.quotation-card {
+    width: 100%;
+    margin: 0;
+}
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 24px;
+    color: #fff;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+.chat-room-list-btn {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    padding: 8px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: background .3s;
+}
+.chat-room-list-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+.quotation-title {
+    font-size: 1.8rem;
+    margin: 0;
+}

@@ -63,7 +63,9 @@ public class QuotationBoardService {
 
     public List<QuotationBoard> findMyQuotations(long userId,String state) {
         System.out.println("findMyQuotations userId = " + userId + " state = " + state + "quotation서비스 호출");
-        return quotationBoardMapper.findMyQuotations(userId,state);
+        List<QuotationBoard> list = quotationBoardMapper.findMyQuotations(userId,state);
+        System.out.println(list);
+        return list;
     }
 
 

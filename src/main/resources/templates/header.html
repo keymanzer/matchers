@@ -8,18 +8,21 @@
 </head>
 
 <body>
-<div th:fragment="header" class="header">
-	<a href="/" class="logo-link">
+<div th:fragment="header" class="header" style="padding: 10px 10px;">
+	<a href="/" class="logo-link" style="margin-right: 10px;">
 		<div class="logo">
 			MATCHERS
 		</div>
 	</a>
 
-	<div class="nav-login-wrapper">
-		<ul class="nav">
+	<div class="nav-login-wrapper" style="margin-left: 0; padding-left: 0;">
+		<ul class="nav" style="gap: 10px; margin: 0; padding: 0;">
 			<li><a href="/user/quotationBoard/create">견적요청</a></li>
 			<li><a href="/findedExpert">전문가 찾기</a></li>
 			<li><a href="/user/community">커뮤니티</a></li>
+			<th:block sec:authorize="hasRole('ROLE_EXPERT')">
+				<li><a href="/user/quotationBoard/list">견적 게시판</a></li>
+			</th:block>
 		</ul>
 
 		<th:block sec:authorize="isAnonymous()">
@@ -82,10 +85,14 @@
 							</div>
 						</div>
 						<ul class="profile-menu">
-							<li><a href="/user/mypage"><i class="fas fa-user"></i> 마이페이지</a></li>
+							<li><a href="/user/mypage"><i class="fas fa-user-circle"></i> 마이페이지</a></li>
+							<li class="menu-divider"></li>
+							<li><a href="/chat/my/rooms"><i class="fas fa-comments"></i> 내 채팅</a></li>
 							<th:block sec:authorize="!hasAnyRole('ROLE_EXPERT', 'ROLE_ADMIN')">
+								<li class="menu-divider"></li>
 								<li><a href="/user/expert/register"><i class="fas fa-id-card"></i> 전문가 등록</a></li>
 							</th:block>
+							<li class="menu-divider"></li>
 							<li>
 								<form action="/logout" method="post" id="logout-form">
 									<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">

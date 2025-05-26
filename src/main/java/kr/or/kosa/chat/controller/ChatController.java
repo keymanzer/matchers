@@ -43,6 +43,17 @@ public class ChatController {
         return "chat/board-rooms";
     }
 
+    // 특정 게시글의 채팅방 목록 페이지
+    @GetMapping("/chat/{boardId}/rooms/expert")
+    public String getBoardChatRoomsExpert(@PathVariable Long boardId, Model model) {
+        CustomUser user = (CustomUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        List<MyChatListResDto> chatRooms = chatService.getBoardChatRooms(boardId, user.getUserId());
+        model.addAttribute("boardId", boardId);
+        model.addAttribute("chatRooms", chatRooms);
+        return "chat/board-rooms-expert";
+    }
+
+
     // 채팅방 생성 페이지
     @GetMapping("/chat/create")
     public String showCreateChatRoomForm() {

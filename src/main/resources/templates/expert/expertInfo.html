@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>전문가 프로필</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" th:href="@{/css/chat/notification-system.css}" />
+    <link rel="stylesheet" th:href="@{/css/footer.css}" />
+    <link rel="stylesheet" th:href="@{/css/expert/expertInfo.css}" />
+</head>
+
+<body>
+<div th:replace="~{header :: header}"></div>
+
+<div class="container">
+    <!-- 전문가 프로필 카드 -->
+    <div class="profile-card">
+        <div class="profile-header">
+            <img th:src="${expertDetail.profileImg != null} ? ${expertDetail.profileImg} : @{/images/profileImg.png}"
+                 alt="프로필 이미지" class="profile-img" />
+            <div class="profile-info">
+                <h1 class="profile-name" th:text="${expertDetail.nickname}">전문가 이름</h1>
+                <p class="profile-email" th:text="${expertDetail.email}">expert@example.com</p>
+                <div class="profile-ratings">
+                    <div class="rating-badge">
+                        <i class="bi bi-star-fill"></i>
+                        <span>4.9 평점</span>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <a th:href="@{/user/quotationBoard/create/{expertId}(expertId=${expertDetail.userId})}" class="btn-request">
+                        <i class="bi bi-clipboard-check-fill"></i> 견적 요청
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 소개 섹션 -->
+    <div class="info-section">
+        <h2 class="section-title">
+            <i class="bi bi-person-vcard-fill"></i> 전문가 소개
+        </h2>
+        <div class="intro-text" th:text="${expertDetail.career ?: '등록된 소개가 없습니다.'}">
+            전문가의 자기소개 내용이 여기에 표시됩니다. 경력, 전문 분야에 대한 설명, 그리고 제공하는 서비스에 대한 설명 등이 포함될 수 있습니다.
+        </div>
+    </div>
+
+    <!-- 전문 분야 섹션 -->
+    <div class="info-section">
+        <h2 class="section-title">
+            <i class="bi bi-briefcase-fill"></i> 전문 분야
+        </h2>
+        <div>
+            <span th:each="category : ${categoryList}" class="category-badge" th:text="${category.name}">
+                카테고리명
+            </span>
+        </div>
+    </div>
+
+    <!-- 활동 지역 섹션 -->
+    <div class="info-section">
+        <h2 class="section-title">
+            <i class="bi bi-geo-alt-fill"></i> 활동 지역
+        </h2>
+        <div>
+            <span th:each="location : ${locationList}" class="location-badge">
+                <i class="bi bi-geo-alt-fill"></i>
+                <span th:text="${location.location}">지역명</span>
+            </span>
+        </div>
+    </div>
+
+    <!-- 자격증 섹션 -->
+    <div class="info-section">
+        <h2 class="section-title">
+            <i class="bi bi-award-fill"></i> 보유 자격증
+        </h2>
+        <div class="license-list" th:if="${licenseList.size() > 0}">
+            <div class="license-item" th:each="lic : ${licenseList}">
+                <span class="license-name" th:text="${lic.name}">자격증명</span>
+                <a class="license-view" th:href="${lic.path}" target="_blank">
+                    자격증 보기
+                </a>
+            </div>
+        </div>
+        <div class="no-license" th:if="${licenseList.size() == 0}">
+            등록된 자격증이 없습니다.
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{footer :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

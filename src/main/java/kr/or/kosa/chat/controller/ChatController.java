@@ -54,12 +54,6 @@ public class ChatController {
     }
 
 
-    // 채팅방 생성 페이지
-    @GetMapping("/chat/create")
-    public String showCreateChatRoomForm() {
-        return "chat/create-room";
-    }
-
     // 채팅방 페이지
     @GetMapping("/chat/room/{roomId}")
     public String chatRoom(@PathVariable Long roomId, Model model) {

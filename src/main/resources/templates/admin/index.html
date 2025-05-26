@@ -61,6 +61,7 @@
 	<div class="admin-tabs">
 		<button onclick="switchTab('experts')">전문가 관리</button>
 		<button onclick="switchTab('users')">유저 관리</button>
+		<button onclick="location.href='/user/qa'">Q&A 게시글 관리</button>
 		<form id="logoutForm" action="/logout" method="POST" style="display:none;">
 			<input type="hidden" name="_csrf" th:value="${_csrf.token}" />
 		</form>

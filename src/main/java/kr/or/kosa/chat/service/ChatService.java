@@ -150,6 +150,15 @@ public class ChatService {
         List<ChatRoom> rooms = chatMapper.findRoomsByBoardId(boardId);
         List<MyChatListResDto> dtos = new ArrayList<>();
 
+        // 게시글의 현재 상태와 할당된 전문가 ID 조회
+        String boardState = chatMapper.getBoardStateByBoardId(boardId);
+        Long assignedExpertId = null;
+        
+        // 진행중 또는 완료 상태일 경우, 해당 게시글의 할당된 전문가 ID 조회
+        if ("진행중".equals(boardState) || "완료".equals(boardState)) {
+            assignedExpertId = chatMapper.getAssignedExpertIdByBoardId(boardId);
+            System.out.println("게시글 ID: " + boardId + ", 상태: " + boardState + ", 할당된 전문가 ID: " + assignedExpertId);
+        }
 
         for (ChatRoom room : rooms) {
             // 사용자가 참여한 채팅방만 표시
@@ -158,6 +167,7 @@ public class ChatService {
             }
 
             OtherUserDto otherUser = getOtherUserInfo(room.getChatRoomId());
+            Long otherUserId = otherUser.getUserId();
 
             MyChatListResDto dto = new MyChatListResDto();
             dto.setRoomId(room.getChatRoomId());
@@ -184,9 +194,21 @@ public class ChatService {
             // 상대방 프로필 이미지 설정
             dto.setOtherUserProfileImg(otherUser.getProfileImg());
 
-            dto.setBoardState(chatMapper.getBoardStateByBoardId(room.getBoardId()));
-            dtos.add(dto);
+            // 채팅방별 상태 설정
+            if (assignedExpertId != null) {
+                // 이 채팅방의 전문가가 할당된 전문가인 경우
+                if (assignedExpertId.equals(otherUserId)) {
+                    dto.setBoardState(boardState); // "진행중" 또는 "완료"
+                } else {
+                    // 이 채팅방은 선택되지 않은 전문가의 채팅방
+                    dto.setBoardState("거절됨");
+                }
+            } else {
+                // 아직 전문가가 선택되지 않은 경우
+                dto.setBoardState("진행전");
+            }
 
+            dtos.add(dto);
         }
 
         // 마지막 메시지 시간 기준 내림차순 정렬
@@ -300,14 +322,60 @@ public class ChatService {
     @Transactional
     public boolean boardAccept(Long roomId) {
         try {
-            ChatRoom chatRoom = chatMapper.findRoomById(roomId);
-            if (chatRoom == null) {
-                System.out.println("채팅방을 찾을 수 없음: roomId=" + roomId);
+            // 로그인한 사용자 확인 (일반 사용자)
+            CustomUser loginUser = getLoginUser();
+            if (loginUser == null) {
+                System.err.println("로그인 사용자 정보를 찾을 수 없습니다.");
                 return false;
             }
-            Long BoardId = chatRoom.getBoardId();
-            int result = chatMapper.updateBoardAccept(BoardId);
-            return result > 0;
+            Long userId = loginUser.getUserId();
+            
+            // 채팅방 정보 조회
+            ChatRoom chatRoom = chatMapper.findRoomById(roomId);
+            if (chatRoom == null) {
+                System.err.println("채팅방을 찾을 수 없음: roomId=" + roomId);
+                return false;
+            }
+            Long boardId = chatRoom.getBoardId();
+            
+            // 게시글 상태 확인 (이미 진행 중인지 확인)
+            String currentState = chatMapper.getBoardStateByBoardId(boardId);
+            if (!"진행전".equals(currentState)) {
+                System.err.println("이미 처리된 게시글입니다. 현재 상태: " + currentState);
+                return false;
+            }
+            
+            // 채팅방 참여자 조회 - 상대방(전문가)의 ID를 찾기 위함
+            List<ChatParticipant> participants = chatMapper.findParticipantsByRoomId(roomId);
+            List<ChatParticipant> validParticipants = participants.stream()
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            
+            // 상대방(전문가) 찾기
+            Optional<ChatParticipant> expertParticipantOpt = validParticipants.stream()
+                    .filter(p -> !userId.equals(p.getUserId()))
+                    .findFirst();
+            
+            if (expertParticipantOpt.isEmpty()) {
+                System.err.println("전문가 정보를 찾을 수 없습니다.");
+                return false;
+            }
+            
+            // 전문가 ID 가져오기
+            Long expertId = expertParticipantOpt.get().getUserId();
+            
+            System.out.println("수락 처리 시작: roomId=" + roomId + ", boardId=" + boardId + 
+                    ", 사용자ID=" + userId + ", 전문가ID=" + expertId);
+            
+            // 게시글 상태 업데이트 - 전문가 ID를 expertId로 설정
+            int result = chatMapper.updateBoardAccept(boardId, expertId);
+            if (result > 0) {
+                System.out.println("게시글 수락 성공: boardId=" + boardId + ", expertId=" + expertId);
+                return true;
+            } else {
+                System.err.println("게시글 수락 실패: boardId=" + boardId + ", expertId=" + expertId);
+                return false;
+            }
         } catch (Exception e) {
             System.err.println("boardAccept 메서드 예외 발생: " + e.getMessage());
             e.printStackTrace();
@@ -318,14 +386,60 @@ public class ChatService {
     @Transactional
     public boolean boardComplete(Long roomId) {
         try {
-            ChatRoom chatRoom = chatMapper.findRoomById(roomId);
-            if (chatRoom == null) {
-                System.out.println("채팅방을 찾을 수 없음: roomId=" + roomId);
+            // 1. 로그인한 사용자 확인 (일반 사용자)
+            CustomUser loginUser = getLoginUser();
+            if (loginUser == null) {
+                System.err.println("로그인 사용자 정보를 찾을 수 없습니다.");
                 return false;
             }
-            Long BoardId = chatRoom.getBoardId();
-            int result = chatMapper.updateBoardComplete(BoardId);
-            return result > 0;
+            Long userId = loginUser.getUserId();
+            
+            // 2. 채팅방 정보 조회
+            ChatRoom chatRoom = chatMapper.findRoomById(roomId);
+            if (chatRoom == null) {
+                System.err.println("채팅방을 찾을 수 없음: roomId=" + roomId);
+                return false;
+            }
+            Long boardId = chatRoom.getBoardId();
+            
+            // 3. 게시글 상태 확인 (진행 중인지 확인)
+            String currentState = chatMapper.getBoardStateByBoardId(boardId);
+            if (!"진행중".equals(currentState)) {
+                System.err.println("완료 처리할 수 없는 게시글입니다. 현재 상태: " + currentState);
+                return false;
+            }
+            
+            // 4. 채팅방 참여자 조회 - 전문가 ID를 찾기 위함
+            List<ChatParticipant> participants = chatMapper.findParticipantsByRoomId(roomId);
+            List<ChatParticipant> validParticipants = participants.stream()
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            
+            // 5. 전문가 참여자 찾기
+            Optional<ChatParticipant> expertParticipantOpt = validParticipants.stream()
+                    .filter(p -> !userId.equals(p.getUserId()))
+                    .findFirst();
+            
+            if (expertParticipantOpt.isEmpty()) {
+                System.err.println("전문가 정보를 찾을 수 없습니다.");
+                return false;
+            }
+            
+            // 6. 전문가 ID 가져오기
+            Long expertId = expertParticipantOpt.get().getUserId();
+            
+            System.out.println("완료 처리 시작: roomId=" + roomId + ", boardId=" + boardId + 
+                    ", 사용자ID=" + userId + ", 전문가ID=" + expertId);
+            
+            // 7. 게시글 상태 업데이트 - 전문가 ID 유지하며 완료 처리
+            int result = chatMapper.updateBoardComplete(boardId, expertId);
+            if (result > 0) {
+                System.out.println("게시글 완료 처리 성공: boardId=" + boardId + ", expertId=" + expertId);
+                return true;
+            } else {
+                System.err.println("게시글 완료 처리 실패: boardId=" + boardId + ", expertId=" + expertId);
+                return false;
+            }
         } catch (Exception e) {
             System.err.println("boardComplete 메서드 예외 발생: " + e.getMessage());
             e.printStackTrace();

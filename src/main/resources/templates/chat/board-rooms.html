@@ -68,6 +68,23 @@
         margin-right: 0.25rem;
         font-size: 0.85rem;
     }
+    
+    /* 비활성화된 버튼 스타일 */
+    .btn-disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+        color: #6c757d;
+    }
+    
+    /* 완료됨 상태의 버튼 스타일 */
+    .complete-btn:disabled {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: white;
+        opacity: 0.8;
+    }
 </style>
 
 <body th:data-user-id="${#authentication.principal.userId}"
@@ -289,33 +306,25 @@
                             }
                         });
 
-                        axios.post(`/chat/room/${roomId}/accept`, {}, config)
-                            .then(() => {
-                                e.target.classList.add('d-none'); // 수락 버튼 숨기기
-                                const completeBtn = e.target.parentElement.querySelector('.complete-btn');
-                                if (completeBtn) completeBtn.classList.remove('d-none');
-
-                                // 나머지 채팅방 수락 버튼 비활성화
-                                document.querySelectorAll('.chat-room-item').forEach(item => {
-                                    const thisRoomId = item.getAttribute('data-room-id');
-                                    if (thisRoomId !== roomId) {
-                                        const acceptBtn = item.querySelector('.accept-btn');
-                                        if (acceptBtn) acceptBtn.disabled = true;
-                                    }
-                                });
-                                
-                                // 성공 메시지 표시
-                                Swal.fire({
-                                    title: '완료!',
-                                    text: '견적이 성공적으로 수락되었습니다.',
-                                    icon: 'success',
-                                    confirmButtonColor: '#28a745',
-                                    timer: 1500
-                                });
-                                
-                                // 상태 변경 후 채팅방 목록 새로고침
-                                setTimeout(() => refreshChatRooms(), 1000);
-                            })
+                axios.post(`/chat/room/${roomId}/accept`, {}, config)
+                    .then(() => {
+                        // 로딩 숨기기
+                        Swal.close();
+                        
+                        // 성공 메시지 표시
+                        Swal.fire({
+                            title: '완료!',
+                            text: '견적이 성공적으로 수락되었습니다.',
+                            icon: 'success',
+                            confirmButtonColor: '#28a745',
+                            timer: 1500
+                        });
+                        
+                        // 서버에서 최신 상태 가져오기 위해 페이지 전체 새로고침
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    })
                             .catch((error) => {
                                 console.error('수락 처리 실패:', error);
                                 
@@ -371,22 +380,25 @@
                             }
                         });
 
-                        axios.post(`/chat/room/${roomId}/complete`, {}, config)
-                            .then(() => {
-                                e.target.disabled = true;
-                                
-                                // 성공 메시지 표시
-                                Swal.fire({
-                                    title: '완료!',
-                                    text: '견적이 성공적으로 완료 처리되었습니다.',
-                                    icon: 'success',
-                                    confirmButtonColor: '#007bff',
-                                    timer: 1500
-                                });
-                                
-                                // 상태 변경 후 채팅방 목록 새로고침
-                                setTimeout(() => refreshChatRooms(), 1000);
-                            })
+                axios.post(`/chat/room/${roomId}/complete`, {}, config)
+                    .then(() => {
+                        // 로딩 숨기기
+                        Swal.close();
+                        
+                        // 성공 메시지 표시
+                        Swal.fire({
+                            title: '완료!',
+                            text: '견적이 성공적으로 완료 처리되었습니다.',
+                            icon: 'success',
+                            confirmButtonColor: '#007bff',
+                            timer: 1500
+                        });
+                        
+                        // 서버에서 최신 상태 가져오기 위해 페이지 전체 새로고침
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    })
                             .catch((error) => {
                                 console.error('완료 처리 실패:', error);
                                 
@@ -626,7 +638,7 @@
                 
                 // 채팅방 아이템 HTML 생성
                 let roomHTML = `
-                    <div class="chat-room-item" data-room-id="${room.roomId}">
+                    <div class="chat-room-item" data-room-id="${room.roomId}" data-board-state="${room.boardState || ''}">
                         <a href="/chat/room/${room.roomId}">
                             <div class="avatar">
                                 ${avatarContent}
@@ -645,19 +657,46 @@
                 const showAcceptBtn = room.boardState === '진행전';
                 const showCompleteBtn = room.boardState === '진행중';
                 const isCompleted = room.boardState === '완료';
+                const isRejected = room.boardState === '거절됨';
 
                 roomHTML += `
-                    <div class="chat-room-actions">
+                    <div class="chat-room-actions">`;
+                
+                // 진행전 상태일 때만 수락 버튼 표시
+                if (showAcceptBtn) {
+                    roomHTML += `
                         <button class="btn btn-outline-success btn-sm accept-btn"
-                                data-room-id="${room.roomId}"
-                                style="${room.boardState !== '진행전' ? 'display: none;' : ''}">
+                                data-room-id="${room.roomId}">
                             <i class="bi bi-check2-circle me-1"></i>수락하기
-                        </button>
-                        <button class="btn btn-outline-primary btn-sm complete-btn ${room.boardState !== '진행중' ? 'd-none' : ''}"
-                                data-room-id="${room.roomId}"
-                                ${room.boardState === '완료' ? 'disabled' : ''}>
-                            <i class="bi bi-flag-fill me-1"></i>${room.boardState === '완료' ? '완료됨' : '완료처리'}
-                        </button>
+                        </button>`;
+                }
+                
+                // 진행중 상태일 때만 완료 버튼 표시
+                if (showCompleteBtn) {
+                    roomHTML += `
+                        <button class="btn btn-outline-primary btn-sm complete-btn"
+                                data-room-id="${room.roomId}">
+                            <i class="bi bi-flag-fill me-1"></i>완료처리
+                        </button>`;
+                }
+                
+                // 완료 상태일 때는 완료됨 표시
+                if (isCompleted) {
+                    roomHTML += `
+                        <button class="btn btn-secondary btn-sm" disabled>
+                            <i class="bi bi-check-circle-fill me-1"></i>완료됨
+                        </button>`;
+                }
+                
+                // 거절된 상태일 때는 다른 견적 선택됨 표시
+                if (isRejected) {
+                    roomHTML += `
+                        <button class="btn btn-outline-secondary btn-sm btn-disabled" disabled>
+                            <i class="bi bi-x-circle me-1"></i>다른 견적 선택됨
+                        </button>`;
+                }
+                
+                roomHTML += `
                     </div>`;
                 
                 // 채팅방 아이템 HTML 닫기

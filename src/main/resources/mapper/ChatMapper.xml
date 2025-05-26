@@ -105,15 +105,25 @@
         WHERE ROWNUM = 1
     </select>
 
-    <update id="updateBoardAccept" parameterType="long">
-        update quotation_board set state='진행중' where post_id=#{boardId}
+    <update id="updateBoardAccept">
+        UPDATE quotation_board
+        SET state = '진행중',
+            expert_id = #{expertId}
+        WHERE post_id = #{boardId}
     </update>
 
-    <update id="updateBoardComplete" parameterType="long">
-        update quotation_board set state='완료' where post_id=#{boardId}
+    <update id="updateBoardComplete">
+        UPDATE quotation_board
+        SET state = '완료',
+            expert_id = #{expertId}
+        WHERE post_id = #{boardId}
     </update>
 
     <select id="getBoardStateByBoardId" resultType="String">
     SELECT state FROM quotation_board WHERE post_id = #{boardId}
+    </select>
+    
+    <select id="getAssignedExpertIdByBoardId" resultType="java.lang.Long">
+    SELECT expert_id FROM quotation_board WHERE post_id = #{boardId}
     </select>
 </mapper>

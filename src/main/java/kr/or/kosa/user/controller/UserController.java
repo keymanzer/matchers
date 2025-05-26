@@ -54,6 +54,10 @@ public class UserController {
 
 	@GetMapping("/user/mypage/expert")
 	public String myPageExpert(Model model, @AuthenticationPrincipal CustomUser customUser) {
+		Users updatedUser = userService.findUserById(customUser.getUsername());
+
+		refreshAuthentication(updatedUser);
+
 		long userId = customUser.getUserId();
 
 		model.addAttribute("expertDetail", adminService.getExpertByUserId(userId));
@@ -126,7 +130,7 @@ public class UserController {
 		return Collections.singletonMap("duplicate", exists);
 	}
 
-	public void refreshAuthentication(Users updatedUser) {
+	private void refreshAuthentication(Users updatedUser) {
 		CustomUser newCustomUser = new CustomUser(updatedUser);
 
 		Authentication newAuth = new UsernamePasswordAuthenticationToken(newCustomUser, newCustomUser.getPassword(),

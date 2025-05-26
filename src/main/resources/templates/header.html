@@ -8,196 +8,199 @@
 </head>
 
 <body>
-<div th:fragment="header" class="header">
-	<a href="/" class="logo-link">
-		<div class="logo">
-			MATCHERS
-		</div>
-	</a>
-
-	<div class="nav-login-wrapper">
-		<ul class="nav">
-			<li><a href="/user/quotationBoard/create">견적요청</a></li>
-			<li><a href="/findedExpert">전문가 찾기</a></li>
-			<li><a href="/user/community">커뮤니티</a></li>
-		</ul>
-
-		<th:block sec:authorize="isAnonymous()">
-			<div class="auth-buttons">
-				<a href="/login" class="btn">로그인</a>
+	<div th:fragment="header" class="header">
+		<a href="/" class="logo-link">
+			<div class="logo">
+				MATCHERS
 			</div>
-		</th:block>
+		</a>
 
-		<th:block sec:authorize="isAuthenticated()">
+		<div class="nav-login-wrapper">
 			<ul class="nav">
-				<!-- 알림 아이콘 -->
-				<li id="notification-container" class="notification-container">
-					<button id="notification-button" class="notification-button" aria-label="알림">
-						<i class="fas fa-bell"></i>
-						<span id="notification-badge" class="notification-badge" style="display: none;">0</span>
-					</button>
-					<div id="notification-dropdown" class="notification-dropdown">
-						<!-- "모두 읽음" 버튼 제거 -->
-						<div class="notification-header">
-							<span>알림</span>
+				<li><a href="/user/quotationBoard/create">견적요청</a></li>
+				<li><a href="/findedExpert">전문가 찾기</a></li>
+				<li><a href="/user/community">커뮤니티</a></li>
+			</ul>
+
+			<th:block sec:authorize="isAnonymous()">
+				<div class="auth-buttons">
+					<a href="/login" class="btn">로그인</a>
+				</div>
+			</th:block>
+
+			<th:block sec:authorize="isAuthenticated()">
+				<ul class="nav">
+					<!-- 알림 아이콘 -->
+					<li id="notification-container" class="notification-container">
+						<button id="notification-button" class="notification-button" aria-label="알림">
+							<i class="fas fa-bell"></i>
+							<span id="notification-badge" class="notification-badge" style="display: none;">0</span>
+						</button>
+						<div id="notification-dropdown" class="notification-dropdown">
+							<!-- "모두 읽음" 버튼 제거 -->
+							<div class="notification-header">
+								<span>알림</span>
+							</div>
+							<div class="notification-filter" id="notification-filter">
+								<button class="filter-btn active" data-filter="all">
+									전체
+									<span class="filter-badge" id="all-badge">0</span>
+								</button>
+								<button class="filter-btn" data-filter="CHAT">
+									채팅
+									<span class="filter-badge" id="chat-badge">0</span>
+								</button>
+								<button class="filter-btn" data-filter="ADMIN">
+									승인
+									<span class="filter-badge" id="admin-badge">0</span>
+								</button>
+							</div>
+							<div class="notification-content-wrapper">
+								<ul id="notification-list" class="notification-list">
+									<li class="empty-notification">
+										<div class="empty-notification-icon">
+											<i class="far fa-bell-slash"></i>
+										</div>
+										<span>새 알림이 없습니다</span>
+									</li>
+								</ul>
+							</div>
 						</div>
-						<div class="notification-filter" id="notification-filter">
-							<button class="filter-btn active" data-filter="all">
-								전체
-								<span class="filter-badge" id="all-badge">0</span>
-							</button>
-							<button class="filter-btn" data-filter="CHAT">
-								채팅
-								<span class="filter-badge" id="chat-badge">0</span>
-							</button>
-							<button class="filter-btn" data-filter="ADMIN">
-								승인
-								<span class="filter-badge" id="admin-badge">0</span>
-							</button>
+					</li>
+
+					<!-- 프로필 이미지와 드롭다운 메뉴 -->
+					<li id="profile-container" class="profile-container">
+						<div class="profile-button" aria-label="프로필 메뉴">
+							<img th:if="${#authentication.principal.profileImg}"
+								th:src="${#authentication.principal.profileImg}" alt="프로필 이미지" class="profile-image">
+							<img th:unless="${#authentication.principal.profileImg}" th:src="@{/images/profileImg.png}"
+								alt="기본 프로필 이미지" class="profile-image">
 						</div>
-						<div class="notification-content-wrapper">
-							<ul id="notification-list" class="notification-list">
-								<li class="empty-notification">
-									<div class="empty-notification-icon">
-										<i class="far fa-bell-slash"></i>
-									</div>
-									<span>새 알림이 없습니다</span>
+						<div id="profile-dropdown" class="profile-dropdown">
+							<div class="profile-header">
+								<div class="profile-info">
+									<div class="profile-name" th:text="${#authentication.principal.nickname}">사용자</div>
+									<div class="profile-email" th:text="${#authentication.principal.username}">이메일</div>
+								</div>
+							</div>
+							<ul class="profile-menu">
+								<li><a href="/user/mypage"><i class="fas fa-user"></i> 마이페이지</a></li>
+								<th:block sec:authorize="!hasAnyRole('ROLE_EXPERT', 'ROLE_ADMIN')">
+									<li><a href="/user/expert/register"><i class="fas fa-id-card"></i> 전문가 등록</a></li>
+								</th:block>
+								<li>
+									<form action="/logout" method="post" id="logout-form">
+										<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+										<button type="submit" class="logout-button"><i class="fas fa-sign-out-alt"></i>
+											로그아웃</button>
+									</form>
 								</li>
 							</ul>
 						</div>
-					</div>
-				</li>
-				
-				<!-- 프로필 이미지와 드롭다운 메뉴 -->
-				<li id="profile-container" class="profile-container">
-					<div class="profile-button" aria-label="프로필 메뉴">
-						<img th:if="${#authentication.principal.profileImg}" th:src="${#authentication.principal.profileImg}" alt="프로필 이미지" class="profile-image">
-						<img th:unless="${#authentication.principal.profileImg}" th:src="@{/images/profileImg.png}" alt="기본 프로필 이미지" class="profile-image">
-					</div>
-					<div id="profile-dropdown" class="profile-dropdown">
-						<div class="profile-header">
-							<div class="profile-info">
-								<div class="profile-name" th:text="${#authentication.principal.nickname}">사용자</div>
-								<div class="profile-email" th:text="${#authentication.principal.username}">이메일</div>
-							</div>
-						</div>
-						<ul class="profile-menu">
-							<li><a href="/user/mypage"><i class="fas fa-user"></i> 마이페이지</a></li>
-							<th:block sec:authorize="!hasAnyRole('ROLE_EXPERT', 'ROLE_ADMIN')">
-								<li><a href="/user/expert/register"><i class="fas fa-id-card"></i> 전문가 등록</a></li>
-							</th:block>
-							<li>
-								<form action="/logout" method="post" id="logout-form">
-									<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-									<button type="submit" class="logout-button"><i class="fas fa-sign-out-alt"></i> 로그아웃</button>
-								</form>
-							</li>
-						</ul>
-					</div>
-				</li>
-			</ul>
-		</th:block>
-	</div>
+					</li>
+				</ul>
+			</th:block>
+		</div>
 
-	<!-- 중요: 로그인 사용자만을 위한 코드 분리 -->
-	<th:block sec:authorize="isAuthenticated()">
-		<input type="hidden" id="current-user-id" th:value="${#authentication.principal.userId}" />
+		<!-- 중요: 로그인 사용자만을 위한 코드 분리 -->
+		<th:block sec:authorize="isAuthenticated()">
+			<input type="hidden" id="current-user-id" th:value="${#authentication.principal.userId}" />
 
-		<script th:inline="javascript">
-			// 프로필 드롭다운 메뉴 관련 스크립트
-			document.addEventListener('DOMContentLoaded', function() {
-				// 프로필 버튼과 드롭다운 요소 참조
-				const profileButton = document.querySelector('.profile-button');
-				const profileDropdown = document.getElementById('profile-dropdown');
-				
-				if (profileButton && profileDropdown) {
-					// 프로필 버튼 클릭 이벤트
-					profileButton.addEventListener('click', (e) => {
-						e.stopPropagation(); // 이벤트 버블링 방지
-						profileDropdown.classList.toggle('show');
-					});
-					
-					// 드롭다운 외부 클릭 시 닫기
-					document.addEventListener('click', (e) => {
-						if (profileDropdown &&
+			<script th:inline="javascript">
+				// 프로필 드롭다운 메뉴 관련 스크립트
+				document.addEventListener('DOMContentLoaded', function () {
+					// 프로필 버튼과 드롭다운 요소 참조
+					const profileButton = document.querySelector('.profile-button');
+					const profileDropdown = document.getElementById('profile-dropdown');
+
+					if (profileButton && profileDropdown) {
+						// 프로필 버튼 클릭 이벤트
+						profileButton.addEventListener('click', (e) => {
+							e.stopPropagation(); // 이벤트 버블링 방지
+							profileDropdown.classList.toggle('show');
+						});
+
+						// 드롭다운 외부 클릭 시 닫기
+						document.addEventListener('click', (e) => {
+							if (profileDropdown &&
 								!profileButton.contains(e.target) &&
 								!profileDropdown.contains(e.target)) {
-							profileDropdown.classList.remove('show');
-						}
-					});
-				}
-			});
-
-			document.addEventListener('DOMContentLoaded', () => {
-				// 사용자 ID를 hidden input에서 가져옴
-				const userIdElement = document.getElementById('current-user-id');
-				const currentUserId = parseInt(userIdElement.value);
-
-				console.log("로그인한 사용자 ID:", currentUserId);
-
-				// CSRF 토큰을 폼에서 직접 가져오기
-				const tokenInput = document.querySelector('input[name="_csrf"]') ||
-						document.querySelector('input[name="' + document.querySelector('meta[name="_csrf_parameter_name"]')?.getAttribute('content') + '"]');
-
-				const token = tokenInput.value;
-				const headerName = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
-
-				// axios 요청에 CSRF 토큰 추가
-				const headers = {};
-				headers[headerName] = token;
-
-				// DOM 요소 참조
-				const notificationButton = document.getElementById('notification-button');
-				const notificationBadge = document.getElementById('notification-badge');
-				const notificationDropdown = document.getElementById('notification-dropdown');
-				const notificationList = document.getElementById('notification-list');
-				const notificationFilter = document.getElementById('notification-filter');
-				const logoutButton = document.getElementById('logout-button');
-
-				// 현재 선택된 필터 ('all', 'CHAT', 'ADMIN')
-				let currentFilter = 'all';
-
-				// 알림 데이터 캐시 (필터링에 사용)
-				let notificationsCache = [];
-
-				// SSE 이벤트 소스 객체
-				let eventSource = null;
-
-				// 헤더 스크롤 효과
-				window.addEventListener('scroll', () => {
-					const header = document.querySelector('.header');
-					if (window.scrollY > 10) {
-						header.classList.add('scrolled');
-					} else {
-						header.classList.remove('scrolled');
+								profileDropdown.classList.remove('show');
+							}
+						});
 					}
 				});
 
-				/**
-				 * 필터 버튼 클릭 이벤트 설정
-				 */
-				if (notificationFilter) {
-					const filterBtns = notificationFilter.querySelectorAll('.filter-btn');
-					filterBtns.forEach(btn => {
-						btn.addEventListener('click', () => {
-							// 활성 클래스 업데이트
-							filterBtns.forEach(b => b.classList.remove('active'));
-							btn.classList.add('active');
+				document.addEventListener('DOMContentLoaded', () => {
+					// 사용자 ID를 hidden input에서 가져옴
+					const userIdElement = document.getElementById('current-user-id');
+					const currentUserId = parseInt(userIdElement.value);
 
-							// 현재 필터 설정
-							currentFilter = btn.dataset.filter;
+					console.log("로그인한 사용자 ID:", currentUserId);
 
-							// 필터링된 알림 표시
-							renderFilteredNotifications();
-						});
+					// CSRF 토큰을 폼에서 직접 가져오기
+					const tokenInput = document.querySelector('input[name="_csrf"]') ||
+						document.querySelector('input[name="' + document.querySelector('meta[name="_csrf_parameter_name"]')?.getAttribute('content') + '"]');
+
+					const token = tokenInput.value;
+					const headerName = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+
+					// axios 요청에 CSRF 토큰 추가
+					const headers = {};
+					headers[headerName] = token;
+
+					// DOM 요소 참조
+					const notificationButton = document.getElementById('notification-button');
+					const notificationBadge = document.getElementById('notification-badge');
+					const notificationDropdown = document.getElementById('notification-dropdown');
+					const notificationList = document.getElementById('notification-list');
+					const notificationFilter = document.getElementById('notification-filter');
+					const logoutButton = document.getElementById('logout-button');
+
+					// 현재 선택된 필터 ('all', 'CHAT', 'ADMIN')
+					let currentFilter = 'all';
+
+					// 알림 데이터 캐시 (필터링에 사용)
+					let notificationsCache = [];
+
+					// SSE 이벤트 소스 객체
+					let eventSource = null;
+
+					// 헤더 스크롤 효과
+					window.addEventListener('scroll', () => {
+						const header = document.querySelector('.header');
+						if (window.scrollY > 10) {
+							header.classList.add('scrolled');
+						} else {
+							header.classList.remove('scrolled');
+						}
 					});
-				}
 
-				/**
-				 * 특정 알림을 읽음 처리하는 함수
-				 */
-				function markAsRead(notificationId) {
-					axios.post(`/api/notifications/${notificationId}/read`, {}, { headers : headers})
+					/**
+					 * 필터 버튼 클릭 이벤트 설정
+					 */
+					if (notificationFilter) {
+						const filterBtns = notificationFilter.querySelectorAll('.filter-btn');
+						filterBtns.forEach(btn => {
+							btn.addEventListener('click', () => {
+								// 활성 클래스 업데이트
+								filterBtns.forEach(b => b.classList.remove('active'));
+								btn.classList.add('active');
+
+								// 현재 필터 설정
+								currentFilter = btn.dataset.filter;
+
+								// 필터링된 알림 표시
+								renderFilteredNotifications();
+							});
+						});
+					}
+
+					/**
+					 * 특정 알림을 읽음 처리하는 함수
+					 */
+					function markAsRead(notificationId) {
+						axios.post(`/api/notifications/${notificationId}/read`, {}, {headers: headers})
 							.then(response => {
 								console.log(`알림 ${notificationId} 읽음 처리 완료`);
 
@@ -216,15 +219,15 @@
 							.catch(error => {
 								console.error('알림 읽음 처리 오류:', error);
 							});
-				}
+					}
 
-				/**
-				 * 모든 알림을 읽음 처리하는 함수
-				 */
-				function markAllAsRead() {
-					console.log("모두 읽음 처리 시작");
+					/**
+					 * 모든 알림을 읽음 처리하는 함수
+					 */
+					function markAllAsRead() {
+						console.log("모두 읽음 처리 시작");
 
-					axios.post('/api/notifications/read-all', {}, { headers : headers})
+						axios.post('/api/notifications/read-all', {}, {headers: headers})
 							.then(response => {
 								console.log('모든 알림 읽음 처리 완료, 업데이트된 알림 수:', response.data);
 
@@ -239,13 +242,13 @@
 							.catch(error => {
 								console.error('모든 알림 읽음 처리 오류:', error);
 							});
-				}
+					}
 
-				/**
-				 * 서버에서 알림 목록을 가져오는 함수
-				 */
-				function loadNotifications() {
-					axios.get('/api/notifications')
+					/**
+					 * 서버에서 알림 목록을 가져오는 함수
+					 */
+					function loadNotifications() {
+						axios.get('/api/notifications')
 							.then(response => {
 								// 읽지 않은 알림만 캐시에 저장 (읽은 알림은 표시하지 않음)
 								notificationsCache = response.data.filter(n => n.isRead === 'N');
@@ -263,52 +266,52 @@
 							.catch(error => {
 								console.error('알림 목록 로드 오류:', error);
 							});
-				}
-
-				/**
-				 * 현재 필터에 맞게 알림 목록을 렌더링
-				 */
-				function renderFilteredNotifications() {
-					// 필터링된 알림
-					let filteredNotifications = notificationsCache;
-
-					// 필터 적용
-					if (currentFilter !== 'all') {
-						filteredNotifications = notificationsCache.filter(
-								n => n.notificationType === currentFilter
-						);
 					}
 
-					// 필터링된 알림으로 UI 업데이트
-					renderNotifications(filteredNotifications);
-				}
+					/**
+					 * 현재 필터에 맞게 알림 목록을 렌더링
+					 */
+					function renderFilteredNotifications() {
+						// 필터링된 알림
+						let filteredNotifications = notificationsCache;
 
-				/**
-				 * 유형별 읽지 않은 알림 개수를 필터 배지에 표시
-				 */
-				function updateFilterBadges() {
-					// 전체 알림의 읽지 않은 개수
-					const allUnread = notificationsCache.filter(n => n.isRead === 'N').length;
-					document.getElementById('all-badge').textContent = allUnread;
-					document.getElementById('all-badge').style.display = allUnread > 0 ? 'flex' : 'none';
+						// 필터 적용
+						if (currentFilter !== 'all') {
+							filteredNotifications = notificationsCache.filter(
+								n => n.notificationType === currentFilter
+							);
+						}
 
-					// 채팅 알림의 읽지 않은 개수
-					const chatUnread = notificationsCache.filter(n => n.isRead === 'N' && n.notificationType === 'CHAT').length;
-					document.getElementById('chat-badge').textContent = chatUnread;
-					document.getElementById('chat-badge').style.display = chatUnread > 0 ? 'flex' : 'none';
+						// 필터링된 알림으로 UI 업데이트
+						renderNotifications(filteredNotifications);
+					}
 
-					// 관리자 알림의 읽지 않은 개수
-					const adminUnread = notificationsCache.filter(n => n.isRead === 'N' && n.notificationType === 'ADMIN').length;
-					document.getElementById('admin-badge').textContent = adminUnread;
-					document.getElementById('admin-badge').style.display = adminUnread > 0 ? 'flex' : 'none';
-				}
+					/**
+					 * 유형별 읽지 않은 알림 개수를 필터 배지에 표시
+					 */
+					function updateFilterBadges() {
+						// 전체 알림의 읽지 않은 개수
+						const allUnread = notificationsCache.filter(n => n.isRead === 'N').length;
+						document.getElementById('all-badge').textContent = allUnread;
+						document.getElementById('all-badge').style.display = allUnread > 0 ? 'flex' : 'none';
 
-				/**
-				 * 읽지 않은 알림 개수를 가져오는 함수
-				 */
-				function loadUnreadCount() {
-					console.log("읽지 않은 알림 개수 조회 시작");
-					axios.get('/api/notifications/unread/count')
+						// 채팅 알림의 읽지 않은 개수
+						const chatUnread = notificationsCache.filter(n => n.isRead === 'N' && n.notificationType === 'CHAT').length;
+						document.getElementById('chat-badge').textContent = chatUnread;
+						document.getElementById('chat-badge').style.display = chatUnread > 0 ? 'flex' : 'none';
+
+						// 관리자 알림의 읽지 않은 개수
+						const adminUnread = notificationsCache.filter(n => n.isRead === 'N' && n.notificationType === 'ADMIN').length;
+						document.getElementById('admin-badge').textContent = adminUnread;
+						document.getElementById('admin-badge').style.display = adminUnread > 0 ? 'flex' : 'none';
+					}
+
+					/**
+					 * 읽지 않은 알림 개수를 가져오는 함수
+					 */
+					function loadUnreadCount() {
+						console.log("읽지 않은 알림 개수 조회 시작");
+						axios.get('/api/notifications/unread/count')
 							.then(response => {
 								console.log("읽지 않은 알림 개수:", response.data);
 								updateUnreadBadge(response.data);
@@ -316,33 +319,33 @@
 							.catch(error => {
 								console.error('읽지 않은 알림 개수 로드 오류:', error);
 							});
-				}
-
-				/**
-				 * 알림 배지 업데이트 함수
-				 */
-				function updateUnreadBadge(count) {
-					if (count > 0) {
-						// 읽지 않은 알림이 있을 경우
-						notificationBadge.textContent = count > 99 ? '99+' : count;
-						notificationBadge.style.display = 'flex';
-						// 종 아이콘 색상 변경 (노란색)
-						notificationButton.querySelector('.fa-bell').style.color = '#ffcc00';
-					} else {
-						// 읽지 않은 알림이 없을 경우
-						notificationBadge.style.display = 'none';
-						// 종 아이콘 색상 원래대로
-						notificationButton.querySelector('.fa-bell').style.color = '';
 					}
-				}
 
-				/**
-				 * 알림 목록을 화면에 렌더링하는 함수
-				 */
-				function renderNotifications(notifications) {
-					// 알림이 없는 경우
-					if (!notifications || notifications.length === 0) {
-						notificationList.innerHTML = `
+					/**
+					 * 알림 배지 업데이트 함수
+					 */
+					function updateUnreadBadge(count) {
+						if (count > 0) {
+							// 읽지 않은 알림이 있을 경우
+							notificationBadge.textContent = count > 99 ? '99+' : count;
+							notificationBadge.style.display = 'flex';
+							// 종 아이콘 색상 변경 (노란색)
+							notificationButton.querySelector('.fa-bell').style.color = '#ffcc00';
+						} else {
+							// 읽지 않은 알림이 없을 경우
+							notificationBadge.style.display = 'none';
+							// 종 아이콘 색상 원래대로
+							notificationButton.querySelector('.fa-bell').style.color = '';
+						}
+					}
+
+					/**
+					 * 알림 목록을 화면에 렌더링하는 함수
+					 */
+					function renderNotifications(notifications) {
+						// 알림이 없는 경우
+						if (!notifications || notifications.length === 0) {
+							notificationList.innerHTML = `
                             <li class="empty-notification">
                                 <div class="empty-notification-icon">
                                     <i class="far fa-bell-slash"></i>
@@ -350,30 +353,30 @@
                                 <span>새 알림이 없습니다</span>
                             </li>
                         `;
-						return;
-					}
-
-					// 알림 목록 초기화
-					notificationList.innerHTML = '';
-
-					// 각 알림 항목을 순회하며 DOM에 추가 (읽지 않은 알림만 표시)
-					notifications.forEach(notification => {
-						const li = document.createElement('li');
-						li.className = 'notification-item unread';
-
-						// 시간 형식 변환
-						const formattedTime = formatTimestamp(notification.createdAt);
-
-						// 알림 유형에 따른 아이콘 선택
-						let icon = 'fa-comment-dots';
-						if (notification.notificationType === 'CHAT') {
-							icon = 'fa-comment-dots'; // 채팅 알림
-						} else if (notification.notificationType === 'ADMIN') {
-							icon = 'fa-bullhorn'; // 관리자 알림
+							return;
 						}
 
-						// 알림 내용 HTML 구성
-						li.innerHTML = `
+						// 알림 목록 초기화
+						notificationList.innerHTML = '';
+
+						// 각 알림 항목을 순회하며 DOM에 추가 (읽지 않은 알림만 표시)
+						notifications.forEach(notification => {
+							const li = document.createElement('li');
+							li.className = 'notification-item unread';
+
+							// 시간 형식 변환
+							const formattedTime = formatTimestamp(notification.createdAt);
+
+							// 알림 유형에 따른 아이콘 선택
+							let icon = 'fa-comment-dots';
+							if (notification.notificationType === 'CHAT') {
+								icon = 'fa-comment-dots'; // 채팅 알림
+							} else if (notification.notificationType === 'ADMIN') {
+								icon = 'fa-bullhorn'; // 관리자 알림
+							}
+
+							// 알림 내용 HTML 구성
+							li.innerHTML = `
                             <div class="notification-content">
                                 <i class="far ${icon}" style="margin-right: 6px; color: #3366FF;"></i>
                                 ${notification.content}
@@ -384,296 +387,298 @@
                             </span>
                         `;
 
-						// 채팅방 알림이면 클릭 시 해당 채팅방으로 이동
-						if (notification.notificationType === 'CHAT' && notification.chatRoomId) {
-							li.style.cursor = 'pointer';
-							li.addEventListener('click', () => {
-								// 읽음 처리
-								markAsRead(notification.notificationId);
-								// 채팅방으로 이동
-								window.location.href = `/chat/my/rooms`;
-							});
-						} else {
-							// 일반 알림은 클릭 시 읽음 처리만
-							li.addEventListener('click', () => {
-								markAsRead(notification.notificationId);
-							});
+							// 채팅방 알림이면 클릭 시 해당 채팅방으로 이동
+							if (notification.notificationType === 'CHAT' && notification.chatRoomId) {
+								li.style.cursor = 'pointer';
+								li.addEventListener('click', () => {
+									// 읽음 처리
+									markAsRead(notification.notificationId);
+									// 채팅방으로 이동
+									window.location.href = `/chat/my/rooms`;
+								});
+							} else {
+								// 일반 알림은 클릭 시 읽음 처리만
+								li.addEventListener('click', () => {
+									markAsRead(notification.notificationId);
+									// 전문가 마이 페이지로 이동
+									window.location.href = `/user/mypage/expert`;
+								});
+							}
+
+							// 알림 목록에 추가
+							notificationList.appendChild(li);
+						});
+					}
+
+					/**
+					 * 타임스탬프를 사용자 친화적인 형식으로 변환
+					 */
+					function formatTimestamp(timestamp) {
+						if (!timestamp) return '';
+
+						const now = new Date();
+						const date = new Date(timestamp);
+						const diff = Math.floor((now - date) / 1000); // 초 단위 차이
+
+						// 1분 이내
+						if (diff < 60) return '방금 전';
+
+						// 1시간 이내
+						if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+
+						// 오늘 날짜인 경우
+						if (date.toDateString() === now.toDateString()) {
+							return `오늘 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
 						}
 
-						// 알림 목록에 추가
-						notificationList.appendChild(li);
-					});
-				}
+						// 어제 날짜인 경우
+						const yesterday = new Date(now);
+						yesterday.setDate(now.getDate() - 1);
+						if (date.toDateString() === yesterday.toDateString()) {
+							return `어제 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+						}
 
-				/**
-				 * 타임스탬프를 사용자 친화적인 형식으로 변환
-				 */
-				function formatTimestamp(timestamp) {
-					if (!timestamp) return '';
+						// 올해 날짜인 경우
+						if (date.getFullYear() === now.getFullYear()) {
+							return `${date.getMonth() + 1}월 ${date.getDate()}일 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+						}
 
-					const now = new Date();
-					const date = new Date(timestamp);
-					const diff = Math.floor((now - date) / 1000); // 초 단위 차이
-
-					// 1분 이내
-					if (diff < 60) return '방금 전';
-
-					// 1시간 이내
-					if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
-
-					// 오늘 날짜인 경우
-					if (date.toDateString() === now.toDateString()) {
-						return `오늘 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+						// 그 외 경우
+						return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
 					}
 
-					// 어제 날짜인 경우
-					const yesterday = new Date(now);
-					yesterday.setDate(now.getDate() - 1);
-					if (date.toDateString() === yesterday.toDateString()) {
-						return `어제 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+					/**
+					 * SSE 연결 상태를 확인하고 필요 시 재연결하는 함수
+					 */
+					function checkAndReconnectSSE() {
+						console.log('SSE 연결 상태 확인 중');
+
+						// eventSource가 없거나 readyState가 2(CLOSED)일 때 재연결
+						if (!eventSource || eventSource.readyState !== 1) {
+							console.log('SSE 연결 없음 또는 닫힘 - 새 연결 설정');
+							setupSSEConnection();
+						}
 					}
 
-					// 올해 날짜인 경우
-					if (date.getFullYear() === now.getFullYear()) {
-						return `${date.getMonth() + 1}월 ${date.getDate()}일 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-					}
+					/**
+					 * SSE 연결을 설정하고 관리하는 함수
+					 */
+					function setupSSEConnection() {
+						// 이미 연결된 경우 중복 생성 방지
+						if (eventSource && eventSource.readyState === 1) {
+							console.log('이미 활성화된 SSE 연결이 있습니다');
+							return;
+						}
 
-					// 그 외 경우
-					return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
-				}
+						// 기존 연결 정리
+						if (eventSource) {
+							eventSource.close();
+							eventSource = null;
+						}
 
-				/**
-				 * SSE 연결 상태를 확인하고 필요 시 재연결하는 함수
-				 */
-				function checkAndReconnectSSE() {
-					console.log('SSE 연결 상태 확인 중');
+						// 사용자 ID 확인 - 인증 여부 이중 체크
+						if (!currentUserId || currentUserId <= 0) {
+							console.log('유효한 사용자 ID가 없어 SSE 연결을 생성하지 않음');
+							return;
+						}
 
-					// eventSource가 없거나 readyState가 2(CLOSED)일 때 재연결
-					if (!eventSource || eventSource.readyState !== 1) {
-						console.log('SSE 연결 없음 또는 닫힘 - 새 연결 설정');
-						setupSSEConnection();
-					}
-				}
+						console.log('SSE 연결 시작:', currentUserId);
 
-				/**
-				 * SSE 연결을 설정하고 관리하는 함수
-				 */
-				function setupSSEConnection() {
-					// 이미 연결된 경우 중복 생성 방지
-					if (eventSource && eventSource.readyState === 1) {
-						console.log('이미 활성화된 SSE 연결이 있습니다');
-						return;
-					}
+						try {
+							// SSE 연결 설정
+							eventSource = new EventSource(`/sse/subscribe/${currentUserId}`);
 
-					// 기존 연결 정리
-					if(eventSource) {
-						eventSource.close();
-						eventSource = null;
-					}
+							// 연결 성공 이벤트
+							eventSource.addEventListener('connect', (event) => {
+								console.log('SSE 연결 성공:', event.data);
+							});
 
-					// 사용자 ID 확인 - 인증 여부 이중 체크
-					if (!currentUserId || currentUserId <= 0) {
-						console.log('유효한 사용자 ID가 없어 SSE 연결을 생성하지 않음');
-						return;
-					}
+							// 읽지 않은 알림 개수 업데이트 이벤트
+							eventSource.addEventListener('unread-count', (event) => {
+								console.log('읽지 않은 알림 개수:', event.data);
+								updateUnreadBadge(parseInt(event.data));
+							});
 
-					console.log('SSE 연결 시작:', currentUserId);
+							// 새 채팅 알림 수신 이벤트
+							eventSource.addEventListener('chat-message', (event) => {
+								console.log('새 채팅 알림 수신:', event.data);
 
-					try {
-						// SSE 연결 설정
-						eventSource = new EventSource(`/sse/subscribe/${currentUserId}`);
+								// 새 알림 수신 시 종 아이콘 애니메이션
+								triggerBellAnimation();
 
-						// 연결 성공 이벤트
-						eventSource.addEventListener('connect', (event) => {
-							console.log('SSE 연결 성공:', event.data);
-						});
-
-						// 읽지 않은 알림 개수 업데이트 이벤트
-						eventSource.addEventListener('unread-count', (event) => {
-							console.log('읽지 않은 알림 개수:', event.data);
-							updateUnreadBadge(parseInt(event.data));
-						});
-
-						// 새 채팅 알림 수신 이벤트
-						eventSource.addEventListener('chat-message', (event) => {
-							console.log('새 채팅 알림 수신:', event.data);
-
-							// 새 알림 수신 시 종 아이콘 애니메이션
-							triggerBellAnimation();
-
-							// 드롭다운 상태에 따라 다른 처리
-							if (notificationDropdown && notificationDropdown.classList.contains('show')) {
-								// 열려있으면 목록 새로고침
-								loadNotifications();
-							} else {
-								// 닫혀있으면 개수만 업데이트
-								loadUnreadCount();
-							}
-						});
-
-						// 새 관리자 알림 수신 이벤트
-						eventSource.addEventListener('admin-message', (event) => {
-							console.log('새 관리자 알림 수신:', event.data);
-
-							// 새 알림 수신 시 종 아이콘 애니메이션
-							triggerBellAnimation();
-
-							// 드롭다운 상태에 따라 다른 처리
-							if (notificationDropdown && notificationDropdown.classList.contains('show')) {
-								// 열려있으면 목록 새로고침
-								loadNotifications();
-							} else {
-								// 닫혀있으면 개수만 업데이트
-								loadUnreadCount();
-							}
-						});
-
-						// 에러 처리 및 재연결 로직
-						eventSource.onerror = (error) => {
-							console.error('SSE 연결 오류:', error);
-
-							if (eventSource) {
-								eventSource.close();
-								eventSource = null;
-							}
-
-							// 5초 후 재연결 시도
-							setTimeout(() => {
-								// 재연결 전 인증 여부 다시 확인
-								if (currentUserId && currentUserId > 0) {
-									setupSSEConnection();
+								// 드롭다운 상태에 따라 다른 처리
+								if (notificationDropdown && notificationDropdown.classList.contains('show')) {
+									// 열려있으면 목록 새로고침
+									loadNotifications();
+								} else {
+									// 닫혀있으면 개수만 업데이트
+									loadUnreadCount();
 								}
-							}, 5000);
-						};
-					} catch (error) {
-						console.error('SSE 연결 생성 중 오류 발생:', error);
-					}
-				}
+							});
 
-				/**
-				 * 종 아이콘 애니메이션 함수 (코드 중복 제거)
-				 */
-				function triggerBellAnimation() {
-					if (notificationButton) {
-						const bell = notificationButton.querySelector('.fa-bell');
-						if (bell) {
-							bell.style.animation = 'bell-ring 1s ease';
-							setTimeout(() => {
-								bell.style.animation = '';
-							}, 1000);
+							// 새 관리자 알림 수신 이벤트
+							eventSource.addEventListener('admin-message', (event) => {
+								console.log('새 관리자 알림 수신:', event.data);
+
+								// 새 알림 수신 시 종 아이콘 애니메이션
+								triggerBellAnimation();
+
+								// 드롭다운 상태에 따라 다른 처리
+								if (notificationDropdown && notificationDropdown.classList.contains('show')) {
+									// 열려있으면 목록 새로고침
+									loadNotifications();
+								} else {
+									// 닫혀있으면 개수만 업데이트
+									loadUnreadCount();
+								}
+							});
+
+							// 에러 처리 및 재연결 로직
+							eventSource.onerror = (error) => {
+								console.error('SSE 연결 오류:', error);
+
+								if (eventSource) {
+									eventSource.close();
+									eventSource = null;
+								}
+
+								// 5초 후 재연결 시도
+								setTimeout(() => {
+									// 재연결 전 인증 여부 다시 확인
+									if (currentUserId && currentUserId > 0) {
+										setupSSEConnection();
+									}
+								}, 5000);
+							};
+						} catch (error) {
+							console.error('SSE 연결 생성 중 오류 발생:', error);
 						}
 					}
-				}
 
-				/**
-				 * SSE 연결 종료 함수
-				 */
-				function closeSSEConnection() {
-					if (eventSource) {
-						console.log('SSE 연결 종료');
-						eventSource.close();
-						eventSource = null;
-					}
-				}
-
-				/**
-				 * 알림 버튼 클릭 이벤트 설정
-				 */
-				if (notificationButton && notificationDropdown) {
-					notificationButton.addEventListener('click', (e) => {
-						e.stopPropagation(); // 이벤트 버블링 방지
-
-						// 모든 알림 읽음 처리 추가
-						markAllAsRead();
-
-						notificationDropdown.classList.toggle('show');
-
-						// 종 아이콘 애니메이션 효과
-						triggerBellAnimation();
-
-						// 드롭다운이 열리면 알림 목록 로드
-						if (notificationDropdown.classList.contains('show')) {
-							loadNotifications();
+					/**
+					 * 종 아이콘 애니메이션 함수 (코드 중복 제거)
+					 */
+					function triggerBellAnimation() {
+						if (notificationButton) {
+							const bell = notificationButton.querySelector('.fa-bell');
+							if (bell) {
+								bell.style.animation = 'bell-ring 1s ease';
+								setTimeout(() => {
+									bell.style.animation = '';
+								}, 1000);
+							}
 						}
-					});
+					}
 
-					// 드롭다운 외부 클릭 시 닫기
-					document.addEventListener('click', (e) => {
-						if (notificationDropdown &&
+					/**
+					 * SSE 연결 종료 함수
+					 */
+					function closeSSEConnection() {
+						if (eventSource) {
+							console.log('SSE 연결 종료');
+							eventSource.close();
+							eventSource = null;
+						}
+					}
+
+					/**
+					 * 알림 버튼 클릭 이벤트 설정
+					 */
+					if (notificationButton && notificationDropdown) {
+						notificationButton.addEventListener('click', (e) => {
+							e.stopPropagation(); // 이벤트 버블링 방지
+
+							// 모든 알림 읽음 처리 추가
+							markAllAsRead();
+
+							notificationDropdown.classList.toggle('show');
+
+							// 종 아이콘 애니메이션 효과
+							triggerBellAnimation();
+
+							// 드롭다운이 열리면 알림 목록 로드
+							if (notificationDropdown.classList.contains('show')) {
+								loadNotifications();
+							}
+						});
+
+						// 드롭다운 외부 클릭 시 닫기
+						document.addEventListener('click', (e) => {
+							if (notificationDropdown &&
 								!notificationButton.contains(e.target) &&
 								!notificationDropdown.contains(e.target)) {
-							notificationDropdown.classList.remove('show');
-						}
-					});
-				}
-
-				// 모두 읽음 버튼 이벤트 리스너 제거 (불필요)
-
-				/**
-				 * 로그아웃 버튼 클릭 이벤트 - SSE 연결 종료 처리
-				 */
-				if (logoutButton) {
-					// 기존 form의 submit 이벤트 처리
-					const logoutForm = document.getElementById('logout-form');
-
-					if (logoutForm) {
-						logoutForm.addEventListener('submit', (e) => {
-							// 기본 제출 동작을 일시 중지
-							e.preventDefault();
-
-							// SSE 연결 종료
-							closeSSEConnection();
-							console.log('로그아웃: SSE 연결 종료됨');
-
-							// 폼 제출 계속 진행 (약간의 지연 추가)
-							setTimeout(() => {
-								logoutForm.submit();
-							}, 100);
+								notificationDropdown.classList.remove('show');
+							}
 						});
 					}
-				}
 
-				// 페이지를 떠날 때 SSE 연결 종료
-				window.addEventListener('beforeunload', () => {
-					closeSSEConnection();
-				});
+					// 모두 읽음 버튼 이벤트 리스너 제거 (불필요)
 
-				/**
-				 * 알림 시스템 초기화 함수
-				 */
-				function initNotificationSystem() {
-					console.log('알림 시스템 초기화 시작');
+					/**
+					 * 로그아웃 버튼 클릭 이벤트 - SSE 연결 종료 처리
+					 */
+					if (logoutButton) {
+						// 기존 form의 submit 이벤트 처리
+						const logoutForm = document.getElementById('logout-form');
 
-					// 초기 알림 개수 로드
-					loadUnreadCount();
+						if (logoutForm) {
+							logoutForm.addEventListener('submit', (e) => {
+								// 기본 제출 동작을 일시 중지
+								e.preventDefault();
 
-					// SSE 연결 설정
-					setupSSEConnection();
+								// SSE 연결 종료
+								closeSSEConnection();
+								console.log('로그아웃: SSE 연결 종료됨');
 
-					// 알림 목록 로드
-					loadNotifications();
-				}
-
-				// 페이지 가시성 변경 감지 추가
-				document.addEventListener('visibilitychange', function() {
-					if (document.visibilityState === 'visible') {
-						console.log('페이지 가시성 변경: 보임 - SSE 연결 확인');
-						checkAndReconnectSSE();
+								// 폼 제출 계속 진행 (약간의 지연 추가)
+								setTimeout(() => {
+									logoutForm.submit();
+								}, 100);
+							});
+						}
 					}
-				});
 
-				// 페이지 로드 완료 시 즉시 실행
-				window.addEventListener('load', function() {
-					console.log('페이지 로드 완료 - SSE 연결 확인');
-					checkAndReconnectSSE();
-				});
+					// 페이지를 떠날 때 SSE 연결 종료
+					window.addEventListener('beforeunload', () => {
+						closeSSEConnection();
+					});
 
-				// 초기화 함수 즉시 실행
-				initNotificationSystem();
-			});
-		</script>
-	</th:block>
-</div>
+					/**
+					 * 알림 시스템 초기화 함수
+					 */
+					function initNotificationSystem() {
+						console.log('알림 시스템 초기화 시작');
+
+						// 초기 알림 개수 로드
+						loadUnreadCount();
+
+						// SSE 연결 설정
+						setupSSEConnection();
+
+						// 알림 목록 로드
+						loadNotifications();
+					}
+
+					// 페이지 가시성 변경 감지 추가
+					document.addEventListener('visibilitychange', function () {
+						if (document.visibilityState === 'visible') {
+							console.log('페이지 가시성 변경: 보임 - SSE 연결 확인');
+							checkAndReconnectSSE();
+						}
+					});
+
+					// 페이지 로드 완료 시 즉시 실행
+					window.addEventListener('load', function () {
+						console.log('페이지 로드 완료 - SSE 연결 확인');
+						checkAndReconnectSSE();
+					});
+
+					// 초기화 함수 즉시 실행
+					initNotificationSystem();
+				});
+			</script>
+		</th:block>
+	</div>
 
 </body>
 

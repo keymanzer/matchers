@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>견적 관리</title>
-    <link th:href="@{/css/quotationBoard/quotation-myrequest.css}" rel="stylesheet" type="text/css">
+    <link th:href="@{/css/quotationBoard/quotation-myquotation.css}" rel="stylesheet" type="text/css">
     <link th:href="@{/css/header.css}" rel="stylesheet" type="text/css">
     <link th:href="@{/css/footer.css}" rel="stylesheet" type="text/css">
     <link rel="stylesheet" th:href="@{/css/chat/notification-system.css}" />
@@ -19,8 +19,6 @@
         section {
             min-height: 600px; /* 최소 높이로 변경 */
         }
-
-
     </style>
 </head>
 <body>
@@ -53,31 +51,16 @@
     <!-- 우측 채팅 영역 -->
     <div class="chat-section">
         <div class="chat-header" id="chatHeader">
-            <div class="chat-title">채팅 목록</div>
-            <div class="chat-subtitle">견적을 선택하면 채팅 목록이 표시됩니다</div>
+            <div class="chat-title">비동기 채팅 내역</div>
+            <div class="chat-subtitle">견적을 선택하면 채팅 내역이 표시됩니다</div>
         </div>
 
         <div class="chat-content" id="chatContent">
             <div class="empty-state">
                 <div class="empty-icon">💬</div>
-                <div class="empty-text">채팅 목록을 불러올 견적을 선택해주세요</div>
-                <div class="empty-subtext">좌측 견적 목록에서 항목을 클릭하시면 해당 채팅 목록이 표시됩니다</div>
+                <div class="empty-text">채팅 내역을 불러올 견적을 선택해주세요</div>
+                <div class="empty-subtext">좌측 견적 목록에서 항목을 클릭하시면 해당 채팅 내역이 표시됩니다</div>
             </div>
-        </div>
-    </div>
-</div>
-
-<!-- 삭제 확인 모달 -->
-<div id="deleteModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">견적 삭제 확인</div>
-        <div class="modal-body">
-            정말로 이 견적을 삭제하시겠습니까?<br>
-            <strong>삭제된 견적은 복구할 수 없습니다.</strong>
-        </div>
-        <div class="modal-buttons">
-            <button class="modal-button cancel" onclick="closeDeleteModal()">취소</button>
-            <button class="modal-button confirm" onclick="confirmDelete()">삭제</button>
         </div>
     </div>
 </div>
@@ -86,7 +69,6 @@
     // 현재 선택된 상태와 견적
     let currentStatus = 'pending';
     let selectedPostId = null;
-    let deleteTargetPostId = null;
 
     // 페이지 로드 시 초기화
     document.addEventListener('DOMContentLoaded', function() {
@@ -109,7 +91,7 @@
         quoteList.innerHTML = '<div class="loading"><div class="spinner"></div>견적 목록을 불러오는 중...</div>';
 
         // 서버에서 데이터 가져오기
-        fetch(`/user/quotationBoard/api/myrequest?status=${status}`)
+        fetch(`/user/quotationBoard/api/myquotation?status=${status}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -167,23 +149,19 @@
             const formattedDate = formatDate(quote.createdAt || quote.created_at);
             const postId = quote.postId || quote.post_id || quote.id;
 
-            // 진행전 상태일 때만 삭제 버튼 표시, 모든 상태에서 상세보기 버튼 표시
             const actionButtons = `
                 <div class="action-buttons">
                     <button class="action-button detail-button" onclick="openQuoteDetail(event, ${postId})" title="상세보기">
                         <i class="fas fa-eye"></i>
                     </button>
-                    ${currentStatus === 'pending' ?
-                `<button class="action-button delete-button" onclick="showDeleteModal(event, ${postId})" title="삭제">
-                            <i class="fas fa-trash"></i>
-                        </button>` : ''
-            }
                 </div>
             `;
 
+
+
             return `
                 <div class="quote-item ${index === 0 ? 'active' : ''}"
-                     data-post-id="${postId}"
+                    data-post-id="${postId}"
                      onclick="selectQuote(this, ${postId})">
                     ${actionButtons}
                     <div class="quote-header">
@@ -218,8 +196,8 @@
         element.classList.add('active');
         selectedPostId = postId;
 
-        // 채팅 목록 로드
-        loadChatRooms(postId);
+        // 채팅 내역 로드
+        loadChatHistory(postId);
     }
 
     // 상세보기 새창 열기
@@ -235,203 +213,59 @@
         window.open(detailUrl, `quote_detail_${postId}`, windowFeatures);
     }
 
-    // 삭제 모달 표시
-    function showDeleteModal(event, postId) {
-        event.stopPropagation(); // 견적 선택 이벤트 방지
-        deleteTargetPostId = postId;
-        console.log('deleteTargetPostId:', deleteTargetPostId);
-        document.getElementById('deleteModal').style.display = 'block';
-    }
-
-    // 삭제 모달 닫기
-    function closeDeleteModal() {
-        document.getElementById('deleteModal').style.display = 'none';
-        deleteTargetPostId = null;
-    }
-
-    // 삭제 확인 (수정된 버전)
-    function confirmDelete() {
-        if (!deleteTargetPostId) {
-            console.error('deleteTargetPostId가 없습니다.');
-            alert('삭제할 견적을 선택해주세요.');
-            return;
-        }
-
-        const requestUrl = `/user/quotationBoard/api/delete/${deleteTargetPostId}`;
-        console.log('삭제 요청 시작 - postId:', deleteTargetPostId);
-        console.log('요청 URL:', requestUrl);
-        console.log('현재 페이지 URL:', window.location.href);
-
-        // 삭제 버튼 비활성화
-        const confirmBtn = document.querySelector('.modal-button.confirm');
-        const originalText = confirmBtn.textContent;
-        confirmBtn.disabled = true;
-        confirmBtn.textContent = '삭제 중...';
-
-        // 삭제 API 호출 - DELETE 메서드 사용
-        console.log('fetch 요청 전송 중...');
-        fetch(requestUrl, {
-            method: 'GET',  // DELETE 메서드로 변경
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            }
-        })
-            .then(response => {
-                console.log('응답 상태:', response.status);
-                console.log('응답 Content-Type:', response.headers.get('content-type'));
-
-                // 응답이 비어있거나 204 No Content인 경우 처리
-                if (response.status === 204 || response.status === 200) {
-                    if (response.headers.get('content-type')?.includes('application/json')) {
-                        return response.json();
-                    } else {
-                        // JSON이 아닌 경우 성공으로 처리
-                        return { success: true, message: '견적이 삭제되었습니다.' };
-                    }
-                } else if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                } else {
-                    return response.json();
-                }
-            })
-            .then(data => {
-                console.log('Delete success:', data);
-                // 모달 닫기
-                closeDeleteModal();
-                // 목록 새로고침
-                loadQuotesByStatus(currentStatus);
-                // 성공 메시지
-                alert('견적이 성공적으로 삭제되었습니다.');
-            })
-            .catch(error => {
-                console.error('Error deleting quote:', error);
-                alert('견적 삭제 중 오류가 발생했습니다. 다시 시도해주세요.\n오류: ' + error.message);
-            })
-            .finally(() => {
-                // 삭제 버튼 복원
-                confirmBtn.disabled = false;
-                confirmBtn.textContent = originalText;
-            });
-    }
-
-    // 모달 외부 클릭시 닫기
-    window.onclick = function(event) {
-        const modal = document.getElementById('deleteModal');
-        if (event.target === modal) {
-            closeDeleteModal();
-        }
-    }
-
-    // 채팅 목록 로드 (수정된 함수)
-    function loadChatRooms(boardId) {
+    // 채팅 내역 로드
+    function loadChatHistory(postId) {
         const chatHeader = document.getElementById('chatHeader');
         const chatContent = document.getElementById('chatContent');
 
         // 헤더 업데이트
-        const selectedQuote = document.querySelector(`[data-post-id="${boardId}"]`);
+        const selectedQuote = document.querySelector(`[data-post-id="${postId}"]`);
         const quoteTitle = selectedQuote.querySelector('.quote-title').textContent;
         const quoteExpert = selectedQuote.querySelector('.quote-expert').textContent;
 
         chatHeader.innerHTML = `
             <div class="chat-title">${quoteTitle}</div>
-            <div class="chat-subtitle">${quoteExpert}과의 채팅 목록</div>
+            <div class="chat-subtitle">${quoteExpert}과의 채팅</div>
         `;
 
         // 로딩 표시
-        chatContent.innerHTML = '<div class="loading"><div class="spinner"></div>채팅 목록을 불러오는 중...</div>';
+        chatContent.innerHTML = '<div class="loading"><div class="spinner"></div>채팅 내역을 불러오는 중...</div>';
 
-        // 채팅 목록 API 호출 (기존 컨트롤러 사용)
-        fetch(`/chat/${boardId}/rooms/api`)
+        // 채팅 내역 API 호출 (구현 예정)
+        // 실제 채팅 API가 구현되면 아래 주석을 해제하고 사용
+        /*
+        fetch(`/user/quotationBoard/api/chat/${postId}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 return response.json();
             })
-            .then(chatRooms => {
-                console.log('Loaded chat rooms:', chatRooms);
-                renderChatRooms(chatRooms, boardId);
+            .then(data => {
+                renderChatHistory(data);
             })
             .catch(error => {
-                console.error('Error loading chat rooms:', error);
+                console.error('Error loading chat:', error);
                 chatContent.innerHTML = `
                     <div class="error">
                         <div class="error-icon">❌</div>
-                        <div class="empty-text">채팅 목록을 불러오는데 실패했습니다</div>
+                        <div class="empty-text">채팅 내역을 불러오는데 실패했습니다</div>
                         <div class="empty-subtext">잠시 후 다시 시도해주세요</div>
                     </div>
                 `;
             });
-    }
+        */
 
-    // 채팅 목록 렌더링
-    function renderChatRooms(chatRooms, boardId) {
-        const chatContent = document.getElementById('chatContent');
-
-        if (!chatRooms || chatRooms.length === 0) {
+        // 임시로 구현 예정 메시지 표시
+        setTimeout(() => {
             chatContent.innerHTML = `
-                <div class="no-chat-rooms">
-                    <div class="empty-icon">💬</div>
-                    <div class="empty-text">아직 개설된 채팅방이 없습니다</div>
-                    <div class="empty-subtext">전문가가 채팅을 시작하면 여기에 표시됩니다</div>
+                <div class="empty-state">
+                    <div class="empty-icon">🚧</div>
+                    <div class="empty-text">채팅 기능 구현 예정</div>
+                    <div class="empty-subtext">Post ID: ${postId}로 채팅 내역을 불러올 예정입니다</div>
                 </div>
             `;
-            return;
-        }
-
-        // 채팅 목록 HTML 생성
-        const chatRoomsHtml = chatRooms.map(room => {
-            const statusClass = room.status === 'ACTIVE' ? 'status-active' : 'status-inactive';
-            const statusText = room.status === 'ACTIVE' ? '활성' : '비활성';
-            const formattedDate = formatDate(room.createdAt || room.created_at);
-
-            return `
-                <div class="chat-room-item">
-                    <div class="chat-room-info">
-                        <div class="chat-room-title">${escapeHtml(room.roomName || '채팅방')}</div>
-                        <div class="chat-room-meta">
-                            <span>상대: ${escapeHtml(room.partnerName || '알 수 없음')}</span>
-                            <span>생성일: ${formattedDate}</span>
-                            <span class="chat-room-status ${statusClass}">${statusText}</span>
-                        </div>
-                    </div>
-                    <div class="chat-room-actions">
-                        <button class="chat-action-btn enter-chat-btn"
-                                onclick="enterChatRoom(${room.roomId || room.room_id})"
-                                ${room.status !== 'ACTIVE' ? 'disabled' : ''}>
-                            <i class="fas fa-comments"></i> 입장
-                        </button>
-                        <button class="chat-action-btn chat-info-btn"
-                                onclick="showChatInfo(${room.roomId || room.room_id})">
-                            <i class="fas fa-info-circle"></i> 정보
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        chatContent.innerHTML = `
-            <div class="chat-rooms-list">
-                ${chatRoomsHtml}
-            </div>
-        `;
-    }
-
-    // 채팅방 입장
-    function enterChatRoom(roomId) {
-        console.log('채팅방 입장:', roomId);
-        // 채팅방 페이지로 이동하거나 새창으로 열기
-        const chatUrl = `/chat/room/${roomId}`;
-        const windowFeatures = 'width=800,height=600,scrollbars=yes,resizable=yes';
-        window.open(chatUrl, `chat_room_${roomId}`, windowFeatures);
-    }
-
-    // 채팅방 정보 보기
-    function showChatInfo(roomId) {
-        console.log('채팅방 정보:', roomId);
-        // 채팅방 정보 모달 또는 페이지 표시
-        alert(`채팅방 ID: ${roomId}\n상세 정보 기능은 추후 구현 예정입니다.`);
+        }, 800);
     }
 
     // 채팅 영역 초기화
@@ -440,15 +274,15 @@
         const chatContent = document.getElementById('chatContent');
 
         chatHeader.innerHTML = `
-            <div class="chat-title">채팅 목록</div>
-            <div class="chat-subtitle">견적을 선택하면 채팅 목록이 표시됩니다</div>
+            <div class="chat-title">비동기 채팅 내역</div>
+            <div class="chat-subtitle">견적을 선택하면 채팅 내역이 표시됩니다</div>
         `;
 
         chatContent.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">💬</div>
-                <div class="empty-text">채팅 목록을 불러올 견적을 선택해주세요</div>
-                <div class="empty-subtext">좌측 견적 목록에서 항목을 클릭하시면 해당 채팅 목록이 표시됩니다</div>
+                <div class="empty-text">채팅 내역을 불러올 견적을 선택해주세요</div>
+                <div class="empty-subtext">좌측 견적 목록에서 항목을 클릭하시면 해당 채팅 내역이 표시됩니다</div>
             </div>
         `;
     }

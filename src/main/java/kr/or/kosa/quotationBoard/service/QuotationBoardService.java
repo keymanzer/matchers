@@ -31,6 +31,7 @@ public class QuotationBoardService {
     }
 
     public int updateQuotationBoard(QuotationBoard quotationBoard) {
+        System.out.println("업데이트 서비스 호출");
         return quotationBoardMapper.updateQuotationBoard(quotationBoard);
     }
 
@@ -58,6 +59,11 @@ public class QuotationBoardService {
 
     public List<QuotationBoard> findMyRequests(long userId,String state) {
         return quotationBoardMapper.findMyRequests(userId,state);
+    }
+
+    public List<QuotationBoard> findMyQuotations(long userId,String state) {
+        System.out.println("findMyQuotations userId = " + userId + " state = " + state + "quotation서비스 호출");
+        return quotationBoardMapper.findMyQuotations(userId,state);
     }
 
 

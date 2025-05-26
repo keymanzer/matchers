@@ -27,6 +27,8 @@ public interface QuotationBoardMapper {
 
     List<QuotationBoard> findMyRequests(long userId,String state);
 
+    List<QuotationBoard> findMyQuotations(long userId,String state);
+
     void insertQuotationLocation(@Param("postId") long postId,
                                  @Param("locationId") int locationId);
 

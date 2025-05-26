@@ -7,8 +7,10 @@
     <title>견적 관리</title>
     <link th:href="@{/css/quotationBoard/quotation-myrequest.css}" rel="stylesheet" type="text/css">
     <link th:href="@{/css/header.css}" rel="stylesheet" type="text/css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <link th:href="@{/css/footer.css}" rel="stylesheet" type="text/css">
     <link rel="stylesheet" th:href="@{/css/chat/notification-system.css}" />
+    <link rel="stylesheet" th:href="@{/css/quotationBoard/quotation-detail.css}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
@@ -19,7 +21,6 @@
         section {
             min-height: 600px; /* 최소 높이로 변경 */
         }
-
 
     </style>
 </head>
@@ -50,18 +51,14 @@
         </div>
     </div>
 
-    <!-- 우측 채팅 영역 -->
+    <!-- 우측 상세보기 영역 -->
     <div class="chat-section">
-        <div class="chat-header" id="chatHeader">
-            <div class="chat-title">채팅 목록</div>
-            <div class="chat-subtitle">견적을 선택하면 채팅 목록이 표시됩니다</div>
-        </div>
 
         <div class="chat-content" id="chatContent">
             <div class="empty-state">
-                <div class="empty-icon">💬</div>
-                <div class="empty-text">채팅 목록을 불러올 견적을 선택해주세요</div>
-                <div class="empty-subtext">좌측 견적 목록에서 항목을 클릭하시면 해당 채팅 목록이 표시됩니다</div>
+                <div class="empty-icon">📄</div>
+                <div class="empty-text">견적 상세 정보를 불러올 견적을 선택해주세요</div>
+                <div class="empty-subtext">좌측 견적 목록에서 항목을 클릭하시면 해당 견적의 상세 정보가 표시됩니다</div>
             </div>
         </div>
     </div>
@@ -140,12 +137,12 @@
             quoteList.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">📝</div>
-                    <div class="empty-text">해당 상태의 견적이 없습니다</div>
-                    <div class="empty-subtext">새로운 견적 요청을 작성해보세요</div>
+                    <div class="empty-text">해당 상태의 의뢰가 없습니다.</div>
+                    <div class="empty-subtext">새로운 견적 의뢰를 작성해보세요</div>
                 </div>
             `;
-            // 채팅 영역 초기화
-            resetChatArea();
+            // 상세보기 영역 초기화
+            resetDetailArea();
             return;
         }
 
@@ -170,9 +167,6 @@
             // 진행전 상태일 때만 삭제 버튼 표시, 모든 상태에서 상세보기 버튼 표시
             const actionButtons = `
                 <div class="action-buttons">
-                    <button class="action-button detail-button" onclick="openQuoteDetail(event, ${postId})" title="상세보기">
-                        <i class="fas fa-eye"></i>
-                    </button>
                     ${currentStatus === 'pending' ?
                 `<button class="action-button delete-button" onclick="showDeleteModal(event, ${postId})" title="삭제">
                             <i class="fas fa-trash"></i>
@@ -192,7 +186,7 @@
                     </div>
                     <div class="quote-meta">
                         <div class="quote-expert">${escapeHtml(quote.expertName || quote.expert_name || '전문가')}</div>
-                        <div class="quote-category">${escapeHtml(quote.categoryName || quote.category_name || '카테고리')}</div>
+                        <div class="quote-category">${escapeHtml(quote.categoryName || quote.name || '카테고리')}</div>
                         <div class="quote-date">${formattedDate}</div>
                     </div>
                     <div class="quote-preview">${escapeHtml(truncateText(quote.content || quote.description || '', 100))}</div>
@@ -218,22 +212,124 @@
         element.classList.add('active');
         selectedPostId = postId;
 
-        // 채팅 목록 로드
-        loadChatRooms(postId);
+        // 견적 상세 정보 로드
+        loadQuoteDetail(postId);
+    }
+    // 견적 상세 정보 렌더링
+    // 견적 상세 정보 렌더링 (첨부파일 포함)
+    function renderQuoteDetail(data) {
+        const chatContent = document.getElementById('chatContent');
+
+        // 1) 첨부파일 HTML 생성
+        let attachedFilesHtml = '';
+        if (data.attachedFiles && data.attachedFiles.length > 0) {
+            attachedFilesHtml = `
+      <div class="content-section">
+        <h3 class="section-title">
+          <i class="fas fa-paperclip"></i> 첨부파일
+        </h3>
+        <ul class="file-list">
+          ${data.attachedFiles.map(file => `
+            <li class="file-item">
+              <span class="file-link"
+                    onclick="previewFile('${file.path}')">
+                ${escapeHtml(file.name)}
+              </span>
+              <a href="/user/quotationBoard/download/${file.attachedFileId}"
+                 class="download-btn">
+                <i class="fas fa-download"></i> 다운로드
+              </a>
+            </li>
+          `).join('')}
+        </ul>
+      </div>`;
+        }
+
+        // 2) 전체 상세 뷰 마크업
+        const detailHtml = `
+    <div class="detail-view">
+      <div class="quotation-card">
+        <div class="card-header">
+          <h1 class="quotation-title">${escapeHtml(data.title)}</h1>
+          <button class="chat-room-list-btn"
+                  onclick="openChatRooms(${data.postId})">
+            <i class="fas fa-comments"></i> 채팅 대화방 입장
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="content-section">
+            <h3 class="section-title">
+              <i class="fas fa-tags"></i> 카테고리
+            </h3>
+            <div class="category-item">
+              ${escapeHtml(data.categoryName)}
+            </div>
+          </div>
+          <div class="content-section">
+            <h3 class="section-title">
+              <i class="fas fa-map-marker-alt"></i> 의뢰 지역
+            </h3>
+            <ul class="location-list">
+              ${data.quotationLocations.map(loc => `
+                <li class="location-item">
+                  <i class="fas fa-map-pin"></i>
+                  <span>${escapeHtml(loc.city)} ${escapeHtml(loc.district)}</span>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+          <div class="content-section">
+            <h3 class="section-title">
+              <i class="fas fa-file-alt"></i> 요청 내용
+            </h3>
+               <div class="content-text">${data.content || '내용이 없습니다.'}</div>
+          </div>
+          ${attachedFilesHtml}
+        </div>
+      </div>
+    </div>`;
+
+        chatContent.innerHTML = detailHtml;
     }
 
-    // 상세보기 새창 열기
-    function openQuoteDetail(event, postId) {
-        event.stopPropagation(); // 견적 선택 이벤트 방지
+    // 견적 상세 정보 로드
+    function loadQuoteDetail(postId) {
+        const chatContent = document.getElementById('chatContent');
 
-        console.log('상세보기 열기 - postId:', postId);
+        // 1) 로딩 표시
+        chatContent.innerHTML = '<div class="loading"><div class="spinner"></div>불러오는 중…</div>';
 
-        // 새창으로 상세보기 페이지 열기
-        const detailUrl = `/user/quotationBoard/list/${postId}`;
-        const windowFeatures = 'width=1000,height=700,scrollbars=yes,resizable=yes,left=100,top=100';
-
-        window.open(detailUrl, `quote_detail_${postId}`, windowFeatures);
+        // 2) 데이터 가져오기
+        fetch(`/user/quotationBoard/api/detail/${postId}`)
+            .then(res => {
+                if (!res.ok) throw new Error(res.status);
+                return res.json();
+            })
+            .then(data => {
+                console.log('Loaded quote detail:', data);
+                // renderQuoteDetail에서 상세 + 첨부파일 렌더링
+                renderQuoteDetail(data);
+            })
+            .catch(err => {
+                console.error('Error loading quote detail:', err);
+                chatContent.innerHTML = `
+        <div class="error">
+          <div class="error-icon">❌</div>
+          <div class="empty-text">견적 상세 정보를 불러오는데 실패했습니다</div>
+          <div class="empty-subtext">잠시 후 다시 시도해주세요</div>
+        </div>`;
+            });
     }
+
+    // 새창에서 채팅방 목록 열기
+    function openChatRooms(postId) {
+        const chatRoomUrl = `/chat/${postId}/rooms`;
+        window.open(chatRoomUrl, 'chatRooms', 'width=1000,height=700,scrollbars=yes,resizable=yes');
+    }
+
+
+
+
 
     // 삭제 모달 표시
     function showDeleteModal(event, postId) {
@@ -323,134 +419,24 @@
         }
     }
 
-    // 채팅 목록 로드 (수정된 함수)
-    function loadChatRooms(boardId) {
+    // 상세보기 영역 초기화
+    function resetDetailArea() {
         const chatHeader = document.getElementById('chatHeader');
         const chatContent = document.getElementById('chatContent');
-
-        // 헤더 업데이트
-        const selectedQuote = document.querySelector(`[data-post-id="${boardId}"]`);
-        const quoteTitle = selectedQuote.querySelector('.quote-title').textContent;
-        const quoteExpert = selectedQuote.querySelector('.quote-expert').textContent;
-
-        chatHeader.innerHTML = `
-            <div class="chat-title">${quoteTitle}</div>
-            <div class="chat-subtitle">${quoteExpert}과의 채팅 목록</div>
-        `;
-
-        // 로딩 표시
-        chatContent.innerHTML = '<div class="loading"><div class="spinner"></div>채팅 목록을 불러오는 중...</div>';
-
-        // 채팅 목록 API 호출 (기존 컨트롤러 사용)
-        fetch(`/chat/${boardId}/rooms/api`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(chatRooms => {
-                console.log('Loaded chat rooms:', chatRooms);
-                renderChatRooms(chatRooms, boardId);
-            })
-            .catch(error => {
-                console.error('Error loading chat rooms:', error);
-                chatContent.innerHTML = `
-                    <div class="error">
-                        <div class="error-icon">❌</div>
-                        <div class="empty-text">채팅 목록을 불러오는데 실패했습니다</div>
-                        <div class="empty-subtext">잠시 후 다시 시도해주세요</div>
-                    </div>
-                `;
-            });
-    }
-
-    // 채팅 목록 렌더링
-    function renderChatRooms(chatRooms, boardId) {
-        const chatContent = document.getElementById('chatContent');
-
-        if (!chatRooms || chatRooms.length === 0) {
-            chatContent.innerHTML = `
-                <div class="no-chat-rooms">
-                    <div class="empty-icon">💬</div>
-                    <div class="empty-text">아직 개설된 채팅방이 없습니다</div>
-                    <div class="empty-subtext">전문가가 채팅을 시작하면 여기에 표시됩니다</div>
-                </div>
-            `;
-            return;
-        }
-
-        // 채팅 목록 HTML 생성
-        const chatRoomsHtml = chatRooms.map(room => {
-            const statusClass = room.status === 'ACTIVE' ? 'status-active' : 'status-inactive';
-            const statusText = room.status === 'ACTIVE' ? '활성' : '비활성';
-            const formattedDate = formatDate(room.createdAt || room.created_at);
-
-            return `
-                <div class="chat-room-item">
-                    <div class="chat-room-info">
-                        <div class="chat-room-title">${escapeHtml(room.roomName || '채팅방')}</div>
-                        <div class="chat-room-meta">
-                            <span>상대: ${escapeHtml(room.partnerName || '알 수 없음')}</span>
-                            <span>생성일: ${formattedDate}</span>
-                            <span class="chat-room-status ${statusClass}">${statusText}</span>
-                        </div>
-                    </div>
-                    <div class="chat-room-actions">
-                        <button class="chat-action-btn enter-chat-btn"
-                                onclick="enterChatRoom(${room.roomId || room.room_id})"
-                                ${room.status !== 'ACTIVE' ? 'disabled' : ''}>
-                            <i class="fas fa-comments"></i> 입장
-                        </button>
-                        <button class="chat-action-btn chat-info-btn"
-                                onclick="showChatInfo(${room.roomId || room.room_id})">
-                            <i class="fas fa-info-circle"></i> 정보
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        chatContent.innerHTML = `
-            <div class="chat-rooms-list">
-                ${chatRoomsHtml}
-            </div>
-        `;
-    }
-
-    // 채팅방 입장
-    function enterChatRoom(roomId) {
-        console.log('채팅방 입장:', roomId);
-        // 채팅방 페이지로 이동하거나 새창으로 열기
-        const chatUrl = `/chat/room/${roomId}`;
-        const windowFeatures = 'width=800,height=600,scrollbars=yes,resizable=yes';
-        window.open(chatUrl, `chat_room_${roomId}`, windowFeatures);
-    }
-
-    // 채팅방 정보 보기
-    function showChatInfo(roomId) {
-        console.log('채팅방 정보:', roomId);
-        // 채팅방 정보 모달 또는 페이지 표시
-        alert(`채팅방 ID: ${roomId}\n상세 정보 기능은 추후 구현 예정입니다.`);
-    }
-
-    // 채팅 영역 초기화
-    function resetChatArea() {
-        const chatHeader = document.getElementById('chatHeader');
-        const chatContent = document.getElementById('chatContent');
-
-        chatHeader.innerHTML = `
-            <div class="chat-title">채팅 목록</div>
-            <div class="chat-subtitle">견적을 선택하면 채팅 목록이 표시됩니다</div>
-        `;
 
         chatContent.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">💬</div>
-                <div class="empty-text">채팅 목록을 불러올 견적을 선택해주세요</div>
-                <div class="empty-subtext">좌측 견적 목록에서 항목을 클릭하시면 해당 채팅 목록이 표시됩니다</div>
+                <div class="empty-icon">📄</div>
+                <div class="empty-text">견적 상세 정보를 불러올 견적을 선택해주세요</div>
+                <div class="empty-subtext">좌측 견적 목록에서 항목을 클릭하시면 해당 견적의 상세 정보가 표시됩니다</div>
             </div>
         `;
+    }
+
+    // 파일 미리보기
+    function previewFile(filepath) {
+        // 새 창에서 이미지 미리보기 (예시)
+        window.open(filepath, 'preview', 'width=800,height=600');
     }
 
     // 유틸리티 함수들
@@ -465,6 +451,23 @@
             return `${year}-${month}-${day}`;
         } catch (error) {
             console.error('Date formatting error:', error);
+            return dateString;
+        }
+    }
+
+    function formatDateTime(dateString) {
+        if (!dateString) return '';
+
+        try {
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hours}:${minutes}`;
+        } catch (error) {
+            console.error('DateTime formatting error:', error);
             return dateString;
         }
     }

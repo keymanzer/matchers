@@ -1,5 +1,7 @@
 package kr.or.kosa.quotationBoard.dto;
+import kr.or.kosa.attachedFile.dto.AttachedFile;
 import lombok.Data;
+import net.minidev.json.annotate.JsonIgnore;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
@@ -23,8 +25,12 @@ public class QuotationBoard {
     /** create 폼의 체크박스(name="locationIds") 바인딩 */
     private List<Integer> locationIds;
     /** multipart/form-data 의 file inputs(name="attachedFiles") 바인딩 */
-    private List<MultipartFile> attachedFiles;
+    // --- form 바인딩용: 업로드 받을 때만 쓰는 필드 ---
+    @JsonIgnore
+    private List<MultipartFile> uploadFiles;
 
+    // --- API 응답용: DB에서 조회한 첨부파일 리스트 ---
+    private List<AttachedFile> attachedFiles;
     public String getLocationIdsAsString() {
         if (quotationLocations == null || quotationLocations.isEmpty()) {
             return "";

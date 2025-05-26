@@ -1,97 +1,144 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-
 <head>
-	<meta charset="UTF-8" />
-	<title>메인</title>
-	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-	<link rel="stylesheet" th:href="@{/css/header.css}" />
-	<link rel="stylesheet" th:href="@{/css/footer.css}" />
-	<link rel="stylesheet" th:href="@{/css/index.css}" />
-	<!-- 알림 시스템 CSS (추가) -->
-	<link rel="stylesheet" th:href="@{/css/chat/notification-system.css}">
-	<!-- Font Awesome 아이콘 (추가 - 알림 시스템에 필요) -->
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <meta charset="UTF-8" />
+  <title>메인</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" th:href="@{/css/header.css}" />
+  <link rel="stylesheet" th:href="@{/css/footer.css}" />
+  <link rel="stylesheet" th:href="@{/css/index.css}" />
+  <link rel="stylesheet" th:href="@{/css/chat/notification-system.css}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
-	<div th:replace="~{header :: header}"></div>
+  <div th:replace="~{header :: header}"></div>
 
-	<section class="section-title text-center">
-		<h2>요즘 인기 있는 서비스</h2>
-	</section>
+  <section class="section-title text-center">
+    <h2>요즘 인기 있는 서비스</h2>
+  </section>
 
-	<!-- 캐러셀 -->
-	<div class="container">
-		<div id="mainCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
-			<div class="carousel-inner">
-				<div class="carousel-item active">
-					<img src="/images/expert_it.png" class="d-block w-100" alt="첫 번째 배너" />
-				</div>
-				<div class="carousel-item">
-					<img src="/images/expert_beauty.png" class="d-block w-100" alt="두 번째 배너" />
-				</div>
-				<div class="carousel-item">
-					<img src="/images/expert_law.png" class="d-block w-100" alt="세 번째 배너" />
-				</div>
-				<div class="carousel-item">
-					<img src="/images/expert_car.png" class="d-block w-100" alt="네 번째 배너" />
-				</div>
-				<div class="carousel-item">
-					<img src="/images/expert_clean.png" class="d-block w-100" alt="다섯 번째 배너" />
-				</div>
-			</div>
-			<button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
-				<span class="carousel-control-prev-icon" aria-hidden="true"></span>
-				<span class="visually-hidden">이전</span>
-			</button>
-			<button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next">
-				<span class="carousel-control-next-icon" aria-hidden="true"></span>
-				<span class="visually-hidden">다음</span>
-			</button>
-		</div>
-	</div>
+  <!-- 캐러셀 -->
+  <div class="container">
+    <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
+      <div class="carousel-inner">
+        <div class="carousel-item active">
+          <img src="/images/expert_it.png" class="d-block w-100" alt="첫 번째 배너" />
+        </div>
+        <div class="carousel-item">
+          <img src="/images/expert_beauty.png" class="d-block w-100" alt="두 번째 배너" />
+        </div>
+        <div class="carousel-item">
+          <img src="/images/expert_law.png" class="d-block w-100" alt="세 번째 배너" />
+        </div>
+        <div class="carousel-item">
+          <img src="/images/expert_car.png" class="d-block w-100" alt="네 번째 배너" />
+        </div>
+        <div class="carousel-item">
+          <img src="/images/expert_clean.png" class="d-block w-100" alt="다섯 번째 배너" />
+        </div>
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">이전</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">다음</span>
+      </button>
+    </div>
+  </div>
 
-	<!-- 게시판, 리뷰 자리 -->
-	<section class="content-area">
-		<div class="review-summary">
-			<h2>견적 후기</h2>
-			<blockquote class="blockquote">
-				"3일 만에 전문가를 찾았어요! 원하는 결과에 너무 만족합니다." - 김**
-			</blockquote>
-			<a href="#" class="review-link">리뷰 더보기 →</a>
-		</div>
-		<h2>게시판</h2>
-		<!-- 게시판 컨텐츠가 여기에 들어갑니다 -->
-		<div id="boardList" th:replace="~{community/postlist :: topPostList}"></div>
-		<h2 class="mt-5">리뷰</h2>
-		<!-- 리뷰 컨텐츠가 여기에 들어갑니다 -->
-		<div id="reviewList">
-			<p>리뷰 목록은 구현 중입니다.</p>
-		</div>
+  <!-- 게시판, 리뷰 자리 -->
+  <section class="content-area">
+    <div class="review-summary">
+      <h2>견적 후기</h2>
+      <blockquote class="blockquote">
+        "3일 만에 전문가를 찾았어요! 원하는 결과에 너무 만족합니다." - 김**
+      </blockquote>
+      <a href="#" class="review-link">견적 후기 더보기 →</a>
+    </div>
+	<br>
+    <!-- 비동기 커뮤니티 게시글 조회순 Top5 자리 -->
+    <h2>MATCHERS 커뮤니티에 물어보세요</h2>
+    <div class="section-card">
+      <table class="table table-bordered">
+        <tbody id="top5CommunityPosts">
+          <tr><td colspan="4">로딩 중...</td></tr>
+        </tbody>
+      </table>
+    </div>
+	<br>
+    <th:block sec:authorize="!hasRole('ROLE_EXPERT')">
+      <div class="cta-banner text-center mt-5 p-4" style="background: #e8eaf6; border-radius: 10px;">
+        <h4>전문가이신가요?</h4>
+        <p>지금 등록하고 고객과 매칭되어 보세요.</p>
+        <a href="/user/expert/register" class="btn btn-primary">전문가 등록하기</a>
+      </div>
+    </th:block>
+    <th:block sec:authorize="hasRole('ROLE_EXPERT')">
+      <div class="cta-banner text-center mt-5 p-4" style="background: #e8eaf6; border-radius: 10px;">
+        <h4>전문가로 활약하고 싶으신가요?</h4>
+        <p>견적 게시판에서 고객과 매칭하세요.</p>
+        <a href="/" class="btn btn-primary">견적 게시판 확인하기</a>
+      </div>
+    </th:block>
+  </section>
 
-		<th:block sec:authorize="!hasRole('ROLE_EXPERT')">
-			<div class="cta-banner text-center mt-5 p-4" style="background: #e8eaf6; border-radius: 10px;">
-				<h4>전문가이신가요?</h4>
-				<p>지금 등록하고 고객과 매칭되어 보세요.</p>
-				<a href="/user/expert/register" class="btn btn-primary">전문가 등록하기</a>
-			</div>
-		</th:block>
+  <div th:replace="~{footer :: footer}"></div>
 
-		<th:block sec:authorize="hasRole('ROLE_EXPERT')">
-			<div class="cta-banner text-center mt-5 p-4" style="background: #e8eaf6; border-radius: 10px;">
-				<h4>전문가로 활약하고 싶으신가요?</h4>
-				<p>견적 게시판에서 고객과 매칭하세요.</p>
-				<a href="/" class="btn btn-primary">견적 게시판 확인하기</a>
-			</div>
-		</th:block>
-	</section>
+  <!-- 스크립트 -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      axios.get("/user/community/api/top5")
+        .then(response => {
+          const posts = response.data;
+          const container = document.getElementById("top5CommunityPosts");
+          container.innerHTML = "";
 
-	<div th:replace="~{footer :: footer}"></div>
+          if (posts.length === 0) {
+            container.innerHTML = "<p>게시글이 없습니다.</p>";
+            return;
+          }
 
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+          posts.forEach(post => {
+            const filePath = post.filePath || "";
+            const isImage = /\.(jpg|jpeg|png|gif)$/i.test(filePath);
+            const thumbnail = isImage
+              ? `<img class="post-thumb" src="${filePath}" alt="썸네일">`
+              : `<div class="post-thumb placeholder">No Image</div>`;
+
+            const html = `
+              <div class="post-card">
+                <div class="post-info">
+                  <div class="post-category">커뮤니티</div>
+                  <a class="post-title" href="/user/community/${post.postId}/detail">
+                    ${post.board.title}
+                  </a>
+                  <div class="post-excerpt">
+                    ${post.board.content.length > 60 ? post.board.content.substring(0, 60) + "..." : post.board.content}
+                  </div>
+                  <div class="post-meta">
+                    <span><i class="fa fa-user"></i> ${post.users.nickname}</span>
+                    <span><i class="fa fa-eye"></i> ${post.views}</span>
+                    <span><i class="fa fa-clock"></i> ${new Date(post.lastUpdatedAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+                ${thumbnail}
+              </div>
+            `;
+            container.insertAdjacentHTML("beforeend", html);
+          });
+        })
+        .catch(error => {
+          console.error("Top5 불러오기 실패:", error);
+          document.getElementById("top5CommunityPosts").innerHTML =
+            "<p>데이터 로딩 실패</p>";
+        });
+    });
+  </script>
 </body>
-
 </html>

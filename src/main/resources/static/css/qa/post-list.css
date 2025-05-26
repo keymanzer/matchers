@@ -79,6 +79,7 @@ td {
   text-decoration: none;
   color: var(--primary-color);
   font-weight: 900;
+  padding-left: 10px;
 }
 
 .post-title a:hover {

@@ -32,7 +32,8 @@ body {
 }
 
 #mainCarousel img {
-	object-fit: contain;
+	object-fit: cover; /* 이미지가 박스를 꽉 채움 */
+	width: 100%;
 	height: 300px;
 	background-color: #e8eaf6;
 }
@@ -123,4 +124,86 @@ body {
 	border-color: #7e57c2;
 	padding: 0.5rem 1.2rem;
 	font-weight: 500;
+}
+
+/* Top5 커뮤니티 카드형 스타일 */
+.top-posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.post-card {
+  display: flex;
+  justify-content: space-between;
+  background-color: #f8f9ff;
+  border-radius: 12px;
+  padding: 1.2rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.post-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.post-info {
+  flex: 1;
+}
+
+.post-thumb {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-left: 1rem;
+}
+
+.post-thumb.placeholder {
+  width: 100px;
+  height: 100px;
+  background-color: #e0e0e0;
+  color: #888;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  margin-left: 1rem;
+}
+
+.post-category {
+  font-size: 0.75rem;
+  color: #7e57c2;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.post-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #5e60ce;
+  text-decoration: none;
+}
+
+.post-title:hover {
+  text-decoration: underline;
+}
+
+.post-excerpt {
+  font-size: 0.9rem;
+  color: #555;
+  margin-top: 0.3rem;
+}
+
+.post-meta {
+  margin-top: 0.6rem;
+  font-size: 0.8rem;
+  color: #888;
+  display: flex;
+  gap: 1rem;
+}
+
+.post-meta i {
+  margin-right: 4px;
 }

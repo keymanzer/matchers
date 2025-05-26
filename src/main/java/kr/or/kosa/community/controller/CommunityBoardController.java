@@ -91,14 +91,6 @@ public class CommunityBoardController {
 		return "community/postlist";
 	}
 
-	@GetMapping("/fragment/top5")
-	public String getTop5PostsByViews(Model model) {
-		List<CommunityBoard> allPosts = communityBoardService.getPostListByViews();
-		List<CommunityBoard> top5 = allPosts.size() > 5 ? allPosts.subList(0, 5) : allPosts;
-		model.addAttribute("list", top5);
-		return "community/postlist :: topPostList";
-	}
-
 	// 게시글 상세 보기
 	@GetMapping("/{postId}/detail")
 	public String getPostbyId(@PathVariable("postId") Long postId, Model model, Principal principal) {

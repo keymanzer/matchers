@@ -11,11 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -66,6 +62,18 @@ public class UserController {
 		model.addAttribute("locationList", adminService.getLocations(userId));
 
 		return "user/myexpertpage";
+	}
+
+	// 다른 사용자가 전문가 정보를 조회할 때
+	@GetMapping("/user/mypage/expert/{expertId}")
+	public String myPageExpert(Model model, @PathVariable long expertId) {
+
+		model.addAttribute("expertDetail", adminService.getExpertByUserId(expertId));
+		model.addAttribute("licenseList", adminService.getLicenses(expertId));
+		model.addAttribute("categoryList", adminService.getCategories(expertId));
+		model.addAttribute("locationList", adminService.getLocations(expertId));
+
+		return "expert/expertInfo";
 	}
 
 	@PostMapping("/user/mypage/profile")

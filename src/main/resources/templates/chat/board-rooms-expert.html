@@ -72,21 +72,6 @@
                         <div class="unread-badge" th:if="${room.unReadCount > 0}" th:text="${room.unReadCount}"></div>
                     </div>
                 </a>
-
-                <!-- 수락/완료 버튼 -->
-                <div class="chat-room-actions">
-                    <button class="btn btn-outline-success btn-sm accept-btn"
-                            th:data-room-id="${room.roomId}"
-                            th:style="${room.boardState != '진행전' ? 'display: none;' : ''}">
-                        수락하기
-                    </button>
-                    <button class="btn btn-outline-primary btn-sm complete-btn"
-                            th:data-room-id="${room.roomId}"
-                            th:classappend="${room.boardState != '진행중'} ? 'd-none' : ''"
-                            th:disabled="${room.boardState == '완료'}">
-                        <span th:text="${room.boardState == '완료'} ? '완료됨' : '완료처리'"></span>
-                    </button>
-                </div>
             </div>
         </div>
 
@@ -205,80 +190,6 @@
 
         // 즉시 채팅방 목록 갱신
         refreshChatRooms();
-
-        document.addEventListener('click', function (e) {
-            // 수락 버튼 클릭
-            if (e.target.classList.contains('accept-btn')) {
-                const roomId = e.target.getAttribute('data-room-id');
-                console.log(`수락 버튼 클릭: 채팅방 ID ${roomId}`);
-
-                // CSRF 토큰 가져오기
-                const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
-                const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
-                
-                const config = {};
-                if (csrfToken && csrfHeader) {
-                    config.headers = {
-                        [csrfHeader]: csrfToken
-                    };
-                    console.log('CSRF 토큰 추가:', csrfHeader, csrfToken);
-                }
-
-                axios.post(`/chat/room/${roomId}/accept`, {}, config)
-                    .then(() => {
-                        e.target.classList.add('d-none'); // 수락 버튼 숨기기
-                        const completeBtn = e.target.parentElement.querySelector('.complete-btn');
-                        if (completeBtn) completeBtn.classList.remove('d-none');
-
-                        // 나머지 채팅방 수락 버튼 비활성화
-                        document.querySelectorAll('.chat-room-item').forEach(item => {
-                            const thisRoomId = item.getAttribute('data-room-id');
-                            if (thisRoomId !== roomId) {
-                                const acceptBtn = item.querySelector('.accept-btn');
-                                if (acceptBtn) acceptBtn.disabled = true;
-                            }
-                        });
-                        
-                        // 상태 변경 후 채팅방 목록 새로고침
-                        setTimeout(() => refreshChatRooms(), 1000);
-                    })
-                    .catch((error) => {
-                        console.error('수락 처리 실패:', error);
-                        alert('수락 처리 실패');
-                    });
-            }
-
-            // 완료 버튼 클릭
-            if (e.target.classList.contains('complete-btn')) {
-                const roomId = e.target.getAttribute('data-room-id');
-                console.log(`완료 버튼 클릭: 채팅방 ID ${roomId}`);
-
-                // CSRF 토큰 가져오기
-                const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
-                const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
-                
-                const config = {};
-                if (csrfToken && csrfHeader) {
-                    config.headers = {
-                        [csrfHeader]: csrfToken
-                    };
-                    console.log('CSRF 토큰 추가:', csrfHeader, csrfToken);
-                }
-
-                axios.post(`/chat/room/${roomId}/complete`, {}, config)
-                    .then(() => {
-                        e.target.disabled = true;
-                        alert('완료 처리 되었습니다.');
-                        
-                        // 상태 변경 후 채팅방 목록 새로고침
-                        setTimeout(() => refreshChatRooms(), 1000);
-                    })
-                    .catch((error) => {
-                        console.error('완료 처리 실패:', error);
-                        alert('완료 처리 실패');
-                    });
-            }
-        });
     });
 
     // 페이지 초기 로드 시 날짜 포맷팅
@@ -441,22 +352,21 @@
 
             console.log("채팅방 API 응답:", chatRooms);
             
-            // 디버깅을 위해 모든 필드 출력
+            // 디버깅을 위해 첫 번째 채팅방의 상세 정보 출력
             if (chatRooms.length > 0) {
-                console.log("첫 번째 채팅방 전체 필드:", Object.keys(chatRooms[0]));
                 console.log("첫 번째 채팅방 상세 정보:", JSON.stringify(chatRooms[0], null, 2));
                 
-                // boardState 필드 확인
-                console.log("boardState 필드 값 (문자열):", chatRooms[0].boardState);
-                console.log("boardState 필드 값 (타입):", typeof chatRooms[0].boardState);
-                console.log("boardState === '진행전':", chatRooms[0].boardState === '진행전');
-                console.log("boardState === '진행중':", chatRooms[0].boardState === '진행중');
-                console.log("boardState === '완료':", chatRooms[0].boardState === '완료');
+                // boardState 필드 존재 여부 확인
+                if (chatRooms[0].boardState === undefined) {
+                    console.warn("boardState 필드가 없습니다! 백엔드 API를 확인해주세요.");
+                } else {
+                    console.log("현재 boardState 값:", chatRooms[0].boardState);
+                }
                 
                 // 모든 채팅방의 boardState 값 확인
                 console.log("모든 채팅방의 boardState 값:");
                 chatRooms.forEach((room, index) => {
-                    console.log(`채팅방 ${index + 1} (ID: ${room.roomId}): boardState = "${room.boardState || '없음'}"`);
+                    console.log(`채팅방 ${index + 1} (ID: ${room.roomId}): boardState = ${room.boardState || '없음'}`);
                 });
             }
 
@@ -500,6 +410,13 @@
                 const avatarContent = otherUserProfileImg
                     ? `<img src="${otherUserProfileImg}" alt="프로필 이미지">`
                     : `<img src="/images/profileImg.png" alt="기본 프로필 이미지">`;
+
+                // 사용자 권한 확인
+                const userRoles = document.body.getAttribute('data-user-roles');
+                const isOnlyUser = userRoles && 
+                                  userRoles.includes('ROLE_USER') && 
+                                  !userRoles.includes('ROLE_ADMIN') && 
+                                  !userRoles.includes('ROLE_SELLER');
                 
                 // 채팅방 아이템 HTML 생성
                 let roomHTML = `
@@ -516,29 +433,8 @@
                                 <div class="chat-room-time">${formattedTime}</div>
                                 ${room.unReadCount > 0 ? `<div class="unread-badge">${room.unReadCount}</div>` : ''}
                             </div>
-                        </a>`;
-                
-                // 수락/완료 버튼 추가
-                const showAcceptBtn = room.boardState === '진행전';
-                const showCompleteBtn = room.boardState === '진행중';
-                const isCompleted = room.boardState === '완료';
-
-                roomHTML += `
-                    <div class="chat-room-actions">
-                        <button class="btn btn-outline-success btn-sm accept-btn"
-                                data-room-id="${room.roomId}"
-                                style="${room.boardState !== '진행전' ? 'display: none;' : ''}">
-                            수락하기
-                        </button>
-                        <button class="btn btn-outline-primary btn-sm complete-btn ${room.boardState !== '진행중' ? 'd-none' : ''}"
-                                data-room-id="${room.roomId}"
-                                ${room.boardState === '완료' ? 'disabled' : ''}>
-                            ${room.boardState === '완료' ? '완료됨' : '완료처리'}
-                        </button>
+                        </a>
                     </div>`;
-                
-                // 채팅방 아이템 HTML 닫기
-                roomHTML += `</div>`;
                 
                 // 전체 HTML에 추가
                 chatRoomsHTML += roomHTML;

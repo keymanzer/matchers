@@ -1,0 +1,334 @@
+/* 전문가 프로필 페이지 스타일 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin-top: 100px;
+    margin-bottom: 50px;
+}
+
+/* 프로필 카드 스타일 */
+.profile-card {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    margin-bottom: 30px;
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 8px;
+    background: linear-gradient(135deg, #7e57c2 0%, #5c6bc0 100%);
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.profile-img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid white;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.profile-info {
+    margin-left: 25px;
+}
+
+.profile-name {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.profile-email {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 12px;
+}
+
+.profile-ratings {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.rating-badge {
+    background: linear-gradient(135deg, #5c6bc0 0%, #3f51b5 100%);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.rating-badge i {
+    color: #ffeb3b;
+}
+
+.project-badge {
+    background: linear-gradient(135deg, #7e57c2 0%, #673ab7 100%);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* 섹션 스타일 */
+.info-section {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    padding: 25px;
+    margin-bottom: 25px;
+}
+
+.section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #5c6bc0;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-title i {
+    color: #7e57c2;
+}
+
+.category-badge {
+    background: linear-gradient(135deg, #5c6bc0 0%, #3f51b5 100%);
+    color: white;
+    padding: 7px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    display: inline-block;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.category-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.location-badge {
+    background: linear-gradient(135deg, #7e57c2 0%, #673ab7 100%);
+    color: white;
+    padding: 7px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.location-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.location-badge i {
+    font-size: 0.85rem;
+}
+
+/* 소개 텍스트 */
+.intro-text {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #444;
+    border-left: 4px solid #5c6bc0;
+}
+
+/* 자격증 목록 */
+.license-list {
+    margin-top: 15px;
+}
+
+.license-item {
+    background-color: #f8f9fa;
+    border-left: 4px solid #7e57c2;
+    padding: 15px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.license-item:hover {
+    transform: translateX(5px);
+    background-color: #f0f0f0;
+}
+
+.license-name {
+    font-weight: 500;
+    color: #333;
+}
+
+.license-view {
+    background: linear-gradient(135deg, #5c6bc0 0%, #3f51b5 100%);
+    color: white;
+    border: none;
+    padding: 6px 15px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.license-view:hover {
+    background: linear-gradient(135deg, #3f51b5 0%, #303f9f 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(63, 81, 181, 0.3);
+}
+
+.no-license {
+    color: #999;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+/* 액션 버튼 */
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.btn-contact {
+    background: linear-gradient(135deg, #5c6bc0 0%, #3f51b5 100%);
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 30px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 3px 8px rgba(63, 81, 181, 0.3);
+}
+
+.btn-contact:hover {
+    background: linear-gradient(135deg, #3f51b5 0%, #303f9f 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 12px rgba(63, 81, 181, 0.4);
+}
+
+.btn-contact i {
+    font-size: 1.1rem;
+}
+
+.btn-request {
+    background: linear-gradient(135deg, #7e57c2 0%, #673ab7 100%);
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 30px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 3px 8px rgba(103, 58, 183, 0.3);
+}
+
+.btn-request:hover {
+    background: linear-gradient(135deg, #673ab7 0%, #512da8 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 12px rgba(103, 58, 183, 0.4);
+}
+
+.btn-request i {
+    font-size: 1.1rem;
+}
+
+/* 반응형 스타일 */
+@media (max-width: 768px) {
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .profile-info {
+        margin-left: 0;
+        margin-top: 15px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .profile-img {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .profile-name {
+        font-size: 1.5rem;
+    }
+}
+
+/* 애니메이션 효과 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.profile-card, .info-section {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+.info-section:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.info-section:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.info-section:nth-child(4) {
+    animation-delay: 0.3s;
+}

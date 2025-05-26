@@ -34,18 +34,16 @@
   <div class="container">
     <h2>커뮤니티 게시글 목록</h2>
 
-    <div class="section-card" th:fragment="topPostList">
+    <div class="section-card">
       <table class="table table-no-side-borders">
         <colgroup>
-          <col style="width: 100px;">
           <col>
-          <col style="width: 200px;">
+          <col style="width: 300px;">
           <col style="width: 200px;">
           <col style="width: 100px;">
         </colgroup>
         <thead>
           <tr>
-            <th>번호</th>
             <th>제목</th>
             <th>작성자</th>
             <th>날짜</th>
@@ -54,7 +52,6 @@
         </thead>
         <tbody>
           <tr th:each="post : ${list}">
-            <td th:text="${post.postId}"></td>
             <td class="post-title">
               <a th:href="@{'/user/community/' + ${post.postId} + '/detail'}"
                  th:text="${post.board.title}"></a>

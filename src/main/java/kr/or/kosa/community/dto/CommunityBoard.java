@@ -23,5 +23,6 @@ public class CommunityBoard {
 	private Users users;
 	private List<AttachedFile> attachedFiles; // 첨부파일 목록
 	private Integer attachedFileExists; // 0 또는 1
+	private String filePath;
 	
 }

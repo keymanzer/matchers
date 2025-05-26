@@ -6,7 +6,7 @@
     <!-- CSRF 토큰 추가 -->
     <meta name="_csrf" th:content="${_csrf?.token}">
     <meta name="_csrf_header" th:content="${_csrf?.headerName}">
-    <title>내 채팅방 목록</title>
+    <title>견적 채팅방 목록</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
     <link rel="stylesheet" th:href="@{/css/chat/notification-system.css}" />
@@ -19,7 +19,7 @@
 </head>
 <style>
     body {
-        margin-top: 80px;
+        margin-top: 100px;
         padding: 0;
     }
 
@@ -34,14 +34,11 @@
 <div th:replace="~{header :: header}"></div>
 <div class="container page-container">
     <div class="page-header">
-        <h4 class="m-0">내 채팅방</h4>
+        <h4 class="m-0">견적 채팅방</h4>
         <div>
             <button id="refresh-btn" class="btn-refresh me-2" title="새로고침">
                 <i class="bi bi-arrow-clockwise"></i>
             </button>
-            <a href="/chat/create" class="btn btn-new-chat">
-                <i class="bi bi-chat-dots me-1"></i> 채팅방 만들기
-            </a>
         </div>
     </div>
 
@@ -51,7 +48,6 @@
         <div id="empty-list" th:if="${chatRooms == null || chatRooms.isEmpty()}" class="empty-list">
             <i class="bi bi-chat-left-dots" style="font-size: 48px; color: #ddd; margin-bottom: 15px;"></i>
             <p>참여 중인 채팅방이 없습니다.</p>
-            <a href="/chat/create" class="btn btn-sm btn-outline-secondary">채팅방 만들기</a>
         </div>
 
         <div id="chat-rooms-list">

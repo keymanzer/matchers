@@ -175,7 +175,7 @@ public class QuotationBoardController {
 
 
 
-        return "redirect:/user/quotationBoard/list";
+        return "redirect:/user/quotationBoard/myrequest";
     }
 
     @GetMapping("/api/delete/{postId}") // PUT에서 DELETE로 변경

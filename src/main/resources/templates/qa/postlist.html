@@ -63,7 +63,7 @@
 			<td class="post-title">
 			  <a th:href="@{'/user/qa/' + ${post.postId} + '/detail'}" th:text="${post.board.title}"></a>
 			  <i th:if="${post.attachedFileExists == 1}" class="fas fa-paperclip clip-icon"></i>
-			  
+			  &nbsp;
 			  <span th:if="${post.status == 'N'}" style="color: #f44336; font-weight: bold;">(답변대기)</span>
 			  <span th:if="${post.status == 'Y'}" style="color: #4caf50; font-weight: bold;">(답변완료)</span>
 			</td>

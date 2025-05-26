@@ -54,10 +54,10 @@
       <div class="file-section">
         <p class="post-meta"><strong>첨부파일</strong></p>
         <div>
-          <a th:each="file : ${post.attachedFiles}"
-             th:href="@{|/file/download/${file.name}|}"
-             th:text="${file.name}"
-             class="file-button"></a>
+			<a th:each="file : ${post.attachedFiles}"
+			   th:href="@{|/user/qa/download/${file.attachedFileId}|}"
+			   th:text="${file.name}"
+			   class="file-button"></a>
         </div>
       </div>
     </th:block>

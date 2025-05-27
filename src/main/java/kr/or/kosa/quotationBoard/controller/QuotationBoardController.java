@@ -84,7 +84,10 @@ public class QuotationBoardController {
 
     @GetMapping("/create/{expertId}")
     public String showCreateQuotationBoardFormExpert(Model model,@PathVariable Long expertId) {
-        model.addAttribute("quotationBoard", new QuotationBoard());
+        QuotationBoard qb = new QuotationBoard();
+        qb.setExpertId(expertId);
+        qb.setState("진행중");
+
         // DB에서 실제 지역 목록 가져오기
         List<Location> locations = expertService.getLocationList();
         model.addAttribute("locations", locations);
@@ -94,15 +97,10 @@ public class QuotationBoardController {
                 .distinct()
                 .collect(Collectors.toList());
         model.addAttribute("cities", cities);
-        model.addAttribute("expertId",expertId);
-        System.out.println("expertId = " + expertId);
-
-        // DB에서 실제 카테고리 목록 가져오기
+        model.addAttribute("quotationBoard", qb);
+        //DB에서 실제 카테고리 목록 가져오기
         model.addAttribute("categories", expertService.getCategoryList());
 
-
-        System.out.println("model = " + model);
-        System.out.println("크리에이트 폼요청");
         return "quotationBoard/create";  // 게시판 생성 폼을 표시하는 뷰
     }
 
@@ -141,6 +139,7 @@ public class QuotationBoardController {
         quotationBoard.setUserNickname(customUser.getNickname());
         quotationBoard.setUserId(userId);
         quotationBoard.setExpertId(expertId);
+        System.out.println("quotationBoard: 삽입전 마지막 테스트" + quotationBoard);
         quotationBoardService.createQuotationBoard(quotationBoard);
 
         // --- 2-3. Quotation_Location 매핑 삽입 ---

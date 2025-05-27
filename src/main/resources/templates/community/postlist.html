@@ -52,7 +52,7 @@
           <tr>
             <th>제목</th>
             <th>작성자</th>
-            <th>날짜</th>
+            <th>작성날짜</th>
             <th>조회수</th>
           </tr>
         </thead>
@@ -64,7 +64,7 @@
               <i th:if="${post.attachedFileExists == 1}" class="fas fa-paperclip clip-icon"></i>
             </td>
             <td th:text="${post.users.nickname}"></td>
-            <td th:text="${#temporals.format(post.lastUpdatedAt, 'yyyy-MM-dd HH:mm')}"></td>
+            <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
             <td th:text="${post.views}"></td>
           </tr>
         </tbody>

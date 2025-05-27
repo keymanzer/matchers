@@ -575,25 +575,6 @@
             const chatRooms = response.data;
 
             console.log("채팅방 API 응답:", chatRooms);
-            
-            // 디버깅을 위해 모든 필드 출력
-            if (chatRooms.length > 0) {
-                console.log("첫 번째 채팅방 전체 필드:", Object.keys(chatRooms[0]));
-                console.log("첫 번째 채팅방 상세 정보:", JSON.stringify(chatRooms[0], null, 2));
-                
-                // boardState 필드 확인
-                console.log("boardState 필드 값 (문자열):", chatRooms[0].boardState);
-                console.log("boardState 필드 값 (타입):", typeof chatRooms[0].boardState);
-                console.log("boardState === '진행전':", chatRooms[0].boardState === '진행전');
-                console.log("boardState === '진행중':", chatRooms[0].boardState === '진행중');
-                console.log("boardState === '완료':", chatRooms[0].boardState === '완료');
-                
-                // 모든 채팅방의 boardState 값 확인
-                console.log("모든 채팅방의 boardState 값:");
-                chatRooms.forEach((room, index) => {
-                    console.log(`채팅방 ${index + 1} (ID: ${room.roomId}): boardState = "${room.boardState || '없음'}"`);
-                });
-            }
 
             // 빈 목록 처리
             const emptyListEl = document.getElementById('empty-list');

@@ -232,7 +232,7 @@
 								updateFilterBadges();
 
 								// 전체 읽지 않은 알림 개수 계산하여 배지 업데이트
-								const unreadCount = notificationsCache.filter(n => n.isRead === 'N').length;
+								const unreadCount = notificationsCache.length;
 								updateUnreadBadge(unreadCount);
 							})
 							.catch(error => {
@@ -269,7 +269,7 @@
 				function loadNotifications() {
 					axios.get('/api/notifications')
 							.then(response => {
-								// 읽지 않은 알림만 캐시에 저장 (읽은 알림은 표시하지 않음)
+								// 읽지 않은 알림만 캐시에 저장
 								notificationsCache = response.data.filter(n => n.isRead === 'N');
 
 								// 필터에 따라 알림 표시
@@ -309,18 +309,18 @@
 				 * 유형별 읽지 않은 알림 개수를 필터 배지에 표시
 				 */
 				function updateFilterBadges() {
-					// 전체 알림의 읽지 않은 개수
-					const allUnread = notificationsCache.filter(n => n.isRead === 'N').length;
+					// 전체 알림의 읽지 않은 개수 (이제 모든 캐시된 알림은 읽지 않은 것임)
+					const allUnread = notificationsCache.length;
 					document.getElementById('all-badge').textContent = allUnread;
 					document.getElementById('all-badge').style.display = allUnread > 0 ? 'flex' : 'none';
 
 					// 채팅 알림의 읽지 않은 개수
-					const chatUnread = notificationsCache.filter(n => n.isRead === 'N' && n.notificationType === 'CHAT').length;
+					const chatUnread = notificationsCache.filter(n => n.notificationType === 'CHAT').length;
 					document.getElementById('chat-badge').textContent = chatUnread;
 					document.getElementById('chat-badge').style.display = chatUnread > 0 ? 'flex' : 'none';
 
 					// 관리자 알림의 읽지 않은 개수
-					const adminUnread = notificationsCache.filter(n => n.isRead === 'N' && n.notificationType === 'ADMIN').length;
+					const adminUnread = notificationsCache.filter(n => n.notificationType === 'ADMIN').length;
 					document.getElementById('admin-badge').textContent = adminUnread;
 					document.getElementById('admin-badge').style.display = adminUnread > 0 ? 'flex' : 'none';
 				}
@@ -414,6 +414,14 @@
 								markAsRead(notification.notificationId);
 								// 채팅방으로 이동
 								window.location.href = `/chat/my/rooms`;
+							});
+						} else if (notification.notificationType === 'ADMIN' && notification.content.includes('전문가 등록이 승인')) {
+							// 전문가 승인 알림인 경우
+							li.style.cursor = 'pointer';
+							li.addEventListener('click', () => {
+
+								markAsRead(notification.notificationId);
+
 							});
 						} else {
 							// 일반 알림은 클릭 시 읽음 처리만
@@ -602,12 +610,22 @@
 				 * 알림 버튼 클릭 이벤트 설정
 				 */
 				if (notificationButton && notificationDropdown) {
+					// 드롭다운 외부 클릭 감지 핸들러
+					function handleOutsideClick(e) {
+						if (!notificationButton.contains(e.target) && 
+							!notificationDropdown.contains(e.target)) {
+							// 드롭다운 외부 클릭 시 모두 읽음 처리
+							markAllAsRead();
+							notificationDropdown.classList.remove('show');
+							document.removeEventListener('click', handleOutsideClick);
+						}
+					}
+
 					notificationButton.addEventListener('click', (e) => {
 						e.stopPropagation(); // 이벤트 버블링 방지
 
-						// 모든 알림 읽음 처리 추가
-						markAllAsRead();
-
+						// 드롭다운 상태 토글
+						const wasOpen = notificationDropdown.classList.contains('show');
 						notificationDropdown.classList.toggle('show');
 
 						// 종 아이콘 애니메이션 효과
@@ -616,20 +634,18 @@
 						// 드롭다운이 열리면 알림 목록 로드
 						if (notificationDropdown.classList.contains('show')) {
 							loadNotifications();
-						}
-					});
-
-					// 드롭다운 외부 클릭 시 닫기
-					document.addEventListener('click', (e) => {
-						if (notificationDropdown &&
-								!notificationButton.contains(e.target) &&
-								!notificationDropdown.contains(e.target)) {
-							notificationDropdown.classList.remove('show');
+							// 드롭다운 외부 클릭 이벤트 등록
+							document.addEventListener('click', handleOutsideClick);
+						} else {
+							// 드롭다운이 닫히면 모두 읽음 처리
+							if (wasOpen) {
+								markAllAsRead();
+							}
+							// 이벤트 리스너 제거
+							document.removeEventListener('click', handleOutsideClick);
 						}
 					});
 				}
-
-				// 모두 읽음 버튼 이벤트 리스너 제거 (불필요)
 
 				/**
 				 * 로그아웃 버튼 클릭 이벤트 - SSE 연결 종료 처리

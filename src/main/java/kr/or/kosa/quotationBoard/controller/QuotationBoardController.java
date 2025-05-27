@@ -113,7 +113,7 @@ public class QuotationBoardController {
             @ModelAttribute QuotationBoard quotationBoard,
             @AuthenticationPrincipal CustomUser customUser,
             @RequestParam("locationIds") List<Integer> locationIds,
-            @RequestParam(name = "attachedFiles", required = false) List<MultipartFile> attachedFiles,
+            @RequestParam(name = "uploadFiles", required = false) List<MultipartFile> uploadFiles,
             @RequestParam(name="expertId", defaultValue = "0") long expertId
     ) {
 
@@ -148,9 +148,9 @@ public class QuotationBoardController {
         }
 
 
-        if (attachedFiles != null && !attachedFiles.isEmpty()) {
-            System.out.println("attachedFiles.size() = " + attachedFiles.size());
-            for (MultipartFile file : attachedFiles) {
+        if (uploadFiles != null && !uploadFiles.isEmpty()) {
+            System.out.println("uploadFiles.size() = " + uploadFiles.size());
+            for (MultipartFile file : uploadFiles) {
                 if (!file.isEmpty()) {
                     // S3에 파일 업로드
                     String fileUrl = null;

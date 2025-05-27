@@ -100,10 +100,10 @@
             </div>
 
             <div class="mb-4">
-                <label for="attachedFiles" class="form-label">첨부파일</label>
+                <label for="uploadFiles" class="form-label">첨부파일</label>
                 <div class="file-upload-wrapper">
                     <i class="bi bi-cloud-arrow-up fs-3 mb-2 text-primary"></i>
-                    <input class="form-control border-0 bg-transparent" type="file" id="attachedFiles" name="attachedFiles" multiple>
+                    <input class="form-control border-0 bg-transparent" type="file" id="uploadFiles" name="uploadFiles" multiple>
                     <small class="text-muted mt-2 d-block">드래그 앤 드롭 또는 클릭하여 파일 선택 (여러 파일 가능)</small>
                 </div>
             </div>
@@ -275,7 +275,7 @@
         }
 
         // 파일 선택 이벤트 처리
-        $("#attachedFiles").on("change", function(e) {
+        $("#uploadFiles").on("change", function(e) {
             const newFiles = Array.from(e.target.files);
 
             // 새로 선택한 파일들을 배열에 추가
@@ -334,7 +334,7 @@
         // 폼 제출 처리
         $("form").on("submit", function(e) {
             // 기존 파일 input은 폼 제출에 참여하지 않도록 함
-            $("#attachedFiles").attr("name", "");
+            $("#uploadFiles").attr("name", "");
 
             // 이미 존재하는 동적으로 추가된 파일 input 제거
             $(".dynamic-file-input").remove();
@@ -348,7 +348,7 @@
                 // 새 input 요소 생성
                 const input = document.createElement('input');
                 input.type = 'file';
-                input.name = 'attachedFiles';  // 컨트롤러에서 기대하는 이름과 일치해야 함
+                input.name = 'uploadFiles';  // 컨트롤러에서 기대하는 이름과 일치해야 함
                 input.classList.add('dynamic-file-input');
                 input.style.display = 'none';
                 input.files = dataTransfer.files;

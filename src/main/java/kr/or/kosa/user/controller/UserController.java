@@ -79,7 +79,7 @@ public class UserController {
 	@PostMapping("/user/mypage/profile")
 	@ResponseBody
 	public Map<String, Object> uploadProfileImage(@RequestParam("profileImage") MultipartFile file,
-			@AuthenticationPrincipal CustomUser customUser) {
+												  @AuthenticationPrincipal CustomUser customUser) {
 		Map<String, Object> result = new HashMap<>();
 		try {
 			String newFileName = userService.saveProfileImage(file, customUser.getUserId());
@@ -100,7 +100,7 @@ public class UserController {
 	@PostMapping("/user/mypage/nickname")
 	@ResponseBody
 	public Map<String, Object> updateNickname(@RequestBody Map<String, String> payload,
-			@AuthenticationPrincipal CustomUser customUser) {
+											  @AuthenticationPrincipal CustomUser customUser) {
 
 		String newNickname = payload.get("nickname");
 		Map<String, Object> result = new HashMap<>();
@@ -150,7 +150,7 @@ public class UserController {
 	@PostMapping("/user/mypage/verify-password")
 	@ResponseBody
 	public Map<String, Object> verifyPassword(@RequestBody Map<String, String> payload,
-			@AuthenticationPrincipal CustomUser customUser) {
+											  @AuthenticationPrincipal CustomUser customUser) {
 		String password = payload.get("password");
 		Map<String, Object> result = new HashMap<>();
 
@@ -173,7 +173,7 @@ public class UserController {
 	@PostMapping("/user/mypage/change-password")
 	@ResponseBody
 	public Map<String, Object> changePassword(@RequestBody Map<String, String> payload,
-			@AuthenticationPrincipal CustomUser customUser) {
+											  @AuthenticationPrincipal CustomUser customUser) {
 		String newPassword = payload.get("password");
 		Map<String, Object> result = new HashMap<>();
 
@@ -190,7 +190,7 @@ public class UserController {
 	@PostMapping("/user/mypage/withdraw")
 	@ResponseBody
 	public Map<String, Object> withdraw(@RequestBody Map<String, String> payload,
-			@AuthenticationPrincipal CustomUser customUser) {
+										@AuthenticationPrincipal CustomUser customUser) {
 		String password = payload.get("password");
 		Map<String, Object> result = new HashMap<>();
 
@@ -215,7 +215,7 @@ public class UserController {
 	@PostMapping("/reset-password")
 	@ResponseBody
 	public ResponseEntity<String> processForgotPassword(@RequestParam("email") String email,
-			HttpServletRequest request) {
+														HttpServletRequest request) {
 		String resetLink = passwordResetService.generateResetLink(email, request);
 		if (resetLink == null) {
 			return ResponseEntity.badRequest().body("이메일이 존재하지 않습니다.");
@@ -234,7 +234,7 @@ public class UserController {
 
 	@PostMapping("/reset-password/confirm")
 	public String resetPassword(@RequestParam("token") String token, @RequestParam("newPassword") String newPassword,
-			Model model) {
+								Model model) {
 		if (!passwordResetService.isValidToken(token)) {
 			return "user/invalid-token";
 		}

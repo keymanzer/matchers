@@ -129,7 +129,7 @@
 }
 
 /* '모두 읽음' 버튼 */
-.notification-header .clear-all {
+.mark-all-read-btn {
     font-size: 0.75rem;
     color: #777;
     cursor: pointer;
@@ -141,7 +141,7 @@
     font-weight: 500;
 }
 
-.notification-header .clear-all:hover {
+.mark-all-read-btn:hover {
     background-color: #7e57c2; /* 기존 테마 색상으로 변경 */
     color: white;
     box-shadow: 0 2px 6px rgba(126, 87, 194, 0.3); /* 기존 테마 색상으로 변경 */

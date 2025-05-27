@@ -54,7 +54,7 @@
           <tr>
             <th>제목</th>
             <th>작성자</th>
-            <th>날짜</th>
+            <th>작성날짜</th>
             <th>조회수</th>
           </tr>
         </thead>
@@ -68,7 +68,7 @@
 			  <span th:if="${post.status == 'Y'}" style="color: #4caf50; font-weight: bold;">(답변완료)</span>
 			</td>
             <td th:text="${post.users.nickname}"></td>
-            <td th:text="${#temporals.format(post.lastUpdatedAt, 'yyyy-MM-dd HH:mm')}"></td>
+            <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
             <td th:text="${post.views}"></td>
           </tr>
         </tbody>

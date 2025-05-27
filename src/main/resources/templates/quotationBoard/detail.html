@@ -99,31 +99,52 @@
             <form id="conversationForm"
                   th:action="@{/chat/create}"
                   method="post"
-                  target="_blank"
                   style="display:none;">
                 <input type="hidden" name="boardId" th:value="${quotationBoard.postId}" />
                 <input type="hidden" name="userId"   th:value="${quotationBoard.userId}" />
-                <!-- Spring Security CSRF 사용 중이라면 아래 추가 -->
                 <input type="hidden"
                        th:name="${_csrf.parameterName}"
                        th:value="${_csrf.token}" />
             </form>
+
             <div class="action-buttons">
-                <a th:href="@{/user/quotationBoard/list}" class="btn btn-custom btn-secondary-custom">
-                    <i class="fas fa-list"></i>
-                    목록으로
+                <a th:href="@{/user/quotationBoard/list}"
+                   class="btn btn-custom btn-secondary-custom">
+                    <i class="fas fa-list"></i> 목록으로
                 </a>
 
+                <!-- 2. 버튼 클릭 시 JS 함수 호출 -->
                 <button type="button"
                         class="btn btn-custom btn-primary-custom"
-                        onclick="document.getElementById('conversationForm').submit()">
+                        onclick="openChatWindow()">
                     <i class="fas fa-comments"></i> 의뢰자와 대화하기
                 </button>
             </div>
         </div>
     </div>
 </div>
+<script>
+    function openChatWindow() {
+        // 새창 이름(name)과 옵션(specs) 지정
+        const windowName = 'chatWindow';
+        const specs = [
+            'width=480',
+            'height=600',
+            'resizable=yes',  // 크기 조절 가능
+            'scrollbars=yes', // 스크롤바 표시
+            'toolbar=no',     // 툴바 숨김
+            'menubar=no'      // 메뉴바 숨김
+        ].join(',');
 
+        // 빈 새창 열기
+        window.open('', windowName, specs);
+
+        // 폼의 target을 새창 이름으로 설정 후 제출
+        const form = document.getElementById('conversationForm');
+        form.target = windowName;
+        form.submit();
+    }
+</script>
 <!-- 푸터 포함 -->
 <div th:replace="~{footer :: footer}"></div>
 </body>

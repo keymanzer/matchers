@@ -41,6 +41,8 @@
     <!-- 단계 표시기 제거 -->
 
     <form th:action="@{/user/quotationBoard/create}" th:object="${quotationBoard}" method="post" enctype="multipart/form-data">
+        <input type="hidden" th:field="*{expertId}" />
+        <input type="hidden" th:field="*{state}" />
         <!-- 카테고리 선택 섹션 -->
         <div class="section-card">
             <div class="section-title">

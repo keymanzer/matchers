@@ -22,6 +22,8 @@
             min-height: 600px; /* 최소 높이로 변경 */
         }
 
+
+
     </style>
 </head>
 <body>
@@ -164,28 +166,26 @@
             const formattedDate = formatDate(quote.createdAt || quote.created_at);
             const postId = quote.postId || quote.post_id || quote.id;
 
-            // 진행전 상태일 때만 삭제 버튼 표시, 모든 상태에서 상세보기 버튼 표시
-            const actionButtons = `
-                <div class="action-buttons">
-                    ${currentStatus === 'pending' ?
-                `<button class="action-button delete-button" onclick="showDeleteModal(event, ${postId})" title="삭제">
-                            <i class="fas fa-trash"></i>
-                        </button>` : ''
-            }
-                </div>
-            `;
+            // 지정견적 요청 여부 확인
+            const isExpertRequest = quote.expertId && quote.expertId !== null && quote.state === '진행전';
+            console.log("quote",quote.state)
+            const expertClass = isExpertRequest ? 'expert-request' : '';
+
+            // 지정견적 배지
+            const expertBadge = isExpertRequest ?
+                '<span class="expert-badge"><i class="fas fa-star"></i>지정견적</span>' : '';
 
             return `
-                <div class="quote-item ${index === 0 ? 'active' : ''}"
+                <div class="quote-item ${expertClass} ${index === 0 ? 'active' : ''}"
                      data-post-id="${postId}"
                      onclick="selectQuote(this, ${postId})">
-                    ${actionButtons}
                     <div class="quote-header">
-                        <div class="quote-title">${escapeHtml(quote.title)}</div>
-
+                        <div class="quote-title">
+                            ${escapeHtml(quote.title)}
+                            ${expertBadge}
+                        </div>
                     </div>
                     <div class="quote-meta">
-                        <div class="quote-expert">${escapeHtml(quote.expertName || quote.expert_name || '전문가')}</div>
                         <div class="quote-category">${escapeHtml(quote.categoryName || quote.name || '카테고리')}</div>
                         <div class="quote-date">${formattedDate}</div>
                     </div>
@@ -215,10 +215,21 @@
         // 견적 상세 정보 로드
         loadQuoteDetail(postId);
     }
-    // 견적 상세 정보 렌더링
-    // 견적 상세 정보 렌더링 (첨부파일 포함)
+
+    // 견적 상세 정보 렌더링 (첨부파일 포함) - 수정된 버전
     function renderQuoteDetail(data) {
         const chatContent = document.getElementById('chatContent');
+
+        // 지정견적 요청 여부 확인
+        const isExpertRequest = data.expertId && data.expertId !== null && data.state==='진행전';
+        const expertBadge = isExpertRequest ?
+            '<span class="expert-badge"><i class="fas fa-star"></i>지정견적 요청</span>' : '';
+
+        // 진행전 상태일 때만 삭제 버튼 표시 (카드 본문 내부로 이동)
+        const deleteButton = currentStatus === 'pending' ?
+            `<button class="delete-button-content" onclick="showDeleteModal(event, ${data.postId})" title="견적 삭제">
+            <i class="fas fa-trash"></i>삭제
+        </button>` : '';
 
         // 1) 첨부파일 HTML 생성
         let attachedFilesHtml = '';
@@ -245,18 +256,22 @@
       </div>`;
         }
 
-        // 2) 전체 상세 뷰 마크업
+        // 2) 전체 상세 뷰 마크업 (삭제 버튼을 카드 본문으로 이동)
         const detailHtml = `
     <div class="detail-view">
       <div class="quotation-card">
         <div class="card-header">
-          <h1 class="quotation-title">${escapeHtml(data.title)}</h1>
+          <h1 class="quotation-title">
+            ${escapeHtml(data.title)}
+            ${expertBadge}
+          </h1>
           <button class="chat-room-list-btn"
                   onclick="openChatRooms(${data.postId})">
             <i class="fas fa-comments"></i> 채팅 대화방 입장
           </button>
         </div>
         <div class="card-body">
+          ${deleteButton}
           <div class="content-section">
             <h3 class="section-title">
               <i class="fas fa-tags"></i> 카테고리
@@ -282,7 +297,7 @@
             <h3 class="section-title">
               <i class="fas fa-file-alt"></i> 요청 내용
             </h3>
-               <div class="content-text">${data.content || '내용이 없습니다.'}</div>
+            <div class="content-text">${data.content || '내용이 없습니다.'}</div>
           </div>
           ${attachedFilesHtml}
         </div>
@@ -326,10 +341,6 @@
         const chatRoomUrl = `/chat/${postId}/rooms`;
         window.open(chatRoomUrl, 'chatRooms', 'width=1000,height=700,scrollbars=yes,resizable=yes');
     }
-
-
-
-
 
     // 삭제 모달 표시
     function showDeleteModal(event, postId) {

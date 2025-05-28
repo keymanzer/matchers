@@ -95,7 +95,7 @@
                 AND ql.location_id = #{locationId}
             </if>
             <!-- 항상 적용할 기본 필터 -->
-            AND (qb.state IS NULL OR qb.state = '진행전')
+            AND (qb.state = '진행전' and qb.expert_Id=0)
             AND qb.category_id IN (
             SELECT ec.category_id
             FROM expert_category ec
@@ -210,7 +210,7 @@
         qb.POST_ID,
         qb.EXPERT_ID,
         qb.CATEGORY_ID,
-        c.name,
+        c.name AS CATEGORY_NAME,
         qb.STATE,
         b.TITLE,
         b.CONTENT,
@@ -229,6 +229,7 @@
         WHERE qb.STATE   = #{state}
         AND cp.USER_ID = #{userId}
         AND b.USERID  != #{userId}
+        ORDER BY b.created_at DESC
     </select>
 
 

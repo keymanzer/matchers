@@ -317,15 +317,6 @@ body {
     background: #2980b9;
 }
 
-.delete-button {
-    background: #ff4757;
-    color: white;
-}
-
-.delete-button:hover {
-    background: #ff3742;
-}
-
 /* 반응형 */
 @media (max-width: 768px) {
     .container { flex-direction: column; }
@@ -494,10 +485,13 @@ html, body {
     justify-content: space-between;
     align-items: center;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 24px;
     color: #fff;
     border-top-left-radius: 12px;
     border-top-right-radius: 12px;
+    position: relative;
+    padding: 20px;
+    border-bottom: 1px solid #e9ecef;
+    background: #f8f9fa;
 }
 
 /* 5) 대화방 리스트 버튼 스타일 (기존 chat-room-list-btn 재활용) */
@@ -511,6 +505,7 @@ html, body {
     align-items: center;
     gap: 4px;
     transition: background .3s;
+    margin-top: 12px;
 }
 .chat-room-list-btn:hover {
     background: rgba(255,255,255,0.3);
@@ -518,6 +513,95 @@ html, body {
 
 /* 6) 제목 크기 조정 (필요시) */
 .quotation-title {
-    font-size: 1.8rem;
     margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+    padding-right: 60px; /* 삭제 버튼 공간 확보 */
+}
+.action-buttons {
+    display: none;
+}
+/* 카테고리 섹션과 삭제 버튼 간격 조정 */
+.content-section:first-of-type {
+    margin-top: 0;
+}
+
+/* 기존 헤더의 삭제 버튼 스타일 제거 */
+.delete-button-top {
+    display: none; /* 기존 헤더 삭제 버튼 숨김 */
+}
+
+/* 카드 본문 영역을 relative로 설정 */
+.card-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    position: relative; /* 삭제 버튼 절대 위치 지정을 위해 추가 */
+}
+
+/* 카드 본문 내 삭제 버튼 스타일 */
+.delete-button-content {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.delete-button-content:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+.delete-button-content i {
+    margin-right: 4px;
+}
+
+/* 첫 번째 섹션(카테고리)의 상단 여백 조정 */
+.content-section:first-of-type {
+    margin-top: 0;
+    padding-top: 0;
+}
+
+/* 카테고리 섹션 제목과 삭제 버튼이 겹치지 않도록 여백 추가 */
+.content-section:first-of-type .section-title {
+    padding-right: 100px; /* 삭제 버튼 공간 확보 */
+}
+
+/* 지정견적 배지 스타일 */
+.expert-badge {
+    display: inline-flex;
+    align-items: center;
+    background: linear-gradient(135deg, #ff6b35, #f39c12);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 12px;
+    margin-left: 8px;
+    box-shadow: 0 2px 4px rgba(255, 107, 53, 0.3);
+}
+
+.expert-badge i {
+    margin-right: 4px;
+    font-size: 10px;
+}
+
+/* 목록에서 지정견적 표시 */
+.quote-item.expert-request {
+    border-left: 4px solid #ff6b35;
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.05), rgba(243, 156, 18, 0.05));
+}
+
+.quote-item.expert-request:hover {
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(243, 156, 18, 0.1));
 }

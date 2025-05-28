@@ -471,3 +471,33 @@ html, body {
     font-size: 1.8rem;
     margin: 0;
 }
+
+
+/* 지정견적 배지 스타일 */
+.expert-badge {
+    display: inline-flex;
+    align-items: center;
+    background: linear-gradient(135deg, #ff6b35, #f39c12);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 12px;
+    margin-left: 8px;
+    box-shadow: 0 2px 4px rgba(255, 107, 53, 0.3);
+}
+
+.expert-badge i {
+    margin-right: 4px;
+    font-size: 10px;
+}
+
+/* 목록에서 지정견적 표시 */
+.quote-item.expert-request {
+    border-left: 4px solid #ff6b35;
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.05), rgba(243, 156, 18, 0.05));
+}
+
+.quote-item.expert-request:hover {
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(243, 156, 18, 0.1));
+}

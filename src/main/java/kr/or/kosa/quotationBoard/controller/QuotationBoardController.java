@@ -5,6 +5,7 @@ import kr.or.kosa.attachedFile.dto.AttachedFile;
 import kr.or.kosa.attachedFile.service.AttachedFileService;
 import kr.or.kosa.board.dto.Board;
 import kr.or.kosa.board.service.BoardService;
+import kr.or.kosa.chat.service.ChatService;
 import kr.or.kosa.common.S3Service;
 import kr.or.kosa.expert.dto.Category;
 import kr.or.kosa.expert.dto.Location;
@@ -57,6 +58,8 @@ public class QuotationBoardController {
 
     @Autowired
     private AdminService adminService;
+    @Autowired
+    private ChatService chatService;
     // 게시판 생성 화면 요청
 
     @GetMapping("/create")
@@ -83,10 +86,10 @@ public class QuotationBoardController {
     }
 
     @GetMapping("/create/{expertId}")
-    public String showCreateQuotationBoardFormExpert(Model model,@PathVariable Long expertId) {
+    public String showCreateQuotationBoardFormExpert(Model model,
+                                                     @PathVariable Long expertId) {
         QuotationBoard qb = new QuotationBoard();
         qb.setExpertId(expertId);
-        qb.setState("진행중");
 
         // DB에서 실제 지역 목록 가져오기
         List<Location> locations = expertService.getLocationList();
@@ -170,6 +173,9 @@ public class QuotationBoardController {
                     attachedFileService.saveAttachedFileMetadata(af);
                 }
             }
+        }
+        if(expertId!=0){
+            chatService.getOrCreateChatRoom(postId,expertId);
         }
 
 

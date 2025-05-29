@@ -29,9 +29,11 @@ public class QuotationBoardService {
     public void addQuotationLocation(long postId, int locationId) {
         quotationBoardMapper.insertQuotationLocation(postId, locationId);
     }
+    public void addQuotationLocations(long postId, List<Integer> locationIds) {
+        quotationBoardMapper.insertQuotationLocations(postId, locationIds);
+    }
 
     public int updateQuotationBoard(QuotationBoard quotationBoard) {
-        System.out.println("업데이트 서비스 호출");
         return quotationBoardMapper.updateQuotationBoard(quotationBoard);
     }
 

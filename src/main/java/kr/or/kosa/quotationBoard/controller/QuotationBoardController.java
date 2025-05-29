@@ -142,13 +142,10 @@ public class QuotationBoardController {
         quotationBoard.setUserNickname(customUser.getNickname());
         quotationBoard.setUserId(userId);
         quotationBoard.setExpertId(expertId);
-        System.out.println("quotationBoard: 삽입전 마지막 테스트" + quotationBoard);
         quotationBoardService.createQuotationBoard(quotationBoard);
 
-        // --- 2-3. Quotation_Location 매핑 삽입 ---
-        for (Integer locId : locationIds) {
-            quotationBoardService.addQuotationLocation(postId, locId);
-        }
+        //다중 INSERT 처리
+        quotationBoardService.addQuotationLocations(postId, locationIds);
 
 
         if (uploadFiles != null && !uploadFiles.isEmpty()) {
@@ -232,7 +229,6 @@ public class QuotationBoardController {
 
     @PostMapping("/delete")
     public String deleteQuotationBoard(long postId) {
-        System.out.println(postId);
         quotationBoardService.deleteQuotationBoard(postId);
         return "redirect:/user/quotationBoard/list";
     }
@@ -249,9 +245,7 @@ public class QuotationBoardController {
 
         long userId = customUser.getUserId(); //로그인한 전문가 ID
         // 전체 견적 요청 목록 조회
-        System.out.println("categoryID: "+categoryId+", LocationId: "+locationId);
         List<QuotationBoard> allBoards = quotationBoardService.findAllQuotationBoards(userId,categoryId,locationId);
-        //customUser.getUserId(); 2로 되어있는거 이걸로 나중에 대체 userid로 대체 아직 보드가 int타입임
         List<Category> categories= quotationBoardService.findCategoriesByUserId(userId);
         List<location> locations= quotationBoardService.findLocationsByUserId(userId);
 
@@ -311,6 +305,7 @@ public class QuotationBoardController {
         List<AttachedFile> files = attachedFileService.findByPostId(postId);
 
         // 4) DTO에 세팅
+
         qb.setAttachedFiles(files);
 
         return qb;
@@ -367,11 +362,9 @@ public class QuotationBoardController {
 
             // 프론트의 상태값을 서비스에서 사용하는 상태값으로 변환
             String serviceStatus = convertToServiceStatus(status);
-            System.out.println("serviceStatus = " + serviceStatus);
 
             // 서비스 호출
             List<QuotationBoard> quotes = quotationBoardService.findMyQuotations(userId, serviceStatus);
-            System.out.println("quotes = " + quotes);
 
             return ResponseEntity.ok(quotes);
 

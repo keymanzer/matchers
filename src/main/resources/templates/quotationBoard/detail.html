@@ -86,8 +86,6 @@
                                 파일명.pdf
                             </span>
                         </div>
-
-                        <!-- 기존 컨트롤러의 다운로드 엔드포인트 사용 -->
                         <a th:href="@{/user/quotationBoard/download/{fileId}(fileId=${file.attachedFileId})}"
                            class="download-btn"
                            title="다운로드">

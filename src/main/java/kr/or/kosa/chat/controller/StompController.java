@@ -101,10 +101,10 @@ public class StompController {
     private void sendNotifications(String roomId, ChatMessageDto message, CustomUser sender) {
         List<ChatParticipant> participants = chatService.getChatRoomParticipants(Long.parseLong(roomId));
 
-        // 발신자를 제외한 참가자들에게만 알림을 전송
+        // 발신자를 제외한 상대방한테만 알림을 전송
         for (ChatParticipant participant : participants) {
             if (!participant.getUserId().equals(sender.getUserId())) {
-                // 각 참가자의 개인 채널로 알림 전송
+                // 각 참가자의 개인 채널로 변경 상태 알림
                 messageTemplate.convertAndSend(
                         "/topic/chat-update/" + participant.getUserId(),
                         Map.of(
@@ -195,7 +195,7 @@ public class StompController {
             chatService.markAllMessagesAsRead(Long.parseLong(roomId), userId);
             
             // 채팅방 목록 화면에 읽음 상태 업데이트 알림 전송
-            // 사용자의 개인 채널로 읽음 상태 변경 알림 전송
+            // 실시간으로 사용자의 개인 채널로 읽음 상태 변경을 알린다
             messageTemplate.convertAndSend(
                     "/topic/chat-update/" + userId,
                     Map.of(

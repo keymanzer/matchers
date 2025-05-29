@@ -292,7 +292,7 @@ public class ChatService {
         String email = userMapper.findEmailByUserId(otherUserId);
         String profileImg = userMapper.findUserByEmail(email).getProfileImg();
 
-        return new OtherUserDto(otherUserId, name != null ? name : "Unknown", email, "");
+        return new OtherUserDto(otherUserId, name != null ? name : "Unknown", email, profileImg);
     }
 
     // 메시지 전송 시 호출 - 상대방에게 읽지 않음 상태 생성

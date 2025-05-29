@@ -32,6 +32,9 @@ public interface QuotationBoardMapper {
     void insertQuotationLocation(@Param("postId") long postId,
                                  @Param("locationId") int locationId);
 
+    void insertQuotationLocations(@Param("postId") long postId,
+                                  @Param("locationIds") List<Integer> locationIds);
+
     void deleteQuotationLocations(long postId);
 
     List<location>findLocationsByUserId(long userId);

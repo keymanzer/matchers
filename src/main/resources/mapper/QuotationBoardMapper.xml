@@ -66,49 +66,57 @@
  <!-- 2) 카테고리+지역 조건 조회 (findAll) - DISTINCT 제거 -->
     <select id="findAll" resultMap="QuotationBoardResultMap" parameterType="map">
         SELECT
-        qb.post_id        AS POST_ID,
-        qb.expert_id      AS EXPERT_ID,
-        qb.category_id    AS CATEGORY_ID,
-        c.name            AS CATEGORY_NAME,
-        qb.state          AS STATE,
-        b.title           AS TITLE,
-        b.content         AS CONTENT,
-        b.created_at      AS CREATED_AT,
-        b.user_nickname   AS USER_NICKNAME,
-        b.userid          AS USERID,
-        l.location_id     AS LOCATION_ID,
-        l.city            AS CITY,
-        l.district        AS DISTRICT
+        qb.post_id       AS POST_ID,
+        qb.expert_id     AS EXPERT_ID,
+        qb.category_id   AS CATEGORY_ID,
+        c.name           AS CATEGORY_NAME,
+        qb.state         AS STATE,
+        b.title          AS TITLE,
+        b.content        AS CONTENT,
+        b.created_at     AS CREATED_AT,
+        b.user_nickname  AS USER_NICKNAME,
+        b.userid         AS USERID,
+        l.location_id    AS LOCATION_ID,
+        l.city           AS CITY,
+        l.district       AS DISTRICT
         FROM quotation_board qb
-        JOIN board b        ON qb.post_id = b.post_id
-        JOIN category c     ON qb.category_id = c.category_id
-        JOIN quotation_location ql
-        ON qb.post_id = ql.post_id
-        JOIN location l     ON ql.location_id = l.location_id
+        JOIN board b ON qb.post_id = b.post_id
+        JOIN category c ON qb.category_id = c.category_id
+        JOIN quotation_location ql ON qb.post_id = ql.post_id
+        JOIN location l ON ql.location_id = l.location_id
         <where>
-            <!-- categoryId가 null이 아닐 때만 AND 추가 -->
+            <!-- categoryId가 null이 아닐 때만 조건 추가 -->
             <if test="categoryId != null">
                 AND qb.category_id = #{categoryId}
             </if>
-            <!-- locationId가 null이 아닐 때만 AND 추가 -->
+            <!-- locationId가 null이 아닐 때만 조건 추가 -->
             <if test="locationId != null">
                 AND ql.location_id = #{locationId}
             </if>
-            <!-- 항상 적용할 기본 필터 -->
-            AND (qb.state = '진행전' and qb.expert_Id=0)
+
+            <!-- 항상 적용되는 기본 필터 -->
+            AND qb.state = '진행전'
+            AND qb.expert_id = 0
+
+            <!-- 전문가가 속한 카테고리 필터 -->
             AND qb.category_id IN (
             SELECT ec.category_id
             FROM expert_category ec
             WHERE ec.user_id = #{userId}
             )
+
+            <!-- 전문가가 속한 지역 필터 -->
             AND ql.location_id IN (
             SELECT el.location_id
             FROM expert_location el
             WHERE el.user_id = #{userId}
             )
         </where>
-        ORDER BY qb.post_id DESC, l.location_id
+        ORDER BY
+        qb.post_id DESC,
+        l.location_id
     </select>
+
 
 
 
@@ -143,15 +151,12 @@
         ORDER BY l.location_id
     </select>
 
-    <insert id="insertQuotationLocation" parameterType="map">
-        INSERT INTO quotation_location (
-            post_id,
-            location_id
-        )
-        VALUES (
-                   #{postId},
-                   #{locationId}
-               )
+    <!-- Mapper XML - 개선 후: 다중 Insert 쿼리 -->
+    <insert id="insertQuotationLocations">
+        INSERT INTO quotation_location (post_id, location_id)
+        <foreach collection="locationIds" item="locationId" separator=" UNION ALL ">
+            SELECT #{postId}, #{locationId} FROM dual
+        </foreach>
     </insert>
 
     <select id="findLocationsByUserId"
